@@ -4,6 +4,9 @@ Qt5 Extra components and widgets
 ## Introduction
 This repository consists of extra components and widgets for popular Qt5 Framework.
 
+It's a descendant of my previous [QtExtra](https://github.com/progzdeveloper/QtExtra) project, and contains many more features.  
+The main differences is that Qt5Extra use CMake as build system and C++17 as main C++ standard. This allow to implement more features and make them more efficient.
+
 ## Requirements
 C++17 and higher
 Qt5.12 and higher
