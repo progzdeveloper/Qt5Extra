@@ -1,0 +1,58 @@
+{
+   "syntax": "XML",
+   "rules": [
+      {
+         "name": "tag",
+         "pattern": "(<[a-zA-Z:]+\\b|<\\?[a-zA-Z:]+\\b|\\?>|>|/>|</[a-zA-Z:]+>)",
+         "format": {
+            "font": {
+               "bold": true
+            },
+            "style": {
+               "foreground": "#0000cc",
+               "background": "#ffffff"
+            }
+         }
+      },
+      {
+         "name": "attribute-key",
+         "pattern": "[a-zA-Z:-]+=",
+         "format": {
+            "font": {
+               "bold": true
+            },
+            "style": {
+               "foreground": "#336600",
+               "background": "#ffffff"
+            }
+         }
+      },
+      {
+         "name": "attribute-value",
+         "pattern": "(\"[^\"]*\"|'[^']*')",
+         "format": {
+            "font": {},
+            "style": {
+               "foreground": "#cc0000",
+               "background": "#ffffff"
+            }
+         }
+      },
+      {
+         "name": "comment",
+         "pattern": {
+            "first": "<!--",
+            "last": "-->"
+         },
+         "format": {
+            "font": {
+               "italic": true
+            },
+            "style": {
+               "foreground": "#999999",
+               "background": "#ffffff"
+            }
+         }
+      }
+   ]
+}

@@ -1,0 +1,51 @@
+{
+   "syntax": "JSON",
+   "rules": [
+      {
+         "name": "boolean",
+         "pattern": "\\b(true)\\b|\\b(false)\\b|\\b(null)\\b",
+         "format": {
+            "font": { "bold": true },
+            "style": {
+               "foreground": "#0000cc",
+               "background": "#ffffff"
+            }
+         }
+      },
+      {
+         "name": "numbers",
+         "pattern": "[0-9]",
+         "format": {
+            "font": { "bold": true },
+            "style": {
+               "foreground": "#336699",
+               "background": "#ffffff"
+            }
+         }
+      },
+      
+      {
+         "name": "strings",
+         "pattern": "(\".*\")",
+         "format": {
+            "font": {},
+            "style": {
+               "foreground": "#cc0000",
+               "background": "#ffffff"
+            }
+         }
+      },
+
+      {
+         "name": "key",
+         "pattern": "(\".*\")\\:",
+         "format": {
+            "font": { "bold": true },
+            "style": {
+               "foreground": "#0000ff",
+               "background": "#ffffff"
+            }
+         }
+      }
+   ]
+}

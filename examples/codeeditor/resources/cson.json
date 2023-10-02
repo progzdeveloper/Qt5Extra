@@ -1,0 +1,97 @@
+{
+   "syntax": "CSON",
+   "rules": [
+      {
+         "name": "comment",
+         "pattern": "(# .*)",
+         "priority": -1,
+         "format": {
+            "font": { "italic": true },
+            "style": {
+               "foreground": "#999999",
+               "background": "#ffffff"
+            }
+         }
+      },
+      {
+         "name": "boolean",
+         "pattern": "\\b(true)\\b|\\b(false)\\b|\\b(null)\\b",
+         "format": {
+            "font": { "bold": true },
+            "style": {
+               "foreground": "#0000cc",
+               "background": "#ffffff"
+            }
+         }
+      },
+      {
+         "name": "numbers",
+         "pattern": "[0-9]",
+         "format": {
+            "font": { "bold": true },
+            "style": {
+               "foreground": "#336699",
+               "background": "#ffffff"
+            }
+         }
+      },
+      {
+         "name": "key",
+         "pattern": "(\\w+\\:)|((\".*\")\\:)|((\\'.*\\')\\:)",
+         "priority": 2,
+         "format": {
+            "font": { "bold": true },
+            "style": {
+               "foreground": "#0000ff",
+               "background": "#ffffff"
+            }
+         }
+      },
+      {
+         "name": "strings-1sq",
+         "pattern": "(\\'.*\\')",
+         "priority": 1,
+         "format": {
+            "font": {},
+            "style": {
+               "foreground": "#cc0000",
+               "background": "#ffffff"
+            }
+         }
+      },
+      {
+         "name": "strings-3sq",
+         "pattern": "(\\'{3}.*\\'{3})",
+         "format": {
+            "font": {},
+            "style": {
+               "foreground": "#cc0000",
+               "background": "#ffffff"
+            }
+         }
+      },
+      {
+         "name": "strings-1dq",
+         "priority": 1,
+         "pattern": "(\".*\")",
+         "format": {
+            "font": {},
+            "style": {
+               "foreground": "#cc0000",
+               "background": "#ffffff"
+            }
+         }
+      },
+      {
+         "name": "strings-3dq",
+         "pattern": "(\"{3}.*\"{3})",
+         "format": {
+            "font": {},
+            "style": {
+               "foreground": "#cc0000",
+               "background": "#ffffff"
+            }
+         }
+      }
+   ]
+}

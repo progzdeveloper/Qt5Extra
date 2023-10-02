@@ -1,0 +1,150 @@
+{
+   "syntax": "SQL",
+   "rules": [
+      {
+         "name": "multi-line comment",
+         "priority": 3,
+         "pattern": {
+            "first": "/\\*",
+            "last": "\\*/"
+         },
+         "format": {
+            "font": {
+               "italic": true
+            },
+            "style": {
+               "foreground": "#999999",
+               "background": "#ffffff"
+            }
+         }
+      },
+      {
+         "name": "single-line comment",
+         "pattern": "(\\-{2}.*)",
+         "priority": 3,
+         "format": {
+            "font": {
+               "italic": true
+            },
+            "style": {
+               "foreground": "#999999",
+               "background": "#ffffff"
+            }
+         }
+      },
+      {
+         "name": "keywords",
+         "pattern": "(?i)\\b(table)\\b|\\b(create)\\b|\\b(drop)\\b|\\b(select)\\b|\\b(insert)\\b|\\b(update)\\b|\\b(set)\\b|\\b(delete)\\b|\\b(values)\\b|\\b(from)\\b|\\b(where)\\b|\\b(having)\\b|\\b(group)\\b|\\b(into)\\b|\\b(in)\\b|\\b(by)\\b|\\b(and)\\b|\\b(or)\\b|\\b(not)\\b|\\b(like)\\b|\\b(go)\\b|\\b(begin)\\b|\\b(end)\\b|\\b(declare)\\b|\\b(between)\\b",
+         "format": {
+            "font": {
+               "bold": true
+            },
+            "style": {
+               "foreground": "#0000cc",
+               "background": "#ffffff"
+            }
+         }
+      },
+      {
+         "name": "types",
+         "pattern": "(?i)\\b(boolean)\\b|\\b(integer)\\b|\\b(smallint)\\b|\\b(bigint)\\b|\\b(numeric)\\b|\\b(decimal)\\b|\\b(float)\\b|\\b(real)\\b|\\b(char)\\b|\\b(varchar)\\b|\\b(binary)\\b|\\b(varbinary)\\b|\\b(date)\\b|\\b(time)\\b|\\b(timestamp)\\b|\\b(interval)\\b|\\b(money)\\b",
+         "format": {
+            "font": { "bold": true },
+            "style": {
+               "foreground": "#009999",
+               "background": "#ffffff"
+            }
+         }
+      },
+      {
+         "name": "math functions",
+         "pattern": "(?i)\\b(abs)\\b|\\b(floor)\\b|\\b(ceil)\\b|\\b(cos)\\b|\\b(sin)\\b|\\b(tan)\\b|\\b(acos)\\b|\\b(asin)\\b|\\b(atan)\\b",
+         "format": {
+            "font": { "italic": true },
+            "style": {
+               "foreground": "#0099cc",
+               "background": "#ffffff"
+            }
+         }
+      },
+      {
+         "name": "statistical functions",
+         "pattern": "(?i)\\b(min)\\b|\\b(max)\\b|\\b(count)\\b|\\b(sum)\\b|\\b(stdev)\\b|\\b(stddev)\\b|\\b(var)\\b|\\b(variance)\\b",
+         "format": {
+            "font": { "italic": true },
+            "style": {
+               "foreground": "#0099cc",
+               "background": "#ffffff"
+            }
+         }
+      },
+      {
+         "name": "string/text functions",
+         "pattern": "(?i)\\b(lower)\\b|\\b(upper)\\b|\\b(substr)\\b|\\b(concat)\\b|\\b(length)\\b",
+         "format": {
+            "font": { "italic": true },
+            "style": {
+               "foreground": "#0099cc",
+               "background": "#ffffff"
+            }
+         }
+      },
+      {
+         "name": "numbers",
+         "pattern": "[0-9]",
+         "format": {
+            "font": {},
+            "style": {
+               "foreground": "#0000ff",
+               "background": "#ffffff"
+            }
+         }
+      },
+      {
+         "name": "strings",
+         "pattern": "(\".*\")",
+         "format": {
+            "font": {},
+            "style": {
+               "foreground": "#cc0000",
+               "background": "#ffffff"
+            }
+         }
+      },
+      {
+         "name": "identifiers",
+         "pattern": "'.[^']*'",
+         "format": {
+            "font": {},
+            "style": {
+               "foreground": "#339933",
+               "background": "#ffffff"
+            }
+         }
+      },
+      {
+         "name": "declarations",
+         "pattern": "\\@([A-Za-z_0-9]*)",
+         "format": {
+            "font": {},
+            "style": {
+               "foreground": "#cc66ff",
+               "background": "#ffffff"
+            }
+         }
+      },
+      {
+         "name": "macros",
+         "pattern": "\\$([A-Za-z_0-9]*)",
+         "format": {
+            "font": {
+               "italic": true
+            },
+            "style": {
+               "foreground": "#6600ff",
+               "background": "#ffffff"
+            }
+         }
+      }
+   ]
+}

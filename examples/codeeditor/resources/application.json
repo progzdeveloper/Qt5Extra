@@ -1,0 +1,8 @@
+{
+    "name": "Code Editor",
+    "description": "Qt Source Code Editor Example",
+    "version": "1.0\n\n%SystemInfo%",
+    "copyright": "Qt5Extra Example 2019-2023(c)",
+    "image": ":/images/logo.png",
+    "license": ":/text/license"
+}
