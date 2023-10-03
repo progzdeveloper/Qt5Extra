@@ -191,25 +191,24 @@ QSize QtColorSelector::minimumSizeHint() const
  */
 void QtColorSelector::paintSection(QPainter * painter, const QRect & rect, const QColor & color)
 {
-     
-
     QPoint pos = mapFromGlobal(QCursor::pos());
 
     QStyleOptionButton opt;
     opt.initFrom(this);
     opt.rect = rect;
 
-
-    if ((rect.contains(QPoint(3,3)) && d->fgP) || (rect.contains(QPoint(width()-4, height()-4)) && d->bgP))
+    if ((rect.contains(QPoint(3,3)) && d->fgP) ||
+        (rect.contains(QPoint(width()-4, height()-4)) && d->bgP))
         opt.state |= QStyle::State_Sunken;
     else
         opt.state |= QStyle::State_Raised;
 
-    if (rect==d->foregroundRect() && rect.contains(pos)) {
+    if (rect==d->foregroundRect() && rect.contains(pos))
         opt.state |= QStyle::State_MouseOver;
-    } else if (rect==d->backgroundRect() && rect.contains(pos) && !d->foregroundRect().contains(pos)) {
+    else if (rect==d->backgroundRect() && rect.contains(pos) && !d->foregroundRect().contains(pos))
         opt.state |= QStyle::State_MouseOver;
-    } else opt.state &= ~(QStyle::State_MouseOver);
+    else
+        opt.state &= ~(QStyle::State_MouseOver);
 
     //style()->drawControl(QStyle::CE_PushButtonBevel, &opt, painter, this);
     style()->drawControl(QStyle::CE_FocusFrame, &opt, painter, this);

@@ -29,7 +29,7 @@ public:
 
     explicit QtDateRange(QObject *parent = Q_NULLPTR);
     QtDateRange(const QDateTime& lower, const QDateTime& upper, QObject* parent = Q_NULLPTR);
-    ~QtDateRange();
+    ~QtDateRange() = default;
 
     const QDateTime& lower() const;
     const QDateTime& upper() const;

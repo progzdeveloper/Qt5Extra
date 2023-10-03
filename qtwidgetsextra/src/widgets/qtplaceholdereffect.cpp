@@ -20,20 +20,17 @@ public:
     QTextOption textOptions;
     QString placeholderText;
     QPointF displacement;
-    qreal opacity;
     QPointer<QAbstractItemModel> model;
-    QWidget* viewport;
-    int timerId;
+    QWidget* viewport = nullptr;
+    qreal opacity = 1.0;
+    int timerId = -1;
 
     QtPlaceholderEffectPrivate(QGraphicsEffect* effect) :
-        document(effect), opacity(1.0), timerId(-1)
-    {
-        textOptions.setAlignment(Qt::AlignCenter);
-        textOptions.setWrapMode(QTextOption::WordWrap);
-        document.setDefaultTextOption(textOptions);
-    }
+        QtPlaceholderEffectPrivate(effect, nullptr)
+    {}
+
     QtPlaceholderEffectPrivate(QGraphicsEffect* effect, QAbstractItemModel *m) :
-        document(effect), opacity(1.0), model(m)
+        document(effect), model(m), opacity(1.0), timerId(-1)
     {
         textOptions.setAlignment(Qt::AlignCenter);
         textOptions.setWrapMode(QTextOption::WordWrap);
@@ -50,6 +47,7 @@ QPointF QtPlaceholderEffectPrivate::offsetPoint(const QRectF& rect) const
 {
     QPointF pos;
 
+    //TODO: use alignedRect!
     //document.setTextWidth(rect.width());
     QSizeF size = document.size();
     int align = textOptions.alignment();
@@ -114,8 +112,8 @@ QtPlaceholderEffect::~QtPlaceholderEffect()
 
 void QtPlaceholderEffect::setOpacity(qreal opacity)
 {
-
-    if (d->opacity != opacity) {
+    if (d->opacity != opacity)
+    {
         d->opacity = opacity;
         Q_EMIT opacityChanged(d->opacity);
     }
@@ -129,8 +127,8 @@ qreal QtPlaceholderEffect::opacity() const
 
 void QtPlaceholderEffect::setModel(QAbstractItemModel *model)
 {
-
-    if (d->model != model) {
+    if (d->model != model)
+    {
         d->model = model;
         update();
     }
@@ -138,13 +136,11 @@ void QtPlaceholderEffect::setModel(QAbstractItemModel *model)
 
 QAbstractItemModel *QtPlaceholderEffect::model() const
 {
-
     return d->model;
 }
 
 void QtPlaceholderEffect::setPlaceholderText(const QString &text, int timeout)
 {
-
     if (d->placeholderText != text)
     {
         d->placeholderText = text;
@@ -161,13 +157,11 @@ void QtPlaceholderEffect::setPlaceholderText(const QString &text, int timeout)
 
 QString QtPlaceholderEffect::placeholderText() const
 {
-
     return d->placeholderText;
 }
 
 void QtPlaceholderEffect::setAlignment(Qt::Alignment align)
 {
-
     d->textOptions.setAlignment(align);
     d->document.setDefaultTextOption(d->textOptions);
     update();
@@ -175,14 +169,11 @@ void QtPlaceholderEffect::setAlignment(Qt::Alignment align)
 
 Qt::Alignment QtPlaceholderEffect::alignment() const
 {
-
     return d->textOptions.alignment();
 }
 
 void QtPlaceholderEffect::draw(QPainter *painter)
 {
-
-
     painter->save();
     drawSource(painter);
     painter->restore();
@@ -193,14 +184,12 @@ void QtPlaceholderEffect::draw(QPainter *painter)
 
 void QtPlaceholderEffect::sourceChanged(ChangeFlags flags)
 {
-
     QGraphicsEffect::sourceChanged(flags);
     d->displacement = d->offsetPoint(boundingRect());
 }
 
 bool QtPlaceholderEffect::eventFilter(QObject *watched, QEvent *event)
 {
-
     if (watched == d->viewport && event->type() == QEvent::MouseButtonRelease)
     {
         QMouseEvent* mouseEvent = static_cast<QMouseEvent*>(event);
@@ -219,7 +208,6 @@ bool QtPlaceholderEffect::eventFilter(QObject *watched, QEvent *event)
 
 void QtPlaceholderEffect::timerEvent(QTimerEvent *event)
 {
-
     if (event->timerId() == d->timerId)
     {
         killTimer(d->timerId);

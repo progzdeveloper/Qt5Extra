@@ -16,6 +16,7 @@ add_definitions(-DQTWIDGETSEXTRA_MAKEDLL -DQTWIDGETSEXTRA_BUILD_LIB)
 find_sources(SUBPROJECT_SOURCES "${SUBPROJECT_ROOT}/src" "cpp")
 find_sources(SUBPROJECT_HEADERS "${SUBPROJECT_ROOT}/src" "h")
 include_directories(${PROJECT_NAME} "${SUBPROJECT_ROOT}/include")
+include_directories(${PROJECT_NAME} "${SUBPROJECT_ROOT}/src/utils")
 
 add_library(${PROJECT_NAME} SHARED ${SUBPROJECT_SOURCES} ${SUBPROJECT_HEADERS} ${SUBPROJECT_INTERFACE_HEADER} ${PROJECT_NAME}.qrc)
 target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Widgets)

@@ -22,18 +22,25 @@ public:
         QColor background;
         QColor foreground;
 
-        Style() {}
-        Style(const QColor& c) :
-            background(Qt::transparent), foreground(c) {}
+        Style() = default;
 
-        Style(const QRegularExpression& e, const QColor& bg, const QColor& fg) :
-            expr(e), background(bg), foreground(fg) {}
+        Style(const QColor& c)
+            : background(Qt::transparent)
+            , foreground(c)
+        {}
+
+        Style(const QRegularExpression& e, const QColor& bg, const QColor& fg)
+            : expr(e)
+            , background(bg)
+            , foreground(fg)
+        {}
     };
 
     MessageHighlignter() {}
     ~MessageHighlignter() {}
 
-    bool contains(int id) const {
+    bool contains(int id) const
+    {
         return (id > 0 && id <= styles.size());
     }
 
@@ -45,7 +52,8 @@ public:
 
     int remove(int id)
     {
-        if (id > 0 && id < styles.size()) {
+        if (contains(id))
+        {
             styles.removeAt(id - 1);
             return 1;
         }
@@ -56,7 +64,8 @@ public:
     {
         QRegularExpressionMatch match;
         int i = 1;
-        for (auto it = styles.begin(); it != styles.end(); ++it, ++i) {
+        for (auto it = styles.begin(); it != styles.end(); ++it, ++i)
+        {
             match = it->expr.match(text);
             if (match.hasMatch())
                 return i;
@@ -64,15 +73,17 @@ public:
         return 0;
     }
 
-    const Style& style(const int id) const {
+    const Style& style(const int id) const
+    {
         static const Style defaultStyle(Qt::black);
-        if (id > 0 && id <= styles.size()) {
+        if (contains(id))
             return styles[id - 1];
-        }
+
         return defaultStyle;
     }
 
-    void clear() {
+    void clear()
+    {
         styles.clear();
     }
 
@@ -102,7 +113,8 @@ public:
 
     void updateGeometry();
 
-    inline QPair<int,int> visibleLines( int top, int bottom ) {
+    inline QPair<int,int> visibleLines( int top, int bottom )
+    {
         return qMakePair( qMax( 0, lineByYCoordinate( top ) ),
                           qMax( 0, 1 + lineByYCoordinate( bottom ) ) );
     }
@@ -129,26 +141,28 @@ public:
         unsigned int styleID;
     };
 
-    //unsigned int findOrAddStyle( const Style & style );
-
 private:
-    mutable struct Cache {
-        enum {
+    mutable struct Cache
+    {
+        enum
+        {
             Dimensions = 1,
             FontMetrics = 2,
             All = FontMetrics|Dimensions
         };
-        Cache() : dirty( All ) {}
-        int dirty;
 
-        struct {
+        int dirty = All;
+
+        struct
+        {
             int lineSpacing;
             int ascent;
             int averageCharWidth;
             QVector<int> lineWidths;
         } fontMetrics;
 
-        struct {
+        struct
+        {
             int indexOfLongestLine;
             int longestLineLength;
         } dimensions;
@@ -240,14 +254,15 @@ void QtMessageLogWidgetPrivate::enforceHistorySize()
     lines.erase( lines.begin(), lines.begin() + remove );
 
     // can't quickly update the dimensions if the fontMetrics aren't uptodate.
-    if ( cache.dirty & Cache::FontMetrics ) {
+    if ( cache.dirty & Cache::FontMetrics )
+    {
         cache.dirty |= Cache::Dimensions;
         return;
     }
 
     QVector<int> & lw = cache.fontMetrics.lineWidths;
 
-    assert( lw.size() > remove );
+    Q_ASSERT( lw.size() > remove );
     lw.erase( lw.begin(), lw.begin() + remove );
 
     if ( cache.dirty & Cache::Dimensions )
@@ -275,14 +290,16 @@ void QtMessageLogWidgetPrivate::updateScrollRanges()
 {
     updateCache();
 
-    if ( QScrollBar * const sb = q_ptr->verticalScrollBar() ) {
-        const int document = lines.size() * cache.fontMetrics.lineSpacing ;
+    if (QScrollBar* const sb = q_ptr->verticalScrollBar())
+    {
+        const int document = lines.size() * cache.fontMetrics.lineSpacing;
         const int viewport = q_ptr->viewport()->height();
         const int singleStep = cache.fontMetrics.lineSpacing;
         set_scrollbar_properties( *sb, document, viewport, singleStep, Qt::Vertical );
     }
 
-    if ( QScrollBar * const sb = q_ptr->horizontalScrollBar() ) {
+    if (QScrollBar* const sb = q_ptr->horizontalScrollBar())
+    {
         const int document = cache.dimensions.longestLineLength;
         const int viewport = q_ptr->viewport()->width();
         const int singleStep = cache.fontMetrics.lineSpacing; // rather randomly chosen
@@ -302,7 +319,7 @@ void QtMessageLogWidgetPrivate::updateGeometry()
 
 void QtMessageLogWidgetPrivate::addPendingLines()
 {
-    if ( pendingLines.empty() )
+    if (pendingLines.empty())
         return;
 
     const unsigned int oldNumLines = lines.size();
@@ -311,20 +328,17 @@ void QtMessageLogWidgetPrivate::addPendingLines()
 
     // if the cache isn't dirty, we can quickly update it without
     // invalidation:
-
-    if ( !cache.dirty ) {
-
+    if (!cache.dirty)
+    {
         // update fontMetrics:
         const QFontMetrics & fm = q_ptr->fontMetrics();
-        QVector<int> & lw = cache.fontMetrics.lineWidths;
+        QVector<int>& lw = cache.fontMetrics.lineWidths;
         lw.reserve( pendingLines.size() );
-        for (auto it = pendingLines.begin(); it != pendingLines.end(); ++it) {
-            lw.push_back( fm.width( it->text ) );
-        }
+        for (const auto& line : pendingLines)
+            lw.push_back( fm.width(line.text) );
 
         // update dimensions:
-        const QVector<int>::const_iterator it =
-            std::max_element( lw.begin() + oldNumLines, lw.end() );
+        const QVector<int>::const_iterator it = std::max_element( lw.begin() + oldNumLines, lw.end() );
         if ( *it >= cache.dimensions.longestLineLength ) {
             cache.dimensions.longestLineLength = *it;
             cache.dimensions.indexOfLongestLine = oldNumLines + ( it - lw.begin() );
@@ -395,16 +409,18 @@ unsigned int QtMessageLogWidget::historySize() const
 
 QString QtMessageLogWidget::text() const
 {
-
     QString result;
     // reserve space
     result.reserve((d->lines.size() + d->pendingLines.size()) * qMin(512, d->cache.dimensions.longestLineLength / 4));
-    for (auto it = d->lines.begin(); it != d->lines.end(); ++it) {
-        result += it->text;
+    for (const auto& line : qAsConst(d->lines))
+    {
+        result += line.text;
         result += '\n';
     }
-    for (auto it = d->pendingLines.begin(); it != d->pendingLines.end(); ++it) {
-        result += it->text;
+
+    for (const auto& line : qAsConst(d->pendingLines))
+    {
+        result += line.text;
         result += '\n';
     }
     result.remove(result.size()-1, 1); // erase last '\n'
@@ -478,13 +494,12 @@ void QtMessageLogWidget::clearStyles()
 
 QSize QtMessageLogWidget::minimumSizeHint() const
 {
-
     d->updateCache();
     const QSize base = QAbstractScrollArea::minimumSizeHint();
     const QSize view( d->minimumVisibleColumns * d->cache.fontMetrics.averageCharWidth,
                       d->minimumVisibleLines   * d->cache.fontMetrics.lineSpacing );
-    const QSize scrollbars( verticalScrollBar() ? verticalScrollBar()->minimumSizeHint().width() : 0,
-                horizontalScrollBar() ? horizontalScrollBar()->minimumSizeHint().height() : 0 );
+    const QSize scrollbars{ verticalScrollBar() ? verticalScrollBar()->minimumSizeHint().width() : 0,
+                            horizontalScrollBar() ? horizontalScrollBar()->minimumSizeHint().height() : 0 };
     return base + view + scrollbars;
 }
 
@@ -513,8 +528,6 @@ void QtMessageLogWidget::clear()
 
 void QtMessageLogWidget::message( const QString & str )
 {
-
-
     QtMessageLogWidgetPrivate::LineItem li;
     li.text = str;
     li.styleID = d->highlighter.highlight(str);
@@ -524,7 +537,6 @@ void QtMessageLogWidget::message( const QString & str )
 
 void QtMessageLogWidget::scrollContentsBy(int dx, int dy)
 {
-
     d->updateScrollRanges();
     d->updateCache();
     d->updateGeometry();
@@ -533,8 +545,6 @@ void QtMessageLogWidget::scrollContentsBy(int dx, int dy)
 
 void QtMessageLogWidget::paintEvent(QPaintEvent*)
 {
-
-
     //d->updateCache();
 
     QPainter p( viewport() );
@@ -607,7 +617,6 @@ void QtMessageLogWidget::keyPressEvent(QKeyEvent* e)
 
 void QtMessageLogWidget::resizeEvent(QResizeEvent* e)
 {
-
     d->updateScrollRanges();
     d->updateCache();
     d->updateGeometry();

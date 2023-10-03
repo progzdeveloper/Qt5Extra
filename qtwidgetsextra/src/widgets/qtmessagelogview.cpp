@@ -22,7 +22,8 @@ public:
 
     virtual ~QtMessageLogProxyModel() {}
 
-    void setFieldFilter(QtMessageLogView::Field field, const QVariant& value, Qt::MatchFlags flags = Qt::MatchExactly) {
+    void setFieldFilter(QtMessageLogView::Field field, const QVariant& value, Qt::MatchFlags flags = Qt::MatchExactly)
+    {
         if (value.isValid())
             filters[fieldColumn(field)] = qMakePair(value, flags);
         else
@@ -30,7 +31,8 @@ public:
         invalidateFilter();
     }
 
-    const VariantFlagsPair fieldFilter(QtMessageLogView::Field field) const {
+    const VariantFlagsPair fieldFilter(QtMessageLogView::Field field) const
+    {
         auto it = filters.find(fieldColumn(field));
         return (it != filters.end() ? (*it) : qMakePair(QVariant(), Qt::MatchFlags(Qt::MatchExactly)));
     }
@@ -60,9 +62,8 @@ public:
         for (auto it = filters.begin(); it != filters.end(); ++it)
         {
             const QModelIndex index = sourceModel()->index(sourceRow, it.key(), sourceParent);
-            if (!matched(index.data(filterRole()), it->first, it->second)) {
+            if (!matched(index.data(filterRole()), it->first, it->second))
                 return false;
-            }
         }
         return true;
     }
@@ -175,38 +176,32 @@ QtMessageLogView::~QtMessageLogView() = default;
 
 QAbstractItemModel *QtMessageLogView::model() const
 {
-     
     return d->proxy;
 }
 
 
 void QtMessageLogView::setRegExp(const QRegularExpression &re)
 {
-     
     d->regExp = re;
 }
 
 QRegularExpression QtMessageLogView::regExp() const
 {
-     
     return d->regExp;
 }
 
 void QtMessageLogView::setRotationLimit(uint limit)
 {
-     
     d->model->setRotationLimit(limit);
 }
 
 uint QtMessageLogView::rotationLimit() const
 {
-     
     return d->model->rotationLimit();
 }
 
 void QtMessageLogView::setVisibleFields(Fields f)
 {
-     
     if (d->fields == f)
         return;
 
@@ -219,31 +214,26 @@ void QtMessageLogView::setVisibleFields(Fields f)
 
 QtMessageLogView::Fields QtMessageLogView::visibleFields() const
 {
-     
     return d->fields;
 }
 
 void QtMessageLogView::setDefaultValue(Field field, const QVariant &value)
 {
-     
     d->defaults[field] = value;
 }
 
 QVariant QtMessageLogView::defaultValue(Field field) const
 {
-     
     return d->defaults[field];
 }
 
 void QtMessageLogView::sort()
 {
-     
     d->view->sortByColumn(QtMessageLogModel::SectionTimestamp, Qt::DescendingOrder);
 }
 
 void QtMessageLogView::setFieldFilter(Field f, const QVariant &value, Qt::MatchFlags flags)
 {
-     
     d->proxy->setFieldFilter(f, value, flags);
 }
 
@@ -269,25 +259,21 @@ QString QtMessageLogView::messageFilter() const
 
 QPair<QVariant, Qt::MatchFlags> QtMessageLogView::fieldFilter(QtMessageLogView::Field f) const
 {
-     
     return d->proxy->fieldFilter(f);
 }
 
 void QtMessageLogView::clearFilters(Fields fields)
 {
-     
     d->proxy->clearFilters(fields);
 }
 
 void QtMessageLogView::clear()
 {
-     
     d->model->clear();
 }
 
 void QtMessageLogView::message(const QDateTime &timestamp, int level, int code, const QString& category, const QString& text)
 {
-     
     d->model->message(level, code, category, text, timestamp);
 }
 
@@ -332,11 +318,9 @@ void QtMessageLogView::message(const QString &text)
 
 void QtMessageLogView::feed(const QString &line)
 {
-     
     QRegularExpressionMatch match = d->regExp.match(line);
-    if (match.hasMatch()) {
+    if (match.hasMatch())
         interpret(match);
-    }
 }
 
 void QtMessageLogView::interpret(const QRegularExpressionMatch &match)
@@ -372,5 +356,5 @@ QString QtMessageLogView::text(const QRegularExpressionMatch &match) const
     return match.captured(QtMessageLogModel::SectionMessage + 1);
 }
 
-
 #include "qtmessagelogview.moc"
+

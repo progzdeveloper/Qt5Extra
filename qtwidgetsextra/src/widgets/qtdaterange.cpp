@@ -11,10 +11,6 @@ QtDateRange::QtDateRange(const QDateTime &lower, const QDateTime &upper, QObject
 {
 }
 
-QtDateRange::~QtDateRange()
-{
-}
-
 void QtDateRange::setStep(int step)
 {
     if (mStep != step) {
@@ -126,7 +122,7 @@ QDateTime QtDateRange::adjusted(const QDateTime &dt, int amount) const
 
 QString QtDateRange::intervalText() const
 {
-    static const qint64 SecsPerDay = 86400;
+    static constexpr qint64 SecsPerDay = 86400;
 
     QString text;
     if (mLower == mUpper) {

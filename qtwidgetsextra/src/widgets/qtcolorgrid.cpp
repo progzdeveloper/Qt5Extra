@@ -14,10 +14,6 @@ QtColorGridModel::QtColorGridModel(QObject *parent) :
 {
 }
 
-QtColorGridModel::~QtColorGridModel()
-{
-}
-
 void QtColorGridModel::setPalette(const QtColorPalette &palette)
 {
     if (!mPalette.isEmpty()) {
@@ -84,10 +80,6 @@ void QtColorGridModel::clear()
 
 QtColorGridDelegate::QtColorGridDelegate(QObject *parent) :
     QStyledItemDelegate(parent)
-{
-}
-
-QtColorGridDelegate::~QtColorGridDelegate()
 {
 }
 

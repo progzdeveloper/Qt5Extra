@@ -7,25 +7,55 @@ class QTWIDGETSEXTRA_EXPORT QtTextLabel
 {
     Q_OBJECT
     Q_PROPERTY(QString text READ text WRITE setText NOTIFY textChanged)
+    Q_PROPERTY(QString plainText READ plainText)
+    Q_PROPERTY(QString elidedText READ elidedText)
     Q_PROPERTY(bool isElided READ isElided)
+    Q_PROPERTY(Qt::Alignment alignment READ alignment WRITE setAlignment NOTIFY alignmentChanged)
+    Q_PROPERTY(Qt::Alignment textAlign READ textAlign WRITE setTextAlign NOTIFY textAlignChanged)
+    Q_PROPERTY(WordWrapMode wrapMode READ wrapMode WRITE setWrapMode NOTIFY wrapModeChanged)
 public:
+    enum WordWrapMode
+    {
+        NoWrap,
+        WrapWordBound,
+        WrapAnywhere,
+        WrapWordBoundOrMiddle
+    };
+    Q_ENUM(WordWrapMode)
+
     explicit QtTextLabel(QWidget* parent = nullptr);
     explicit QtTextLabel(const QString& text, QWidget* parent = nullptr);
     ~QtTextLabel();
 
     void setText(const QString& text);
     QString text() const;
-
+    QString plainText() const;
     QString elidedText() const;
     bool isElided() const;
+
+    void setAlignment(Qt::Alignment align);
+    Qt::Alignment alignment() const;
+
+    void setTextAlign(Qt::Alignment align);
+    Qt::Alignment textAlign() const;
+
+    void setWrapMode(WordWrapMode mode);
+    WordWrapMode wrapMode() const;
 
 Q_SIGNALS:
     void textChanged(const QString&);
     void elisionChanged(bool);
+    void alignmentChanged(Qt::Alignment);
+    void textAlignChanged(Qt::Alignment);
+    void wrapModeChanged(WordWrapMode);
 
 protected:
-    void paintEvent(QPaintEvent* event);
-    void resizeEvent(QResizeEvent* event);
+    void paintEvent(QPaintEvent* event) Q_DECL_OVERRIDE;
+    void resizeEvent(QResizeEvent* event) Q_DECL_OVERRIDE;
+    void changeEvent(QEvent* event) Q_DECL_OVERRIDE;
+
+private:
+    void refreshEliding();
 
 private:
     QScopedPointer<class QtTextLabelPrivate> d;

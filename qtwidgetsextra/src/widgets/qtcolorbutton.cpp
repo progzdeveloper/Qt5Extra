@@ -78,25 +78,24 @@ void QtColorButtonPrivate::initUi()
 
 QAction* QtColorButtonPrivate::createAction(const QString &name)
 {
-    QAction* action = Q_NULLPTR;
-    QColor c(name);
+    const QColor c(name);
     return createAction(c, name);
 }
 
 QAction *QtColorButtonPrivate::createAction(const QColor &c, const QString &name)
 {
     QAction* action = Q_NULLPTR;
-    if (c.isValid())
-    {
-       action = new QAction(menu);
-       action->setData(c);
-       action->setIcon(colorPixmap(c, q_ptr->iconSize()));
-       action->setText(name.isEmpty() ? standardColorName(c) : name);
+    if (!c.isValid())
+        return action;
 
-       QObject::connect(action, &QAction::triggered, q_ptr, &QtColorButton::colorSelected);
+    colors.insert(c);
+    action = new QAction(menu);
+    action->setData(c);
+    action->setIcon(colorPixmap(c, q_ptr->iconSize()));
+    action->setText(name.isEmpty() ? standardColorName(c) : name);
 
-       colors.insert(c);
-    }
+    QObject::connect(action, &QAction::triggered, q_ptr, &QtColorButton::colorSelected);
+
     return action;
 }
 
@@ -105,8 +104,7 @@ void QtColorButtonPrivate::createListMenu(const QStringList& names)
     recreateMenu();
     for (const auto& name : names)
     {
-        QAction* action = createAction(name);
-        if (action)
+        if (QAction* action = createAction(name))
             menu->addAction(action);
     }
 }
@@ -116,8 +114,7 @@ void QtColorButtonPrivate::createListMenu(const QtColorSet& colors)
     recreateMenu();
     for (const auto& color : colors)
     {
-        QAction* action = createAction(color);
-        if (action)
+        if (QAction* action = createAction(color))
             menu->addAction(action);
     }
 }
@@ -143,7 +140,7 @@ void QtColorButtonPrivate::createGridMenu(const QStringList &names)
 
     QtColorSet colors;
     for (auto it = names.begin(); it != names.end(); ++it) {
-        colors << QColor(*it);
+        colors.push_back(QColor{ *it });
     }
     grid->setColors(colors);
 
@@ -242,34 +239,29 @@ QtColorButton::~QtColorButton() = default;
 
 void QtColorButton::colorSelected()
 {
-    QAction* action = qobject_cast<QAction*>(sender());
-    if (action) {
+    if (QAction* action = qobject_cast<QAction*>(sender()))
         setColor(action->data().value<QColor>().name());
-    }
 }
 
 void QtColorButton::pickColor()
 {
-     
     QColor c = QColorDialog::getColor(d->color, parentWidget(), tr("Select Color"), QColorDialog::ShowAlphaChannel);
-    if (c.isValid()) {
-        setColor(c);
-        if (!d->colors.contains(c) && d->popupStyle != GridPopup) {
-            d->menu->addAction(d->createAction(c));
-        }
-    }
+    if (!c.isValid())
+        return;
+
+    setColor(c);
+    if (!d->colors.contains(c) && d->popupStyle != GridPopup)
+        d->menu->addAction(d->createAction(c));
 }
 
 void QtColorButton::setColor(const QColor & color)
 {
-     
-
     d->color = color;
     setText(standardColorName(d->color));
     setIcon(colorPixmap(d->color, iconSize()));
-    if (!d->colors.contains(d->color)) {
+    if (!d->colors.contains(d->color))
         d->menu->addAction(d->createAction(d->color));
-    }
+
     if (d->menu->isVisible())
         d->menu->hide();
     emit colorChanged(d->color);
@@ -277,45 +269,40 @@ void QtColorButton::setColor(const QColor & color)
 
 QColor QtColorButton::color() const
 {
-     
     return d->color;
 }
 
 void QtColorButton::setColors(const QtColorSet & colorSet)
 {
-     
     d->colors.clear();
     for (auto it = colorSet.begin(); it != colorSet.end(); ++it)
         d->colors.insert(*it);
+
     d->resetMenu();
 }
 
 QtColorSet QtColorButton::colors() const
 {
-     
     QtColorSet colorSet;
     QList<QAction*> actions = d->menu->actions();
-    for (auto it = actions.begin(); it != actions.end(); ++it) {
-        colorSet << (*it)->data().value<QColor>();
-    }
+    for (auto it = actions.begin(); it != actions.end(); ++it)
+        colorSet.push_back((*it)->data().value<QColor>());
+
     return colorSet;
 }
 
 void QtColorButton::setGridWidth(int width)
 {
-     
     d->gridWidth = width;
 }
 
 int QtColorButton::gridWidth() const
 {
-     
     return d->gridWidth;
 }
 
 void QtColorButton::setPopupStyle(QtColorButton::PopupStyle style)
 {
-     
     if (d->popupStyle != style) {
         d->menu->hide();
         d->popupStyle = style;
@@ -326,13 +313,11 @@ void QtColorButton::setPopupStyle(QtColorButton::PopupStyle style)
 
 QtColorButton::PopupStyle QtColorButton::popupStyle() const
 {
-     
     return d->popupStyle;
 }
 
 void QtColorButton::updateMenu()
 {
-     
     d->resetMenu();
 }
 

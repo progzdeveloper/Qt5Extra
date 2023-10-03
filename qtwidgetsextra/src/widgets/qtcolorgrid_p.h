@@ -9,7 +9,7 @@ class QtColorGridModel :
     Q_OBJECT
 public:
     explicit QtColorGridModel(QObject* parent = Q_NULLPTR);
-    ~QtColorGridModel();
+    ~QtColorGridModel() = default;
 
     void setPalette(const QtColorPalette& palette);
     const QtColorPalette& palette();
@@ -32,7 +32,7 @@ class QtColorGridDelegate :
 
 public:
     explicit QtColorGridDelegate(QObject* parent = Q_NULLPTR);
-    ~QtColorGridDelegate();
+    ~QtColorGridDelegate() = default;
 
     // QAbstractItemDelegate interface
 public:

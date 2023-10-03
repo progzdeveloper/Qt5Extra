@@ -116,7 +116,6 @@ void QtDateSpanEdit::indexChanged(int index)
 }
 
 
-
 class QtDateRangeEditPrivate
 {
     Q_DECLARE_TR_FUNCTIONS(QtDateSpanEditPrivate)
@@ -223,7 +222,6 @@ QDateTimeEdit *QtDateRangeEditPrivate::fromSender(QObject *sender)
 }
 
 
-
 QtDateRangeEdit::QtDateRangeEdit(QWidget *parent)
     : QWidget(parent)
     , d(new QtDateRangeEditPrivate(this))
@@ -255,10 +253,13 @@ QDate QtDateRangeEdit::upperDate() const
 
 void QtDateRangeEdit::setupRange(const QDateTime &lower, const QDateTime &upper)
 {
-    if (d->range->span() == QtDateRange::Undefined) {
+    if (d->range->span() == QtDateRange::Undefined)
+    {
         d->upperEdit->setMinimumDateTime(lower);
         d->lowerEdit->setMaximumDateTime(upper);
-    }else {
+    }
+    else
+    {
         d->lowerEdit->clearMaximumDateTime();
         d->upperEdit->clearMinimumDateTime();
     }
@@ -276,10 +277,13 @@ void QtDateRangeEdit::setupRange(const QDateTime &lower, const QDateTime &upper)
 
 void QtDateRangeEdit::setupSpan(int span)
 {
-    if (span == QtDateRange::Undefined) {
+    if (span == QtDateRange::Undefined)
+    {
         d->lowerEdit->setMaximumDateTime(d->range->upper());
         d->upperEdit->setMinimumDateTime(d->range->lower());
-    } else {
+    }
+    else
+    {
         d->lowerEdit->clearMaximumDateTime();
         d->upperEdit->clearMinimumDateTime();
     }
@@ -288,7 +292,8 @@ void QtDateRangeEdit::setupSpan(int span)
 void QtDateRangeEdit::setCurrentDate()
 {
     QDateTimeEdit* edit = d->fromSender(sender());
-    if (edit != Q_NULLPTR) {
+    if (edit != Q_NULLPTR)
+    {
         edit->setDate(QDate::currentDate());
         edit->setTime(QTime(0, 0, 0));
     }
@@ -297,23 +302,20 @@ void QtDateRangeEdit::setCurrentDate()
 void QtDateRangeEdit::setCurrentTime()
 {
     QDateTimeEdit* edit = d->fromSender(sender());
-    if (edit != Q_NULLPTR) {
+    if (edit != Q_NULLPTR)
         edit->setTime(QTime::currentTime());
-    }
 }
 
 void QtDateRangeEdit::setCurrentDateTime()
 {
     QDateTimeEdit* edit = d->fromSender(sender());
-    if (edit != Q_NULLPTR) {
+    if (edit != Q_NULLPTR)
         edit->setDateTime(QDateTime::currentDateTime());
-    }
 }
 
 void QtDateRangeEdit::resetTime()
 {
     QDateTimeEdit* edit = d->fromSender(sender());
-    if (edit != Q_NULLPTR) {
+    if (edit != Q_NULLPTR)
         edit->setTime(QTime(0, 0, 0));
-    }
 }

@@ -154,7 +154,6 @@ QVariant QtMessageLogModel::data(const QModelIndex &index, int role) const
 
 void QtMessageLogModel::setRotationLimit(uint limit)
 {
-     
     if (limit > 0 && limit > (uint)d->recordCache.size()) {
         d->maxSize = limit;
     }
@@ -162,13 +161,11 @@ void QtMessageLogModel::setRotationLimit(uint limit)
 
 uint QtMessageLogModel::rotationLimit() const
 {
-     
     return d->maxSize;
 }
 
 void QtMessageLogModel::message(int level, int code, const QString& category, const QString& message, const QDateTime& timestamp)
 {
-     
     static const QModelIndex invalid;
 
     if (d->current < (int)d->recordCache.size()) {
@@ -198,7 +195,6 @@ void QtMessageLogModel::message(int level, int code, const QString& category, co
 
 void QtMessageLogModel::clear()
 {
-     
     beginResetModel();
     d->recordCache.clear();
     d->current = 0;

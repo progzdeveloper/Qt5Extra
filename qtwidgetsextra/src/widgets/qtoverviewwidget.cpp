@@ -144,7 +144,6 @@ QtOverviewWidget::~QtOverviewWidget() = default;
 
 void QtOverviewWidget::setArea(QAbstractScrollArea *area)
 {
-
     if (d->area)
     {
         d->area->removeEventFilter(this);
@@ -174,13 +173,11 @@ void QtOverviewWidget::setArea(QAbstractScrollArea *area)
 
 QAbstractScrollArea *QtOverviewWidget::area() const
 {
-
     return d->area;
 }
 
 void QtOverviewWidget::setUpdatable(bool on)
 {
-
     d->updatable = on;
     if (isVisible() && d->area)
         d->timer->start();
@@ -188,13 +185,11 @@ void QtOverviewWidget::setUpdatable(bool on)
 
 bool QtOverviewWidget::isUpdatable()
 {
-
     return d->updatable;
 }
 
 void QtOverviewWidget::setUpdateInterval(int msec)
 {
-
     if (d->timer->interval() == msec)
         return;
 
@@ -204,13 +199,11 @@ void QtOverviewWidget::setUpdateInterval(int msec)
 
 int QtOverviewWidget::updateInterval() const
 {
-
     return d->timer->interval();
 }
 
 void QtOverviewWidget::updatePixmap()
 {
-
     if (!isVisible())
         return;
 
@@ -220,7 +213,6 @@ void QtOverviewWidget::updatePixmap()
 
 void QtOverviewWidget::updateContentRect()
 {
-
     if (!isVisible())
         return;
 
@@ -230,7 +222,6 @@ void QtOverviewWidget::updateContentRect()
 
 void QtOverviewWidget::refresh()
 {
-
     if (!isVisible())
         return;
 
@@ -261,8 +252,6 @@ void QtOverviewWidget::drawContentRect(QPainter *painter, const QRect &r)
 
 bool QtOverviewWidget::eventFilter(QObject *watched, QEvent *event)
 {
-
-
     if (!isVisible() || watched != d->area)
         return QWidget::eventFilter(watched, event);
 
@@ -302,7 +291,6 @@ bool QtOverviewWidget::eventFilter(QObject *watched, QEvent *event)
 
 void QtOverviewWidget::showEvent(QShowEvent *event)
 {
-
     QWidget::showEvent(event);
     QTimer::singleShot(0, this, &QtOverviewWidget::refresh);
     if (d->updatable)
@@ -311,13 +299,12 @@ void QtOverviewWidget::showEvent(QShowEvent *event)
 
 void QtOverviewWidget::hideEvent(QHideEvent *event)
 {
-
     d->pixmap = QPixmap(); // release pixmap
     QWidget::hideEvent(event);
 }
+
 void QtOverviewWidget::paintEvent(QPaintEvent *event)
 {
-
     QWidget::paintEvent(event);
     QPainter painter(this);
     painter.drawPixmap(d->pixmapRect, d->pixmap);
@@ -326,7 +313,6 @@ void QtOverviewWidget::paintEvent(QPaintEvent *event)
 
 void QtOverviewWidget::resizeEvent(QResizeEvent *event)
 {
-
     QWidget::resizeEvent(event);
 
     d->pixmapRect = d->pixmap.rect();
@@ -359,7 +345,6 @@ void QtOverviewWidget::resizeEvent(QResizeEvent *event)
 
 void QtOverviewWidget::mousePressEvent(QMouseEvent *event)
 {
-
     switch (event->button())
     {
     case Qt::RightButton:
@@ -382,7 +367,6 @@ void QtOverviewWidget::mousePressEvent(QMouseEvent *event)
 
 void QtOverviewWidget::mouseMoveEvent(QMouseEvent *event)
 {
-
     if (event->buttons() == Qt::NoButton && d->pos == invalidPoint)
     {
         if (d->contentRect.contains(event->pos())) {
@@ -413,7 +397,6 @@ void QtOverviewWidget::mouseMoveEvent(QMouseEvent *event)
 
 void QtOverviewWidget::mouseReleaseEvent(QMouseEvent *event)
 {
-
     setCursor(d->contentRect.contains(event->pos()) ? Qt::OpenHandCursor : Qt::ArrowCursor);
     if (event->button() == Qt::LeftButton)
     {

@@ -209,10 +209,8 @@ void QtMainWindow::focusChanged(QWidget * old, QWidget * now )
             }
 
             // TODO: implement using QWidget::isAncestorOf(...)
-            if ((!isAncestor(dw, now) && now != dw) ||
-                    now == centralWidget()) {
+            if ((!isAncestor(dw, now) && now != dw) || now == centralWidget())
                 dw->hide();
-            }
         }
     }
 }

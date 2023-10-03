@@ -1,4 +1,6 @@
 #include "qtcardwidget.h"
+
+#include "geometry/qtgeometryutils.h"
 #include <QVariant>
 #include <QPainter>
 #include <QPainterPath>
@@ -190,19 +192,16 @@ void QtGraphicsBadgeEffect::setCounter(int value)
 
 int QtGraphicsBadgeEffect::counter() const
 {
-     
     return d->value;
 }
 
 QString QtGraphicsBadgeEffect::text() const
 {
-     
     return d->text;
 }
 
 void QtGraphicsBadgeEffect::setIcon(const QPixmap &icon)
 {
-     
     if (icon.isNull())
         return;
 
@@ -214,7 +213,6 @@ void QtGraphicsBadgeEffect::setIcon(const QPixmap &icon)
 
 QPixmap QtGraphicsBadgeEffect::icon() const
 {
-     
     return d->pixmap;
 }
 
@@ -250,28 +248,20 @@ QVariant QtGraphicsBadgeEffect::value() const
 
 void QtGraphicsBadgeEffect::setAlignment(Qt::Alignment align)
 {
-     
     if (d->alignment == align)
         return;
+
     d->alignment = align;
     update();
 }
 
 Qt::Alignment QtGraphicsBadgeEffect::alignment() const
 {
-     
     return d->alignment;
 }
 
 void QtGraphicsBadgeEffect::draw(QPainter *painter)
 {
-    static constexpr Qt::AlignmentFlag alignments[] =
-    {
-        Qt::AlignLeft, Qt::AlignRight,
-        Qt::AlignTop, Qt::AlignBottom,
-        Qt::AlignVCenter, Qt::AlignHCenter
-    };
-
     if ((d->value < 1 && d->pixmap.isNull()) || !isEnabled())
         return drawSource(painter);
 
@@ -279,43 +269,12 @@ void QtGraphicsBadgeEffect::draw(QPainter *painter)
     painter->drawPixmap(0, 0, pixmap);
 
     painter->save();
-    QRectF rect = boundingRect().marginsRemoved(d->margins);
+    const QRectF rect = boundingRect().marginsRemoved(d->margins);
 
-    QRectF target = rect;
-    target.setWidth(std::min(rect.width(), (qreal)d->maximumSize.width()));
-    target.setHeight(std::min(rect.height(), (qreal)d->maximumSize.height()));
-    QPointF pos;
-    for (auto a : alignments)
-    {
-        if (!(a & d->alignment))
-            continue;
+    const double w = std::min(rect.width(), (qreal)d->maximumSize.width());
+    const double h = std::min(rect.height(), (qreal)d->maximumSize.height());
+    const QRectF target = adjustedRect({ 0, 0, w, h }, rect, d->alignment);
 
-        switch (a)
-        {
-        case Qt::AlignLeft:
-            pos.rx() = rect.left();
-            break;
-        case Qt::AlignRight:
-            pos.rx() = rect.right() - target.width();
-            break;
-        case Qt::AlignHCenter:
-            pos.rx() = (rect.center().x() - target.width() / 2);
-            break;
-        case Qt::AlignTop:
-            pos.ry() = rect.top();
-            break;
-        case Qt::AlignBottom:
-            pos.ry() = rect.bottom() - target.height();
-            break;
-        case Qt::AlignVCenter:
-            pos.ry() = (rect.center().y() - target.height() / 2);
-            break;
-        default:
-            break;
-        }
-    }
-
-    target.moveTo(pos);
     d->styleOption.rect = target.toRect();
     if (d->value < 0)
         d->styleOption.paint(painter, d->pixmap);
@@ -327,6 +286,7 @@ void QtGraphicsBadgeEffect::draw(QPainter *painter)
 
 
 #include <QLabel>
+#include <QtTextLabel>
 #include <QBoxLayout>
 
 class QtCardWidgetPrivate
@@ -334,8 +294,8 @@ class QtCardWidgetPrivate
 public:
     QtCardWidget* q;
     QLabel* avatarLabel = nullptr;
-    QLabel* textLabel = nullptr;
-    QLabel* commentLabel = nullptr;
+    QtTextLabel* textLabel = nullptr;
+    QtTextLabel* commentLabel = nullptr;
     QBoxLayout* layout = nullptr;
     QtGraphicsBadgeEffect* badgeEffect = nullptr;
     QPixmap pixmap;
@@ -354,14 +314,18 @@ public:
         avatarLabel->setContentsMargins(12, 12, 12, 12);
         avatarLabel->setScaledContents(true);
         avatarLabel->setAlignment(Qt::AlignCenter);
-        avatarLabel->setFixedSize(128, 128);
+        avatarLabel->setFixedSize(116, 116);
 
         badgeEffect = new QtGraphicsBadgeEffect(avatarLabel);
         badgeEffect->setAlignment(Qt::AlignTop|Qt::AlignRight);
         avatarLabel->setGraphicsEffect(badgeEffect);
 
-        textLabel = new QLabel(q);
-        commentLabel = new QLabel(q);
+        textLabel = new QtTextLabel(q);
+        textLabel->setAlignment(Qt::AlignCenter);
+
+        commentLabel = new QtTextLabel(q);
+        commentLabel->setAlignment(Qt::AlignCenter);
+        commentLabel->setWrapMode(QtTextLabel::WrapAnywhere);
 
         QVBoxLayout* textLayout = new QVBoxLayout;
         textLayout->addWidget(textLabel);
@@ -487,12 +451,12 @@ Qt::Alignment QtCardWidget::commentAlignment() const
 
 void QtCardWidget::setCommentWordWrap(bool on)
 {
-    d->commentLabel->setWordWrap(on);
+    d->commentLabel->setWrapMode(on ? QtTextLabel::WrapWordBound : QtTextLabel::NoWrap);
 }
 
 bool QtCardWidget::isCommentWordWrap() const
 {
-    return d->commentLabel->wordWrap();
+    return d->commentLabel->wrapMode() == QtTextLabel::WrapWordBound;
 }
 
 void QtCardWidget::setAvatar(const QPixmap &pixmap)

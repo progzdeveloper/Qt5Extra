@@ -6,6 +6,8 @@
 #include <QPen>
 
 #include <QtPaintUtils>
+#include <QtPolygonRounder>
+#include <QtCurveTextLayout>
 
 #include "qtradiusesmodel.h"
 

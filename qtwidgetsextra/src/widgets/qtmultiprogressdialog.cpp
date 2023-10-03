@@ -135,79 +135,66 @@ QtMultiProgressDialog::~QtMultiProgressDialog() = default;
 
 void QtMultiProgressDialog::setProgress(int value, QtMultiProgressDialog::ProgressHint hint)
 {
-
     d->progressBar(hint)->setValue(value);
 }
 
 int QtMultiProgressDialog::progress(QtMultiProgressDialog::ProgressHint hint) const
 {
-
     return d->progressBar(hint)->value();
 }
 
 void QtMultiProgressDialog::setRange(int minimum, int maximum, QtMultiProgressDialog::ProgressHint hint)
 {
-
     d->progressBar(hint)->setRange(minimum, maximum);
 }
 
 void QtMultiProgressDialog::setMinimum(int minimum, QtMultiProgressDialog::ProgressHint hint)
 {
-
     d->progressBar(hint)->setMinimum(minimum);
 }
 
 int QtMultiProgressDialog::minimum(QtMultiProgressDialog::ProgressHint hint) const
 {
-
     return d->progressBar(hint)->minimum();
 }
 
 void QtMultiProgressDialog::setMaximum(int maximum, QtMultiProgressDialog::ProgressHint hint)
 {
-
     d->progressBar(hint)->setMaximum(maximum);
 }
 
 int QtMultiProgressDialog::maximum(QtMultiProgressDialog::ProgressHint hint) const
 {
-
     return d->progressBar(hint)->maximum();
 }
 
 void QtMultiProgressDialog::setLabelText(const QString &text, QtMultiProgressDialog::ProgressHint hint)
 {
-
     d->label(hint)->setText(text);
 }
 
 QString QtMultiProgressDialog::labelText(QtMultiProgressDialog::ProgressHint hint) const
 {
-
     return d->label(hint)->text();
 }
 
 void QtMultiProgressDialog::setAutoClose(bool on)
 {
-
     d->autoCloseChecker->setChecked(on);
 }
 
 bool QtMultiProgressDialog::isAutoClose() const
 {
-
     return d->autoCloseChecker->isChecked();
 }
 
 bool QtMultiProgressDialog::wasCanceled() const
 {
-
     return d->wasCanceled;
 }
 
 void QtMultiProgressDialog::setCancelButton(QAbstractButton *cancelButton)
 {
-
     if (cancelButton == Q_NULLPTR) {
         d->cancelButton->hide();
     } else {
@@ -217,13 +204,11 @@ void QtMultiProgressDialog::setCancelButton(QAbstractButton *cancelButton)
 
 QAbstractButton *QtMultiProgressDialog::cancelButton() const
 {
-
     return d->cancelButton.data();
 }
 
 void QtMultiProgressDialog::cancel()
 {
-
     d->wasCanceled = true;
     Q_EMIT canceled();
     d->messageBox->clear();
@@ -231,7 +216,6 @@ void QtMultiProgressDialog::cancel()
 
 void QtMultiProgressDialog::reset()
 {
-
     d->wasCanceled = false;
     d->cancelButton->setEnabled(true);
     d->autoCloseChecker->setVisible(true);
@@ -242,7 +226,6 @@ void QtMultiProgressDialog::reset()
 
 void QtMultiProgressDialog::message(const QString &text)
 {
-
     if (!d->detailsButton->isVisible())
         d->detailsButton->setVisible(true);
     d->messageBox->message(text);
@@ -250,32 +233,24 @@ void QtMultiProgressDialog::message(const QString &text)
 
 void QtMultiProgressDialog::progressChanged(int value)
 {
-
     QProgressBar* progressBar = qobject_cast<QProgressBar*>(sender());
-    if (progressBar == d->partialBar)
-    {
-        if (value == d->partialBar->maximum())
-            d->totalBar->setValue(d->totalBar->value() + 1);
-    }
+    if (progressBar == d->partialBar && value == d->partialBar->maximum())
+        d->totalBar->setValue(d->totalBar->value() + 1);
 
-    if (progressBar == d->totalBar)
+    if (progressBar == d->totalBar && value == d->totalBar->maximum())
     {
-        if (value == d->totalBar->maximum())
-        {
-            d->cancelButton->disconnect();
-            d->cancelButton->setText(tr("Close"));
-            QObject::connect(d->cancelButton.data(), &QAbstractButton::clicked, &QtMultiProgressDialog::close);
-            if (d->autoCloseChecker->isChecked())
-                close();
-            else
-                d->autoCloseChecker->setVisible(false);
-        }
+        d->cancelButton->disconnect();
+        d->cancelButton->setText(tr("Close"));
+        QObject::connect(d->cancelButton.data(), &QAbstractButton::clicked, &QtMultiProgressDialog::close);
+        if (d->autoCloseChecker->isChecked())
+            close();
+        else
+            d->autoCloseChecker->setVisible(false);
     }
 }
 
 void QtMultiProgressDialog::copyText()
 {
-
     QGuiApplication::clipboard()->setText(d->messageBox->text());
 }
 

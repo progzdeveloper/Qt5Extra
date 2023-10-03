@@ -92,18 +92,17 @@ bool QtNotificationBar::isAnimated() const
 
 void QtNotificationBar::showMessage(const QString& text, const QIcon& icon, bool closeable)
 {
-
-    if (icon.isNull()) {
+    if (icon.isNull())
         d->iconLabel->hide();
-    } else {
+    else
         d->iconLabel->setPixmap(icon.pixmap(16, 16));
-    }
+
     d->closeButton->setVisible(closeable);
     d->label->setText(text);
     show();
-    if (d->animated) {
+    if (d->animated)
         animate();
-    }
+
     resize(size());
 }
 

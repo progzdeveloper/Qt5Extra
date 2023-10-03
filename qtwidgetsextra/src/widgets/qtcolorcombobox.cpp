@@ -24,12 +24,11 @@ class QtColorComboBoxPrivate
 {
 public:
     QtColorComboBox* q_ptr;
-    bool dialogEnabled;
+    bool dialogEnabled = false;
 
-
-    QtColorComboBoxPrivate(QtColorComboBox *q) :
-        q_ptr(q), dialogEnabled(false) {
-    }
+    QtColorComboBoxPrivate(QtColorComboBox *q)
+        : q_ptr(q)
+    {}
 };
 
 /*!
@@ -72,7 +71,8 @@ void QtColorComboBox::addColor(const QColor &color)
  * Adds the specified \a color with a \a name to the list of available colors.
  * \sa insertColor()
  */
-void QtColorComboBox::addColor(const QColor & color, const QString & name) {
+void QtColorComboBox::addColor(const QColor & color, const QString & name)
+{
     insertColor(colorCount(), color, name);
 }
 
@@ -82,7 +82,8 @@ void QtColorComboBox::addColor(const QColor & color, const QString & name) {
  * Color is added to the list of available colors if it's not there yet.
  *
  */
-void QtColorComboBox::setCurrentColor(const QColor & color) {
+void QtColorComboBox::setCurrentColor(const QColor & color)
+{
     int i = findData(color, Qt::DecorationRole);
     if (i!=-1) {
         setCurrentIndex(i);
@@ -108,7 +109,8 @@ void QtColorComboBox::insertColor(int index, const QColor & color, const QString
  * \brief   Currently chosen color.
  * \sa	colors, colorCount
  */
-QColor QtColorComboBox::currentColor() const {
+QColor QtColorComboBox::currentColor() const
+{
     return color(currentIndex());
 }
 
@@ -117,7 +119,8 @@ QColor QtColorComboBox::currentColor() const {
  * \brief   Number of colors available.
  * \sa	colors, currentColor
  */
-int QtColorComboBox::colorCount() const {
+int QtColorComboBox::colorCount() const
+{
     return count();
 }
 
@@ -125,7 +128,8 @@ int QtColorComboBox::colorCount() const {
  * \brief   Returns the color at position \a index
  * \sa	currentColor, colors
  */
-QColor QtColorComboBox::color(int index) const {
+QColor QtColorComboBox::color(int index) const
+{
     return qvariant_cast<QColor>(itemData(index, Qt::DecorationRole));
 }
 
@@ -137,22 +141,23 @@ void QtColorComboBox::setStandardColors()
 {
     clear();
     QStringList clist = QColor::colorNames();
-    for(auto it = clist.begin(); it != clist.end(); ++it) {
+    for(auto it = clist.begin(); it != clist.end(); ++it)
         addColor(QColor(*it), *it);
-    }
 }
 
 /*!
  * \brief   Returns whether the color dialog is enabled.
  */
-bool QtColorComboBox::isColorDialogEnabled() const {
+bool QtColorComboBox::isColorDialogEnabled() const
+{
     return d->dialogEnabled;
 }
 
 /*!
  * \brief   Enables or disables the color dialog.
  */
-void QtColorComboBox::setColorDialogEnabled(bool enabled) {
+void QtColorComboBox::setColorDialogEnabled(bool enabled)
+{
     d->dialogEnabled = enabled;
 }
 
@@ -162,19 +167,22 @@ void QtColorComboBox::setColorDialogEnabled(bool enabled) {
  */
 bool QtColorComboBox::eventFilter(QObject * watched, QEvent * e)
 {
-    if (watched == view()) {
-        if (e->type() == QEvent::Show) {
-            if (isColorDialogEnabled()) {
+    if (watched == view())
+    {
+        if (e->type() == QEvent::Show)
+        {
+            if (isColorDialogEnabled())
+            {
                 addItem(tr("Select color..."));
-                int index = count()-1;
+                const int index = count()-1;
                 setItemData(index, Qt::AlignCenter, Qt::TextAlignmentRole);
                 setItemData(index, palette().color(QPalette::Button), Qt::BackgroundRole);
                 setItemData(index, tr("Choose a custom color"), Qt::ToolTipRole);
-
             }
             return false;
         }
-        if (e->type() == QEvent::Hide) {
+        if (e->type() == QEvent::Hide)
+        {
             if (isColorDialogEnabled())
                 removeItem(count()-1);
             return false;
@@ -225,10 +233,11 @@ QStringList QtColorComboBox::colors() const
     QStringList slist;
     if (count() < 1)
         return slist;
+
     int n = count();
-    for (int i = 0; i < n; i++) {
+    for (int i = 0; i < n; i++)
         slist << itemData(i, Qt::DisplayRole).toString();
-    }
+
     return slist;
 }
 
@@ -252,31 +261,31 @@ void QtColorComboBox::slotActivated(int i)
     if (count() < 1)
         return;
 
-    if (isColorDialogEnabled() && i == count()-1) {
+    if (isColorDialogEnabled() && i == (count() - 1))
         slotPopupDialog();
-    }
 
-    QVariant v = itemData(i, Qt::DecorationRole);
-    if (v.isValid()) {
-        QColor c = qvariant_cast<QColor>(v);
-        if (c.isValid())
-            emit activated(c);
-    }
+    const QVariant v = itemData(i, Qt::DecorationRole);
+    if (!v.isValid())
+        return;
+
+    QColor c = qvariant_cast<QColor>(v);
+    if (c.isValid())
+        emit activated(c);
 }
 
 void QtColorComboBox::slotPopupDialog()
 {
-
 #if QT_VERSION >= 0x040500
-    QColor c = QColorDialog::getColor(currentColor(), this, tr("Choose color"), QColorDialog::ShowAlphaChannel);
+    const QColor c = QColorDialog::getColor(currentColor(), this, tr("Choose color"), QColorDialog::ShowAlphaChannel);
 #else
-    QColor c = QColorDialog::getColor(currentColor(), this);
+    const QColor c = QColorDialog::getColor(currentColor(), this);
 #endif
     if (!c.isValid())
         return;
 
     int index = findData(c, Qt::DecorationRole);
-    if (index == -1) {
+    if (index == -1)
+    {
         addColor(c, standardColorName(c));
         index = count() - 1;
     }

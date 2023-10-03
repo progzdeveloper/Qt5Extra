@@ -306,10 +306,11 @@ int PaintArea::penWidth() const
 
 void PaintArea::paintEvent(QPaintEvent *)
 {
-    QtPainter painter(this);
+    QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
     painter.fillRect(contentsRect(), Qt::white);
 
+    QtCurveTextLayout textLayout(painter);
     if (mShape == Curve) {
         QPainterPath path(QPointF(0.0, 0.0));
 
@@ -327,7 +328,7 @@ void PaintArea::paintEvent(QPaintEvent *)
         painter.setFont(font());
 
         // draw text
-        painter.drawCurvedText(mText, path, mStretchFactor, mOffsetFactor);
+        textLayout.drawCurvedText(mText, path, mStretchFactor, mOffsetFactor);
 
     } else {
         QRect r = rect().adjusted(16, 16, -16, -16);
@@ -338,7 +339,7 @@ void PaintArea::paintEvent(QPaintEvent *)
         painter.setPen(mTextPen);
         painter.setFont(font());
         // draw text
-        painter.drawCircularText(mText, r, mClockwise, mStretchFactor, mAngle, mOffsetFactor);
+        textLayout.drawCircularText(mText, r, mClockwise, mStretchFactor, mAngle, mOffsetFactor);
     }
 }
 

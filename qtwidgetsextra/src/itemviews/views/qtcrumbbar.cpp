@@ -107,15 +107,14 @@ void QtCrumbBarPrivate::addCrumb(const QModelIndex &index)
 
     int count = model->rowCount(index);
     QMenu* menu = (count > 0 ? new QMenu(toolBar) : Q_NULLPTR);
-    for (int i = 0; i < count; ++i) {
+    for (int i = 0; i < count; ++i)
+    {
+        QtCrumbBar* view = q_ptr;
         QModelIndex child = model->index(i, 0, index);
         icon = child.data(Qt::DecorationRole).value<QIcon>();
         text = child.data(Qt::DisplayRole).value<QString>();
         tooltip = child.data(Qt::ToolTipRole).value<QString>();
-        QtCrumbBar* view = q_ptr;
-        action = menu->addAction(icon, text, [child, view]() {
-            view->setCurrentIndex(child);
-        });
+        action = menu->addAction(icon, text, [child, view]() { view->setCurrentIndex(child); });
         action->setToolTip(tooltip);
     }
 
@@ -128,12 +127,15 @@ void QtCrumbBarPrivate::addCrumb(const QModelIndex &index)
         icon = rootIcon;
     }
 
-    if (menu != Q_NULLPTR) {
+    if (menu != Q_NULLPTR)
+    {
         action = menu->menuAction();
         action->setText(text);
         action->setToolTip(tooltip);
         action->setIcon(icon);
-    } else {
+    }
+    else
+    {
         action = toolBar->addAction(text);
         action->setIcon(icon);
         action->setToolTip(tooltip);
@@ -167,30 +169,25 @@ QtCrumbBar::~QtCrumbBar() = default;
 
 void QtCrumbBar::setModel(QAbstractItemModel *model)
 {
-     
     reset();
     d->model = model;
     d->addCrumb(QModelIndex());
-    if (d->lineEdit->completer()) {
-        d->lineEdit->completer()->setModel(d->model);
-    }
+    if (auto completer = d->lineEdit->completer())
+        completer->setModel(d->model);
 }
 
 QAbstractItemModel *QtCrumbBar::model() const
 {
-     
     return d->model;
 }
 
 QModelIndexList QtCrumbBar::indexList() const
 {
-     
     return d->crumbs;
 }
 
 void QtCrumbBar::setCompleter(QCompleter *completer)
 {
-     
     d->lineEdit->setCompleter(completer);
     if (d->model != Q_NULLPTR)
         d->lineEdit->completer()->setModel(d->model);
@@ -198,16 +195,15 @@ void QtCrumbBar::setCompleter(QCompleter *completer)
 
 QCompleter *QtCrumbBar::completer() const
 {
-     
     return d->lineEdit->completer();
 }
 
 void QtCrumbBar::setRootIcon(const QIcon &icon)
 {
-     
     d->rootIcon = icon;
     QList<QAction*> actions = d->toolBar->actions();
-    if (!actions.isEmpty()) {
+    if (!actions.isEmpty())
+    {
         QAction* rootAct = d->toolBar->actions().front();
         rootAct->setIcon(icon);
     }
@@ -215,20 +211,17 @@ void QtCrumbBar::setRootIcon(const QIcon &icon)
 
 QIcon QtCrumbBar::rootIcon() const
 {
-     
     return d->rootIcon;
 }
 
 void QtCrumbBar::reset()
 {
-     
     d->crumbs.clear();
     d->toolBar->clear();
 }
 
 void QtCrumbBar::back()
 {
-     
     if(d->crumbs.count() <= 1)
         return;
 
@@ -239,7 +232,6 @@ void QtCrumbBar::back()
 
 void QtCrumbBar::setCurrentIndex(const QModelIndex &index)
 {
-     
     if(d->model == Q_NULLPTR)
         return;
 
@@ -277,19 +269,16 @@ void QtCrumbBar::setCurrentIndex(const QModelIndex &index)
 
 void QtCrumbBar::crumbClicked()
 {
-    QAction* action = qobject_cast<QAction*>(sender());
-    if (action != Q_NULLPTR) {
+    if (QAction* action = qobject_cast<QAction*>(sender()))
         setCurrentIndex(action->data().value<QModelIndex>());
-    }
 }
 
 void QtCrumbBar::closeEditor()
 {
-     
-    if (d->lineEdit->completer() != Q_NULLPTR) {
-        QModelIndex index = d->lineEdit->completer()->currentIndex();
-        const QAbstractProxyModel* proxyModel = qobject_cast<const QAbstractProxyModel*>(index.model());
-        if (proxyModel)
+    if (auto completer = d->lineEdit->completer())
+    {
+        QModelIndex index = completer->currentIndex();
+        if (const auto* proxyModel = qobject_cast<const QAbstractProxyModel*>(index.model()))
             setCurrentIndex(proxyModel->mapToSource(index));
     }
     d->toolBar->setVisible(true);
@@ -301,7 +290,6 @@ void QtCrumbBar::closeEditor()
 
 bool QtCrumbBar::eventFilter(QObject *watched, QEvent *event)
 {
-     
     if (d->lineEdit->completer() != Q_NULLPTR &&
         watched == d->toolBar &&
         event->type() == QEvent::MouseButtonDblClick)
@@ -317,16 +305,17 @@ bool QtCrumbBar::eventFilter(QObject *watched, QEvent *event)
         d->lineEdit->setText(text);
         d->lineEdit->setFocus();
     }
-    if (watched == d->lineEdit && event->type() == QEvent::KeyPress) {
+
+    if (watched == d->lineEdit && event->type() == QEvent::KeyPress)
+    {
         QKeyEvent* keyEvent = static_cast<QKeyEvent*>(event);
-        if (keyEvent->key() == Qt::Key_Escape) {
+        if (keyEvent->key() == Qt::Key_Escape)
             closeEditor();
-        }
     }
 
-    if (watched == d->lineEdit && event->type() == QEvent::FocusOut) {
+    if (watched == d->lineEdit && event->type() == QEvent::FocusOut)
         closeEditor();
-    }
+
 
     return QObject::eventFilter(watched, event);
 }

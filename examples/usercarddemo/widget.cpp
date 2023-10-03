@@ -14,12 +14,17 @@ Widget::Widget(QWidget *parent) : QWidget(parent)
     userCard->setCardStyle(Qt::ToolButtonTextUnderIcon);
     userCard->setAvatarRoundness(-1);
     userCard->setAvatar(QPixmap{":/images/avatar"});
-    userCard->setText("User@User1");
-    userCard->setComment("Some <i>comment</i> <b>about</b> User");
+    userCard->setText("<b>Jennifer Johnson</b>");
+    userCard->setComment("Some comment about User");
+
+    QtTextLabel* label = new QtTextLabel(text, this);
+    label->setAlignment(Qt::AlignCenter);
+    label->setTextAlign(Qt::AlignJustify);
 
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->setContentsMargins(QMargins{});
     layout->addWidget(userCard);
-    layout->addWidget(new QtTextLabel(text, this));
+    layout->addWidget(label);
+
 }
 
