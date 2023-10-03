@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/images">
+        <file alias="avatar">resources/sample_avatar.jpeg</file>
+    </qresource>
+</RCC>

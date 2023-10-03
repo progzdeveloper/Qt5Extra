@@ -2,8 +2,28 @@
 #include <QVariant>
 #include <QPainter>
 #include <QPainterPath>
+#include <QApplication>
 #include <cstring>
 #include <cstdlib>
+
+
+class QtStyleOptionChip
+{
+public:
+    QTextOption textOptions;
+    QFont font;
+    QMargins margins;
+    QRect rect;
+    QSize buttonSize;
+    QPalette palette;
+    QStyle::State state; // reserved
+    bool closeable;
+
+    void paint(QPainter* painter, const QString& text) const;
+    void paint(QPainter* painter, const QPixmap& pixmap) const;
+    void paint(QPainter* painter, const QPixmap& pixmap, const QString& text) const;
+};
+
 
 void QtStyleOptionChip::paint(QPainter *painter, const QString &text) const
 {
@@ -12,7 +32,7 @@ void QtStyleOptionChip::paint(QPainter *painter, const QString &text) const
     painter->save();
     painter->setRenderHint(QPainter::Antialiasing);
     painter->setPen(Qt::NoPen);
-    painter->setBrush(background);
+    painter->setBrush(palette.highlight());
     painter->drawRoundedRect(rect, r, r);
     painter->setFont(font);
 
@@ -23,7 +43,7 @@ void QtStyleOptionChip::paint(QPainter *painter, const QString &text) const
     else
         textRect = rect.adjusted(margins.left(), margins.top(), -(buttonSize.width()+margins.right()), -margins.bottom());
 
-    painter->setPen(foreground);
+    painter->setPen(palette.highlightedText().color());
     // draw text
     painter->drawText(textRect, text, textOptions);
 
@@ -52,7 +72,7 @@ void QtStyleOptionChip::paint(QPainter *painter, const QPixmap &pixmap) const
     painter->setClipPath(path);
 
     painter->setPen(Qt::NoPen);
-    painter->fillRect(targetRect, background);
+    painter->fillRect(targetRect, palette.highlight());
     if (!pixmap.isNull())
         painter->drawPixmap(targetRect, pixmap, pixmap.rect());
 
@@ -80,14 +100,13 @@ public:
     QtStyleOptionChip styleOption;
 
     QtGraphicsBageEffectPrivate() :
-        margins(4, 4, 4, 4),
+        margins({}),
         maximumSize(34, 16),
         value(-1),
         alignment(Qt::AlignTop|Qt::AlignLeft)
     {
         std::memset(text, 0, sizeof(text));
-        styleOption.background = Qt::lightGray;
-        styleOption.foreground = Qt::darkGray;
+        styleOption.palette = qApp->palette();
         styleOption.closeable = false;
         styleOption.textOptions.setAlignment(Qt::AlignCenter);
         styleOption.font.setFamily("Robato");
@@ -96,15 +115,15 @@ public:
 };
 
 
-QtGraphicsBageEffect::QtGraphicsBageEffect(QObject *parent)
+QtGraphicsBadgeEffect::QtGraphicsBadgeEffect(QObject *parent)
     : QGraphicsEffect(parent)
     , d(new QtGraphicsBageEffectPrivate)
 {
 }
 
-QtGraphicsBageEffect::~QtGraphicsBageEffect() = default;
+QtGraphicsBadgeEffect::~QtGraphicsBadgeEffect() = default;
 
-void QtGraphicsBageEffect::setMaximumSize(const QSize &size)
+void QtGraphicsBadgeEffect::setMaximumSize(const QSize &size)
 {
      
     if (d->maximumSize == size)
@@ -114,15 +133,14 @@ void QtGraphicsBageEffect::setMaximumSize(const QSize &size)
     update();
 }
 
-QSize QtGraphicsBageEffect::maximumSize() const
+QSize QtGraphicsBadgeEffect::maximumSize() const
 {
      
     return d->maximumSize;
 }
 
-void QtGraphicsBageEffect::setMargins(const QMargins &margins)
+void QtGraphicsBadgeEffect::setMargins(const QMargins &margins)
 {
-     
     if (d->margins == margins)
         return;
 
@@ -130,45 +148,12 @@ void QtGraphicsBageEffect::setMargins(const QMargins &margins)
     update();
 }
 
-QMargins QtGraphicsBageEffect::margins() const
+QMargins QtGraphicsBadgeEffect::margins() const
 {
-     
     return d->margins;
 }
 
-void QtGraphicsBageEffect::setBackground(const QColor &color)
-{
-     
-    if (d->styleOption.background == color)
-        return;
-
-    d->styleOption.background = color;
-    update();
-}
-
-QColor QtGraphicsBageEffect::background() const
-{
-     
-    return d->styleOption.background;
-}
-
-void QtGraphicsBageEffect::setForeground(const QColor &color)
-{
-     
-    if (d->styleOption.foreground == color)
-        return;
-
-    d->styleOption.foreground = color;
-    update();
-}
-
-QColor QtGraphicsBageEffect::foreground() const
-{
-     
-    return d->styleOption.foreground;
-}
-
-void QtGraphicsBageEffect::setFont(const QFont &font)
+void QtGraphicsBadgeEffect::setFont(const QFont &font)
 {
      
     if (d->styleOption.font == font)
@@ -178,13 +163,13 @@ void QtGraphicsBageEffect::setFont(const QFont &font)
     update();
 }
 
-QFont QtGraphicsBageEffect::font() const
+QFont QtGraphicsBadgeEffect::font() const
 {
      
     return d->styleOption.font;
 }
 
-void QtGraphicsBageEffect::setCounter(int value)
+void QtGraphicsBadgeEffect::setCounter(int value)
 {
      
     if (value == d->value)
@@ -203,19 +188,19 @@ void QtGraphicsBageEffect::setCounter(int value)
     update();
 }
 
-int QtGraphicsBageEffect::counter() const
+int QtGraphicsBadgeEffect::counter() const
 {
      
     return d->value;
 }
 
-QString QtGraphicsBageEffect::text() const
+QString QtGraphicsBadgeEffect::text() const
 {
      
     return d->text;
 }
 
-void QtGraphicsBageEffect::setIcon(const QPixmap &icon)
+void QtGraphicsBadgeEffect::setIcon(const QPixmap &icon)
 {
      
     if (icon.isNull())
@@ -227,16 +212,14 @@ void QtGraphicsBageEffect::setIcon(const QPixmap &icon)
     update();
 }
 
-QPixmap QtGraphicsBageEffect::icon() const
+QPixmap QtGraphicsBadgeEffect::icon() const
 {
      
     return d->pixmap;
 }
 
-void QtGraphicsBageEffect::setValue(const QVariant &value)
+void QtGraphicsBadgeEffect::setValue(const QVariant &value)
 {
-     
-
     switch (value.type())
     {
     case QVariant::Pixmap:
@@ -260,13 +243,12 @@ void QtGraphicsBageEffect::setValue(const QVariant &value)
     }
 }
 
-QVariant QtGraphicsBageEffect::value() const
+QVariant QtGraphicsBadgeEffect::value() const
 {
-     
     return d->pixmap.isNull() ? QVariant(d->value) : QVariant(d->pixmap);
 }
 
-void QtGraphicsBageEffect::setAlignment(Qt::Alignment align)
+void QtGraphicsBadgeEffect::setAlignment(Qt::Alignment align)
 {
      
     if (d->alignment == align)
@@ -275,27 +257,66 @@ void QtGraphicsBageEffect::setAlignment(Qt::Alignment align)
     update();
 }
 
-Qt::Alignment QtGraphicsBageEffect::alignment() const
+Qt::Alignment QtGraphicsBadgeEffect::alignment() const
 {
      
     return d->alignment;
 }
 
-void QtGraphicsBageEffect::draw(QPainter *painter)
+void QtGraphicsBadgeEffect::draw(QPainter *painter)
 {
-     
-    if (d->value < 1 && d->pixmap.isNull())
+    static constexpr Qt::AlignmentFlag alignments[] =
+    {
+        Qt::AlignLeft, Qt::AlignRight,
+        Qt::AlignTop, Qt::AlignBottom,
+        Qt::AlignVCenter, Qt::AlignHCenter
+    };
+
+    if ((d->value < 1 && d->pixmap.isNull()) || !isEnabled())
         return drawSource(painter);
 
     const QPixmap pixmap = sourcePixmap(Qt::DeviceCoordinates);
     painter->drawPixmap(0, 0, pixmap);
 
     painter->save();
-    QRectF rect = boundingRect();
-    rect.adjust(d->margins.left(), d->margins.top(), -d->margins.right(), -d->margins.bottom());
-    rect.setWidth(std::min(rect.width(), (qreal)d->maximumSize.width()));
-    rect.setHeight(std::min(rect.height(), (qreal)d->maximumSize.height()));
-    d->styleOption.rect = rect.toRect();
+    QRectF rect = boundingRect().marginsRemoved(d->margins);
+
+    QRectF target = rect;
+    target.setWidth(std::min(rect.width(), (qreal)d->maximumSize.width()));
+    target.setHeight(std::min(rect.height(), (qreal)d->maximumSize.height()));
+    QPointF pos;
+    for (auto a : alignments)
+    {
+        if (!(a & d->alignment))
+            continue;
+
+        switch (a)
+        {
+        case Qt::AlignLeft:
+            pos.rx() = rect.left();
+            break;
+        case Qt::AlignRight:
+            pos.rx() = rect.right() - target.width();
+            break;
+        case Qt::AlignHCenter:
+            pos.rx() = (rect.center().x() - target.width() / 2);
+            break;
+        case Qt::AlignTop:
+            pos.ry() = rect.top();
+            break;
+        case Qt::AlignBottom:
+            pos.ry() = rect.bottom() - target.height();
+            break;
+        case Qt::AlignVCenter:
+            pos.ry() = (rect.center().y() - target.height() / 2);
+            break;
+        default:
+            break;
+        }
+    }
+
+    target.moveTo(pos);
+    d->styleOption.rect = target.toRect();
     if (d->value < 0)
         d->styleOption.paint(painter, d->pixmap);
     else
@@ -303,3 +324,212 @@ void QtGraphicsBageEffect::draw(QPainter *painter)
 
     painter->restore();
 }
+
+
+#include <QLabel>
+#include <QBoxLayout>
+
+class QtCardWidgetPrivate
+{
+public:
+    QtCardWidget* q;
+    QLabel* avatarLabel = nullptr;
+    QLabel* textLabel = nullptr;
+    QLabel* commentLabel = nullptr;
+    QBoxLayout* layout = nullptr;
+    QtGraphicsBadgeEffect* badgeEffect = nullptr;
+    QPixmap pixmap;
+    int roundness = 0;
+    Qt::ToolButtonStyle layoutMode = Qt::ToolButtonTextBesideIcon;
+    Qt::TextElideMode textElideMode = Qt::ElideRight;
+    Qt::TextElideMode commentElideMode = Qt::ElideMiddle;
+
+    QtCardWidgetPrivate(QtCardWidget* w)
+        : q(w)
+    {}
+
+    void initUi()
+    {
+        avatarLabel = new QLabel(q);
+        avatarLabel->setContentsMargins(12, 12, 12, 12);
+        avatarLabel->setScaledContents(true);
+        avatarLabel->setAlignment(Qt::AlignCenter);
+        avatarLabel->setFixedSize(128, 128);
+
+        badgeEffect = new QtGraphicsBadgeEffect(avatarLabel);
+        badgeEffect->setAlignment(Qt::AlignTop|Qt::AlignRight);
+        avatarLabel->setGraphicsEffect(badgeEffect);
+
+        textLabel = new QLabel(q);
+        commentLabel = new QLabel(q);
+
+        QVBoxLayout* textLayout = new QVBoxLayout;
+        textLayout->addWidget(textLabel);
+        textLayout->addWidget(commentLabel);
+
+        layout = new QBoxLayout(layoutDirection(layoutMode), q);
+        layout->addWidget(avatarLabel, 0, Qt::AlignCenter);
+        layout->addLayout(textLayout);
+    }
+
+    static QBoxLayout::Direction layoutDirection(Qt::ToolButtonStyle style)
+    {
+        return style == Qt::ToolButtonTextBesideIcon ? QBoxLayout::LeftToRight : QBoxLayout::TopToBottom;
+    }
+
+    static QPixmap processPixmap(const QPixmap& pixmap, int roundness)
+    {
+        if (pixmap.isNull())
+            return {};
+
+        QPixmap result(pixmap.size());
+        result.fill(Qt::transparent);
+        QPainterPath path = framePath(result.rect(), roundness);
+
+        QPainter p(&result);
+        p.setClipPath(path);
+        p.drawPixmap(result.rect(), pixmap, pixmap.rect());
+        return result;
+    }
+
+    static QPainterPath framePath(const QRect& rect, int roundness)
+    {
+        const int w = std::min(rect.width(), rect.height());
+        QRect r{ QPoint{}, QSize{ w, w} };
+        QPainterPath path; 
+        if(roundness > 0)
+        {
+            path.addRoundedRect(rect, roundness, roundness);
+        }
+        else if (roundness < 0)
+        {
+            r.moveCenter(rect.center());
+            path.addEllipse(r);
+        }
+        else // roundness == 0
+        {
+            path.addRect(rect);
+        }
+        return path;
+    }
+};
+
+
+QtCardWidget::QtCardWidget(QWidget *parent)
+    : QFrame(parent)
+    , d(new QtCardWidgetPrivate(this))
+{
+    d->initUi();
+}
+
+QtCardWidget::~QtCardWidget() = default;
+
+QtGraphicsBadgeEffect& QtCardWidget::badge()
+{
+    return *d->badgeEffect;
+}
+
+void QtCardWidget::setBadgeValue(const QVariant &value)
+{
+    d->badgeEffect->setValue(value);
+}
+
+QVariant QtCardWidget::badgeValue() const
+{
+    return d->badgeEffect->value();
+}
+
+void QtCardWidget::setCardStyle(Qt::ToolButtonStyle style)
+{
+    if (d->layoutDirection(style) != d->layout->direction())
+        d->layout->setDirection(d->layoutDirection(style));
+    d->layoutMode = style;
+}
+
+Qt::ToolButtonStyle QtCardWidget::cardStyle() const
+{
+    return d->layoutMode;
+}
+
+void QtCardWidget::setAvatarRoundness(int factor)
+{
+    if (d->roundness == factor)
+        return;
+
+    d->roundness = factor;
+    d->avatarLabel->setPixmap(d->processPixmap(d->pixmap, factor));
+}
+
+int QtCardWidget::avatarRoundness() const
+{
+    return d->roundness;
+}
+
+void QtCardWidget::setTextAlignment(Qt::Alignment align)
+{
+    d->textLabel->setAlignment(align);
+}
+
+Qt::Alignment QtCardWidget::textAlignment() const
+{
+    return d->textLabel->alignment();
+}
+
+void QtCardWidget::setCommentAlignment(Qt::Alignment align)
+{
+    d->commentLabel->setAlignment(align);
+}
+
+Qt::Alignment QtCardWidget::commentAlignment() const
+{
+    return d->commentLabel->alignment();
+}
+
+void QtCardWidget::setCommentWordWrap(bool on)
+{
+    d->commentLabel->setWordWrap(on);
+}
+
+bool QtCardWidget::isCommentWordWrap() const
+{
+    return d->commentLabel->wordWrap();
+}
+
+void QtCardWidget::setAvatar(const QPixmap &pixmap)
+{
+    d->pixmap = pixmap;
+    d->avatarLabel->setPixmap(d->processPixmap(pixmap, d->roundness));
+}
+
+void QtCardWidget::setAvatar(const QImage &image)
+{
+    setAvatar(QPixmap::fromImage(image));
+}
+
+QPixmap QtCardWidget::avatar() const
+{
+    return d->pixmap;
+}
+
+void QtCardWidget::setText(const QString &text)
+{
+    d->textLabel->setText(text);
+}
+
+QString QtCardWidget::text() const
+{
+    return d->textLabel->text();
+}
+
+void QtCardWidget::setComment(const QString &text)
+{
+    d->commentLabel->setText(text);
+}
+
+QString QtCardWidget::comment() const
+{
+    return d->commentLabel->text();
+}
+
+
+

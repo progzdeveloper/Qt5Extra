@@ -6,7 +6,7 @@
 class QFormLayout;
 class QVBoxLayout;
 
-class QtGraphicsBageEffect;
+class QtGraphicsBadgeEffect;
 
 class DemoWidget : public QWidget
 {
@@ -25,7 +25,7 @@ public Q_SLOTS:
 
 private:
     QVBoxLayout* layout;
-    QtGraphicsBageEffect* bageEffect;
+    QtGraphicsBadgeEffect* bageEffect;
 };
 
 #endif // DEMOWIDGET_H

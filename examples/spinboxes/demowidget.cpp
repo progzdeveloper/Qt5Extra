@@ -70,7 +70,7 @@ DemoWidget::DemoWidget(QWidget *parent)
     //checkBoxVer->setMaximumSize(checkBoxVer->minimumSizeHint());
     insertWidget(checkBoxVer);
 
-    bageEffect = new QtGraphicsBageEffect(this);
+    bageEffect = new QtGraphicsBadgeEffect(this);
 
     QFrame* frame = new QFrame(this);
     frame->setMinimumSize(64, 64);

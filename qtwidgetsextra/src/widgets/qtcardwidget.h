@@ -2,48 +2,22 @@
 #include <QStyle>
 #include <QTextOption>
 #include <QGraphicsEffect>
-#include <QWidget>
 #include <QtWidgetsExtra>
 
 
-class QTWIDGETSEXTRA_EXPORT QtStyleOptionChip
-{
-public:
-    QTextOption textOptions;
-    QFont font;
-    QMargins margins;
-    QRect rect;
-    QSize buttonSize;
-    QColor foreground, background;
-    QStyle::State state; // reserved
-    bool closeable;
-
-    void paint(QPainter* painter, const QString& text) const;
-    void paint(QPainter* painter, const QPixmap& pixmap) const;
-    void paint(QPainter* painter, const QPixmap& pixmap, const QString& text) const;
-};
-
-
-
-class QTWIDGETSEXTRA_EXPORT QtGraphicsBageEffect :
+class QTWIDGETSEXTRA_EXPORT QtGraphicsBadgeEffect :
         public QGraphicsEffect
 {
     Q_OBJECT
 public:
-    explicit QtGraphicsBageEffect(QObject* parent = Q_NULLPTR);
-    ~QtGraphicsBageEffect();
+    explicit QtGraphicsBadgeEffect(QObject* parent = Q_NULLPTR);
+    ~QtGraphicsBadgeEffect();
 
     void setMaximumSize(const QSize& size);
     QSize maximumSize() const;
 
     void setMargins(const QMargins& margins);
     QMargins margins() const;
-
-    void setBackground(const QColor& color);
-    QColor background() const;
-
-    void setForeground(const QColor& color);
-    QColor foreground() const;
 
     void setFont(const QFont& font);
     QFont font() const;
@@ -69,16 +43,48 @@ private:
     QScopedPointer<class QtGraphicsBageEffectPrivate> d;
 };
 
-/*
-// TODO: implement me!
+
+#include <QFrame>
+
 class QtCardWidget :
-    public QWidget
+    public QFrame
 {
     Q_OBJECT
+    Q_PROPERTY(QString text READ text WRITE setText NOTIFY textChanged)
+    Q_PROPERTY(QString comment READ comment WRITE setComment NOTIFY commentChanged)
 
 public:
     explicit QtCardWidget(QWidget *parent = Q_NULLPTR);
     ~QtCardWidget();
+
+    void setBadgeValue(const QVariant& value);
+    QVariant badgeValue() const;
+
+    QtGraphicsBadgeEffect& badge();
+
+    void setCardStyle(Qt::ToolButtonStyle style);
+    Qt::ToolButtonStyle cardStyle() const;
+
+    // factor < 0 -> Circle
+    // factor > 0 -> Rounded
+    // factor = 0 -> Rect
+    void setAvatarRoundness(int factor);
+    int avatarRoundness() const;
+
+    void setTextElideMode(Qt::TextElideMode mode);
+    Qt::TextElideMode textElideMode() const;
+
+    void setTextAlignment(Qt::Alignment align);
+    Qt::Alignment textAlignment() const;
+
+    void setCommentElideMode(Qt::TextElideMode mode);
+    Qt::TextElideMode commentElideMode() const;
+
+    void setCommentAlignment(Qt::Alignment align);
+    Qt::Alignment commentAlignment() const;
+
+    void setCommentWordWrap(bool on);
+    bool isCommentWordWrap() const;
 
     QPixmap avatar() const;
     QString text() const;
@@ -95,13 +101,7 @@ public Q_SLOTS:
     void setText(const QString& text);
     void setComment(const QString& text);
 
-protected:
-    void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
-    void resizeEvent(QResizeEvent* event) Q_DECL_OVERRIDE;
-    void changeEvent(QEvent *) Q_DECL_OVERRIDE;
-
 private:
-    QScopedPointer<class QtCardWidget> d;
+    QScopedPointer<class QtCardWidgetPrivate> d;
 };
-*/
 
