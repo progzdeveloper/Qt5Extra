@@ -47,7 +47,6 @@ QPointF QtPlaceholderEffectPrivate::offsetPoint(const QRectF& rect) const
 {
     QPointF pos;
 
-    //TODO: use alignedRect!
     //document.setTextWidth(rect.width());
     QSizeF size = document.size();
     int align = textOptions.alignment();

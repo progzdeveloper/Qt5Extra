@@ -1,1 +1,1 @@
-#include "../src/widgets/qtplaceholdereffect.h"
+#include "../src/effects/qtplaceholdereffect.h"

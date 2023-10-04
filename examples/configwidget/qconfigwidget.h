@@ -15,7 +15,7 @@ class QConfigWidget : public QDialog
 public:
     QConfigWidget(QWidget* parent = Q_NULLPTR);
 
-public slots:
+public Q_SLOTS:
     void changePage(QListWidgetItem *current, QListWidgetItem *previous);
 
 private:

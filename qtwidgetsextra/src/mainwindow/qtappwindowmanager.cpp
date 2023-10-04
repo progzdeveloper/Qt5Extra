@@ -249,13 +249,10 @@ QtAppWindowManager::QtAppWindowManager(QWidget* parent /*= 0*/, Qt::WindowFlags 
     setFrameStyle(QFrame::Box|QFrame::Plain);
 }
 
-QtAppWindowManager::~QtAppWindowManager()
-{
-}
+QtAppWindowManager::~QtAppWindowManager() = default;
 
 void QtAppWindowManager::setMainWindow(QMainWindow* w)
 {
-     
     if (!w)
         return;
 
@@ -270,25 +267,21 @@ void QtAppWindowManager::setMainWindow(QMainWindow* w)
 
 QMainWindow* QtAppWindowManager::mainWindow() const
 {
-     
     return d->window;
 }
 
 void QtAppWindowManager::setHighlightEnabled(bool on)
 {
-     
     d->highlight = on;
 }
 
 bool QtAppWindowManager::isHighlightEnaled() const
 {
-     
     return d->highlight;
 }
 
 void QtAppWindowManager::paintEvent(QPaintEvent* e)
 {
-     
     QFrame::paintEvent(e);
     if (d->highlight) {
         QPainter painter(this);
@@ -323,7 +316,6 @@ void QtAppWindowManager::showEvent(QShowEvent* e)
 
 void QtAppWindowManager::hideEvent(QHideEvent* e)
 {
-     
     QWidgetListItem* item = static_cast<QWidgetListItem*>(d->activeList->currentItem());
     if (!item)
         return;
@@ -334,7 +326,6 @@ void QtAppWindowManager::hideEvent(QHideEvent* e)
 
 bool QtAppWindowManager::eventFilter(QObject* object, QEvent* e)
 {
-     
     if (e->type() == QEvent::MouseButtonPress) {
         QMouseEvent* mouseEvent = static_cast<QMouseEvent*>(e);
         if ( !geometry().contains( mouseEvent->globalPos() ) ) {
@@ -386,7 +377,6 @@ bool QtAppWindowManager::filterKeyEvent(QObject* object, QKeyEvent* e)
 
 bool QtAppWindowManager::execAction(int key)
 {
-     
     switch(key)
     {
     case Qt::Key_Tab:
@@ -412,7 +402,6 @@ bool QtAppWindowManager::execAction(int key)
 
 void QtAppWindowManager::itemClicked(QListWidgetItem*)
 {
-     
     d->activeList = qobject_cast<QListWidget*>(sender());
     hide();
 }

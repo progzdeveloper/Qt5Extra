@@ -20,7 +20,7 @@ public:
     void drawSlider(QPainter *painter);
     void updateSliderRect(const QSize& size);
 
-public slots:
+public Q_SLOTS:
     void animate(bool);
     void setPosition(qreal value);
 

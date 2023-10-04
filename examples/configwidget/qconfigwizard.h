@@ -7,7 +7,7 @@ class QConfigWizard :
     Q_OBJECT
 public:
     QConfigWizard(QWidget* parent = Q_NULLPTR);
-public slots:
+public Q_SLOTS:
     void changePage(int page);
 private:
     QtRangeNavigator* navigator;

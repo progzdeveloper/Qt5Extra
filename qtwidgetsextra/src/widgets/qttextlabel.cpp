@@ -76,9 +76,18 @@ public:
             textRect |= r;
 
             int nextLineY = y + lineSpacing;
-            if (h >= nextLineY + lineSpacing)
+            if (h >= (nextLineY + lineSpacing))
             {
                 y = nextLineY;
+                if (!fragments.empty())
+                {
+                    auto& frag = fragments.back();
+                    if ((frag.first + frag.second) == line.textStart())
+                    {
+                        frag.second += line.textLength();
+                        continue;
+                    }
+                }
                 fragments.push_back(std::make_pair(line.textStart(), line.textLength()));
             }
             else

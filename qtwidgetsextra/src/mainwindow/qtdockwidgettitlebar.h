@@ -12,11 +12,13 @@ class QtDockWidgetTitleBar :
 public:
     explicit QtDockWidgetTitleBar(QWidget *parent = 0, Qt::WindowFlags f = 0);
     ~QtDockWidgetTitleBar();
-public slots:
+
+public Q_SLOTS:
     void closeWidget();
     void autoHide();
     void undock();
-private slots:
+
+private Q_SLOTS:
     void updateButtons(bool autoHide);
     void clicked(int button);
     void changeFeatures(QDockWidget::DockWidgetFeatures features);

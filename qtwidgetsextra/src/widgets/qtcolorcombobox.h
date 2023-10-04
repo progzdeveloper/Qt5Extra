@@ -47,7 +47,7 @@ protected:
     void dragEnterEvent(QDragEnterEvent *) Q_DECL_OVERRIDE;
     void dropEvent(QDropEvent *) Q_DECL_OVERRIDE;
 
-private slots:
+private Q_SLOTS:
     void slotActivated(int);
     void slotPopupDialog();
 

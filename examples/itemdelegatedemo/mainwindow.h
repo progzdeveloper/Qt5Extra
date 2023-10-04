@@ -17,10 +17,10 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = 0);
 
-public slots:
+public Q_SLOTS:
     void updateActions();
 
-private slots:
+private Q_SLOTS:
     void insertChild();
     bool insertColumn();
     void insertRow();

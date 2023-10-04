@@ -12,7 +12,7 @@ public:
     explicit QtDockTabBar(Qt::DockWidgetArea area, QWidget *parent = 0);
     ~QtDockTabBar();
 
-signals:
+Q_SIGNALS:
     void tabClicked(int i);
     void tabHover(int i);
 

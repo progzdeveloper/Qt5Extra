@@ -19,7 +19,7 @@ class Widget : public QWidget
 public:
     Widget(QWidget *parent = 0);
     ~Widget();
-private slots:
+private Q_SLOTS:
     void open();
     void save();
     void clicked(QAbstractButton* button);

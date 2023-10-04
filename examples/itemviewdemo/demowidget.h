@@ -16,7 +16,7 @@ public:
     DemoWidget(QWidget* parent = 0);
     ~DemoWidget();
 
-private slots:
+private Q_SLOTS:
     void currentChanged(const QModelIndex& index);
     void filterModel(const QString& pattern);
     void aboutPlugins();

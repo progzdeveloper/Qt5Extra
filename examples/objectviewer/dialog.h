@@ -23,7 +23,7 @@ public:
 protected:
     void resizeEvent(QResizeEvent* );
 
-private slots:
+private Q_SLOTS:
     void buttonClicked(QAbstractButton* button);
 
 private:

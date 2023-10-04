@@ -92,7 +92,7 @@ public:
     bool isFoldable(int line) const;
     bool isFolded(int line) const;
 
-public slots:
+public Q_SLOTS:
     void updateSidebar();
     void mark(const QString &str, Qt::CaseSensitivity sens = Qt::CaseInsensitive);
     void setBracketsMatchingEnabled(bool enable);
@@ -108,7 +108,7 @@ protected:
     void resizeEvent(QResizeEvent *e);
     void wheelEvent(QWheelEvent *e);
 
-private slots:
+private Q_SLOTS:
     void updateCursor();
     void updateSidebar(const QRect &rect, int d);
 

@@ -1510,7 +1510,7 @@ protected:
     void keyPressEvent(QKeyEvent *e);
     void keyReleaseEvent(QKeyEvent *e);
     bool event(QEvent *e);
-private slots:
+private Q_SLOTS:
     void slotClearChar();
 private:
     void handleKeyEvent(QKeyEvent *e);

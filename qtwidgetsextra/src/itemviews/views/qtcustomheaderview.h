@@ -23,7 +23,7 @@ public:
     void setStatusIcon(int status, const QIcon& icon);
     QIcon statusIcon(int status) const;
 
-public slots:
+public Q_SLOTS:
     void sortModel(int column, Qt::SortOrder order);
     void collapseSection(int logicalIndex);
 
@@ -35,7 +35,7 @@ protected:
     virtual void paintSection(QPainter *painter, const QRect &rect, int logicalIndex) const;
     virtual QSize sectionSizeFromContents ( int logicalIndex ) const;
 
-signals:
+Q_SIGNALS:
     void sectionClicked(int logicalIndex);
 
 private:

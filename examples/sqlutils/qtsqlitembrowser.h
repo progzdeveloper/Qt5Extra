@@ -54,7 +54,7 @@ class QtSqlItemBrowser : public QWidget
 public:
     explicit QtSqlItemBrowser(QWidget *parent = nullptr);
 
-public slots:
+public Q_SLOTS:
     void filterItems(const QString& pattern);
     void categoryChanged();
 

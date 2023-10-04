@@ -19,12 +19,11 @@ public:
 
     bool isAutoHide() const;
 
-public slots:
+public Q_SLOTS:
     void setAutoHide(bool on = true);
-    void setFloating(bool on) {
-        QDockWidget::setFloating(on);
-    }
-signals:
+    void setFloating(bool on) { QDockWidget::setFloating(on); }
+
+Q_SIGNALS:
     void autoHideChanged(bool on);
 
 protected:

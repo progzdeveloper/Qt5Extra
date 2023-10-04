@@ -21,7 +21,7 @@ public:
     void addDockWidget(Qt::DockWidgetArea area, QtDockWidget * dockwidget);
     void addDockWidget(Qt::DockWidgetArea area, QtDockWidget * dockwidget, Qt::Orientation orientation);
 
-private slots:
+private Q_SLOTS:
     void changeDockLocation(Qt::DockWidgetArea area);
     void changeDockState(bool on);
     void focusChanged(QWidget * old, QWidget * now );

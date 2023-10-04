@@ -17,7 +17,7 @@ public:
     void removeDockWidget(QtDockWidget *dw);
     bool contains(QtDockWidget *w) const;
 
-private slots:
+private Q_SLOTS:
     void moveTab(int from, int to);
     void show(int key);
 

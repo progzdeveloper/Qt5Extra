@@ -33,7 +33,7 @@ private:
     bool filterKeyEvent(QObject* object, QKeyEvent* e);
     bool execAction(int key);
 
-private slots:
+private Q_SLOTS:
     void itemClicked(QListWidgetItem*);
 
 private:

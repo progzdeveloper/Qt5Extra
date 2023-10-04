@@ -86,11 +86,11 @@ public:
     Dialog(QWidget *parent = Q_NULLPTR);
     ~Dialog();
 
-public slots:
+public Q_SLOTS:
     void save();
     void load();
 
-private slots:
+private Q_SLOTS:
     void refresh(const QString&, const QVariant&);
     void refresh();
 private:

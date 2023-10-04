@@ -15,7 +15,7 @@ public:
     explicit QtPropertyProxyObject(QObject *parent = Q_NULLPTR);
     virtual ~QtPropertyProxyObject();
 
-public slots:
+public Q_SLOTS:
     virtual void apply();
     virtual void restoreDefaults();
 };
