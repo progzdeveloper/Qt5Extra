@@ -5,5 +5,5 @@ class QtSnackBarWidget : public QWidget
 {
     Q_OBJECT
 public:
-    explicit QtSnackBarWidget(QWidget *parent = nullptr);
+    explicit QtSnackBarWidget(QWidget *parent = Q_NULLPTR);
 };

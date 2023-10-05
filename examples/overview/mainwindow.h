@@ -6,6 +6,7 @@
 class QMdiArea;
 
 class QtOverviewWidget;
+class QtMainWindowManager;
 
 class MainWindow : public QMainWindow
 {
@@ -30,6 +31,7 @@ private:
     QAction* exitAct;
     QMdiArea* area;
     QtOverviewWidget* overview;
+    QtMainWindowManager* manager;
 };
 
 #endif // MAINWINDOW_H

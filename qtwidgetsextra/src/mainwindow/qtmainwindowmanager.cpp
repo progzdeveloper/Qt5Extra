@@ -6,7 +6,7 @@
 
 #include <QtWidgets>
 
-#include "qtappwindowmanager.h"
+#include "qtmainwindowmanager.h"
 
 class QWidgetListItem : 
         public QListWidgetItem
@@ -51,21 +51,21 @@ private:
 
 
 
-class QtAppWindowManagerPrivate
+class QtMainWindowManagerPrivate
 {
     Q_DECLARE_TR_FUNCTIONS(QtWindowManagerPrivate)
 public:
-    QtAppWindowManager* q_ptr;
+    QtMainWindowManager* q_ptr;
     QPointer<QMainWindow> window;
     QPointer<QWidget> centralWidget;
 
-    QListWidget* dwList;
-    QListWidget* mdiList;
-    QListWidget* activeList;
-    QLabel *dwLabel;
-    QLabel *mdiLabel;
+    QListWidget* dwList = nullptr;
+    QListWidget* mdiList = nullptr;
+    QListWidget* activeList = nullptr;
+    QLabel *dwLabel = nullptr;
+    QLabel *mdiLabel = nullptr;
 
-    bool highlight;
+    bool highlight = false;
 
     void initUi();
     void updateContents();
@@ -74,7 +74,7 @@ public:
     void switchWidgetList();
     void activateWindow(QWidget* w);
 
-    static void moveToCenter(QWidget* w, QWidget* parent = 0);
+    void moveToCenter(QWidget* w, QWidget* parent = 0);
 private:
     template<class Widget>
     static inline void collectWidgets(QListWidget* view, const QList<Widget>& widgets, bool flagVisible);
@@ -83,7 +83,7 @@ private:
     static inline QListWidget* createList(QWidget* parent);
 };
 
-void QtAppWindowManagerPrivate::initUi()
+void QtMainWindowManagerPrivate::initUi()
 {
     dwLabel = new QLabel(tr("<b>Dock Widgets</b>"), q_ptr);
     dwLabel->setAttribute(Qt::WA_TransparentForMouseEvents);
@@ -105,12 +105,12 @@ void QtAppWindowManagerPrivate::initUi()
     layout->addLayout(dwLayout);
     layout->addLayout(mdiLayout);
 
-    QObject::connect(mdiList, &QListWidget::itemClicked, q_ptr, &QtAppWindowManager::itemClicked);
-    QObject::connect(dwList,  &QListWidget::itemClicked, q_ptr, &QtAppWindowManager::itemClicked);
+    QObject::connect(mdiList, &QListWidget::itemClicked, q_ptr, &QtMainWindowManager::itemClicked);
+    QObject::connect(dwList,  &QListWidget::itemClicked, q_ptr, &QtMainWindowManager::itemClicked);
     activeList = mdiList;
 }
 
-void QtAppWindowManagerPrivate::updateContents()
+void QtMainWindowManagerPrivate::updateContents()
 {
     dwList->clear();
     mdiList->clear();
@@ -138,7 +138,7 @@ void QtAppWindowManagerPrivate::updateContents()
 }
 
 template<class Widget>
-inline void QtAppWindowManagerPrivate::collectWidgets(QListWidget* view, const QList<Widget>& widgets, bool flagVisible)
+inline void QtMainWindowManagerPrivate::collectWidgets(QListWidget* view, const QList<Widget>& widgets, bool flagVisible)
 {
     typedef QList<Widget> WidgetList;
     auto it = widgets.cbegin();
@@ -153,12 +153,12 @@ inline void QtAppWindowManagerPrivate::collectWidgets(QListWidget* view, const Q
     }
 }
 
-inline QListWidgetItem* QtAppWindowManagerPrivate::createItem(QListWidget* view, QWidget* w, bool specific)
+inline QListWidgetItem* QtMainWindowManagerPrivate::createItem(QListWidget* view, QWidget* w, bool specific)
 {
     return new QWidgetListItem(w, view, specific);
 }
 
-inline QListWidget* QtAppWindowManagerPrivate::createList(QWidget* parent)
+inline QListWidget* QtMainWindowManagerPrivate::createList(QWidget* parent)
 {
     QPalette palette = qApp->palette();
     palette.setBrush(QPalette::Base, palette.window());
@@ -174,7 +174,7 @@ inline QListWidget* QtAppWindowManagerPrivate::createList(QWidget* parent)
 }
 
 
-void QtAppWindowManagerPrivate::prevItem()
+void QtMainWindowManagerPrivate::prevItem()
 {
     int row = activeList->currentRow();
     if (row == 0)
@@ -184,7 +184,7 @@ void QtAppWindowManagerPrivate::prevItem()
     activeList->setCurrentRow(row);
 }
 
-void QtAppWindowManagerPrivate::nextItem()
+void QtMainWindowManagerPrivate::nextItem()
 {
     int row = activeList->currentRow();
     if (row == activeList->count()-1)
@@ -194,14 +194,14 @@ void QtAppWindowManagerPrivate::nextItem()
     activeList->setCurrentRow(row);
 }
 
-void QtAppWindowManagerPrivate::switchWidgetList()
+void QtMainWindowManagerPrivate::switchWidgetList()
 {
     activeList = (activeList == mdiList ? dwList : mdiList);
     activeList->setFocus();
     q_ptr->repaint();
 }
 
-void QtAppWindowManagerPrivate::activateWindow(QWidget* widget)
+void QtMainWindowManagerPrivate::activateWindow(QWidget* widget)
 {
     QMdiSubWindow *subWindow = qobject_cast<QMdiSubWindow*>(widget);
     if (subWindow) {
@@ -223,13 +223,19 @@ void QtAppWindowManagerPrivate::activateWindow(QWidget* widget)
     widget->setFocus();
 }
 
-void QtAppWindowManagerPrivate::moveToCenter(QWidget* w, QWidget* parent)
+void QtMainWindowManagerPrivate::moveToCenter(QWidget* w, QWidget* parent)
 {
     QRect r;
     if (!parent)
+    {
         r = qApp->primaryScreen()->availableGeometry();
+    }
     else
-        r = parent->rect();
+    {
+        r = parent->geometry();
+        if (q_ptr->windowFlags() & Qt::Popup)
+            r.moveTo(parent->mapToGlobal({}));
+    }
 
     const int x = r.x() + (r.width() / 2 - w->width() / 2);
     const int y = r.y() + (r.height() / 2 - w->height() / 2);
@@ -237,9 +243,9 @@ void QtAppWindowManagerPrivate::moveToCenter(QWidget* w, QWidget* parent)
 }
 
 
-QtAppWindowManager::QtAppWindowManager(QWidget* parent /*= 0*/, Qt::WindowFlags flags /*= 0*/) :
+QtMainWindowManager::QtMainWindowManager(QWidget* parent /*= 0*/, Qt::WindowFlags flags /*= 0*/) :
     QFrame(parent, flags),
-    d(new QtAppWindowManagerPrivate)
+    d(new QtMainWindowManagerPrivate)
 {
     d->q_ptr = this;
     d->window = 0;
@@ -249,9 +255,9 @@ QtAppWindowManager::QtAppWindowManager(QWidget* parent /*= 0*/, Qt::WindowFlags 
     setFrameStyle(QFrame::Box|QFrame::Plain);
 }
 
-QtAppWindowManager::~QtAppWindowManager() = default;
+QtMainWindowManager::~QtMainWindowManager() = default;
 
-void QtAppWindowManager::setMainWindow(QMainWindow* w)
+void QtMainWindowManager::setMainWindow(QMainWindow* w)
 {
     if (!w)
         return;
@@ -265,22 +271,22 @@ void QtAppWindowManager::setMainWindow(QMainWindow* w)
     qApp->installEventFilter(this);
 }
 
-QMainWindow* QtAppWindowManager::mainWindow() const
+QMainWindow* QtMainWindowManager::mainWindow() const
 {
     return d->window;
 }
 
-void QtAppWindowManager::setHighlightEnabled(bool on)
+void QtMainWindowManager::setHighlightEnabled(bool on)
 {
     d->highlight = on;
 }
 
-bool QtAppWindowManager::isHighlightEnaled() const
+bool QtMainWindowManager::isHighlightEnaled() const
 {
     return d->highlight;
 }
 
-void QtAppWindowManager::paintEvent(QPaintEvent* e)
+void QtMainWindowManager::paintEvent(QPaintEvent* e)
 {
     QFrame::paintEvent(e);
     if (d->highlight) {
@@ -290,20 +296,20 @@ void QtAppWindowManager::paintEvent(QPaintEvent* e)
     }
 }
 
-void QtAppWindowManager::showEvent(QShowEvent* e)
+void QtMainWindowManager::showEvent(QShowEvent* e)
 {
     activateWindow();
     d->updateContents();
 
-    d->dwList->setEnabled(d->dwList->count() != 0);
-    d->mdiList->setEnabled(d->mdiList->count() != 0);
+    d->dwList->setVisible(d->dwList->count() > 0);
+    d->mdiList->setVisible(d->mdiList->count() > 0);
 
     d->dwList->adjustSize();
     d->mdiList->adjustSize();
 
     QMdiArea* area = qobject_cast<QMdiArea*>(d->centralWidget);
-    d->mdiList->setVisible(area != 0);
-    d->mdiLabel->setVisible(area != 0);
+    d->mdiList->setVisible(area != Q_NULLPTR);
+    d->mdiLabel->setVisible(area != Q_NULLPTR);
     d->activeList = (d->mdiList->isEnabled() ? d->mdiList : d->dwList);
 
     d->activeList->setFocus();
@@ -314,23 +320,20 @@ void QtAppWindowManager::showEvent(QShowEvent* e)
     QWidget::showEvent(e);
 }
 
-void QtAppWindowManager::hideEvent(QHideEvent* e)
+void QtMainWindowManager::hideEvent(QHideEvent* e)
 {
-    QWidgetListItem* item = static_cast<QWidgetListItem*>(d->activeList->currentItem());
-    if (!item)
-        return;
+    if (auto item = static_cast<QWidgetListItem*>(d->activeList->currentItem()))
+        d->activateWindow(item->widget());
 
-    d->activateWindow(item->widget());
     QWidget::hideEvent(e);
 }
 
-bool QtAppWindowManager::eventFilter(QObject* object, QEvent* e)
+bool QtMainWindowManager::eventFilter(QObject* object, QEvent* e)
 {
     if (e->type() == QEvent::MouseButtonPress) {
         QMouseEvent* mouseEvent = static_cast<QMouseEvent*>(e);
-        if ( !geometry().contains( mouseEvent->globalPos() ) ) {
+        if ( !geometry().contains(mouseEvent->globalPos()) )
             hide();
-        }
     }
 
     if (e->type() == QEvent::KeyPress || e->type() == QEvent::KeyRelease)
@@ -340,9 +343,9 @@ bool QtAppWindowManager::eventFilter(QObject* object, QEvent* e)
             return filterKeyEvent(object, keyEvent);
 
         QMdiArea* area = qobject_cast<QMdiArea*>(d->centralWidget);
-        if (!area) {
+        if (!area)
             return filterKeyEvent(object, keyEvent);
-        }
+
         QList<QMdiSubWindow*> subwindows = area->subWindowList();
         auto swIt = subwindows.cbegin();
         for (; swIt != subwindows.cend(); ++swIt) {
@@ -357,25 +360,40 @@ bool QtAppWindowManager::eventFilter(QObject* object, QEvent* e)
         }
     }
 
-    return false;
+    if (e->type() == QEvent::Move || e->type() == QEvent::Resize)
+        d->moveToCenter(this, parentWidget());
+
+    return QFrame::eventFilter(object, e);
 }
 
 
-bool QtAppWindowManager::filterKeyEvent(QObject* object, QKeyEvent* e)
+bool QtMainWindowManager::filterKeyEvent(QObject* object, QKeyEvent* e)
 {
     QKeyEvent *keyEvent = static_cast<QKeyEvent*>(e);
-    if (e->type() == QEvent::KeyPress && keyEvent->modifiers() == Qt::ControlModifier) {
-        return (execAction(keyEvent->key()));
+
+    if (e->type() != QEvent::KeyPress && e->type() != QEvent::KeyRelease)
+        return QWidget::eventFilter(object, e);
+
+    switch(e->type())
+    {
+    case QEvent::KeyPress:
+        if (keyEvent->modifiers() == Qt::ControlModifier)
+            return (execAction(keyEvent->key()));
+    case QEvent::KeyRelease:
+        if (keyEvent->key() == Qt::Key_Control && isVisible())
+        {
+            hide();
+            return true;
+        }
+    default:
+        break;
     }
-    if (e->type() == QEvent::KeyRelease && keyEvent->key() == Qt::Key_Control && isVisible()) {
-        hide();
-        return true;
-    }
+
     return QWidget::eventFilter(object, e);
 }
 
 
-bool QtAppWindowManager::execAction(int key)
+bool QtMainWindowManager::execAction(int key)
 {
     switch(key)
     {
@@ -400,7 +418,7 @@ bool QtAppWindowManager::execAction(int key)
 }
 
 
-void QtAppWindowManager::itemClicked(QListWidgetItem*)
+void QtMainWindowManager::itemClicked(QListWidgetItem*)
 {
     d->activeList = qobject_cast<QListWidget*>(sender());
     hide();

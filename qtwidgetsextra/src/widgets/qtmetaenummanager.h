@@ -55,13 +55,13 @@ public:
 
     virtual QByteArray editorProperty(int value) const { return BaseClass::editorProperty(metaEnum(), value); }
 
-    virtual QAction* createAction(int value, QObject* parent = nullptr) const { return BaseClass::createAction(metaEnum(), value, parent); }
-    virtual QActionGroup* createActionGroup(int value, QObject* parent = nullptr) const { return BaseClass::createActionGroup(metaEnum(), parent); }
+    virtual QAction* createAction(int value, QObject* parent = Q_NULLPTR) const { return BaseClass::createAction(metaEnum(), value, parent); }
+    virtual QActionGroup* createActionGroup(int value, QObject* parent = Q_NULLPTR) const { return BaseClass::createActionGroup(metaEnum(), parent); }
 
-    virtual QWidget* createValueEditor(int value, QWidget* parent = nullptr) const { return BaseClass::createValueEditor(metaEnum(), value, parent); }
-    virtual QWidget* createEnumEditor(QWidget* parent = nullptr) const { return BaseClass::createEnumEditor(metaEnum(), parent); }
+    virtual QWidget* createValueEditor(int value, QWidget* parent = Q_NULLPTR) const { return BaseClass::createValueEditor(metaEnum(), value, parent); }
+    virtual QWidget* createEnumEditor(QWidget* parent = Q_NULLPTR) const { return BaseClass::createEnumEditor(metaEnum(), parent); }
 
-    virtual QAbstractItemModel* createItemModel(QObject* parent = nullptr) const { return BaseClass::createItemModel(metaEnum(), parent); }
+    virtual QAbstractItemModel* createItemModel(QObject* parent = Q_NULLPTR) const { return BaseClass::createItemModel(metaEnum(), parent); }
 };
 
 

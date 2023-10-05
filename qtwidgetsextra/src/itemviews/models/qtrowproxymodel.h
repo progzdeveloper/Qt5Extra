@@ -12,7 +12,7 @@ class QTWIDGETSEXTRA_EXPORT QtRowProxyModel :
     Q_PROPERTY(bool readOnly READ isReadOnly WRITE setReadOnly)
     Q_PROPERTY(bool titleEditable READ isTitleEditable WRITE setTitleEditable)
 public:
-    explicit QtRowProxyModel(QObject *parent = nullptr);
+    explicit QtRowProxyModel(QObject *parent = Q_NULLPTR);
     ~QtRowProxyModel();
 
     void setRootIndex(const QModelIndex& rootIndex);

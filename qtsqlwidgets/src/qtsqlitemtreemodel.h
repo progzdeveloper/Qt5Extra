@@ -23,7 +23,7 @@ public:
         ItemTypeRole = Qt::UserRole
     };
 
-    explicit QtSqlItemTreeModel(QObject *parent = nullptr);
+    explicit QtSqlItemTreeModel(QObject *parent = Q_NULLPTR);
     ~QtSqlItemTreeModel();
 
     void setCategories(Categories categories);

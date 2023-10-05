@@ -13,6 +13,8 @@ class QTWIDGETSEXTRA_EXPORT QtTextLabel
     Q_PROPERTY(Qt::Alignment alignment READ alignment WRITE setAlignment NOTIFY alignmentChanged)
     Q_PROPERTY(Qt::Alignment textAlign READ textAlign WRITE setTextAlign NOTIFY textAlignChanged)
     Q_PROPERTY(WordWrapMode wrapMode READ wrapMode WRITE setWrapMode NOTIFY wrapModeChanged)
+    Q_PROPERTY(int maxLineCount READ maxLineCount WRITE setMaxLineCount NOTIFY maxLineCountChanged)
+    Q_PROPERTY(int visibleLineCount READ visibleLineCount)
 public:
     enum WordWrapMode
     {
@@ -23,8 +25,8 @@ public:
     };
     Q_ENUM(WordWrapMode)
 
-    explicit QtTextLabel(QWidget* parent = nullptr);
-    explicit QtTextLabel(const QString& text, QWidget* parent = nullptr);
+    explicit QtTextLabel(QWidget* parent = Q_NULLPTR);
+    explicit QtTextLabel(const QString& text, QWidget* parent = Q_NULLPTR);
     ~QtTextLabel();
 
     void setText(const QString& text);
@@ -39,6 +41,11 @@ public:
     void setTextAlign(Qt::Alignment align);
     Qt::Alignment textAlign() const;
 
+    void setMaxLineCount(int count);
+    int maxLineCount() const;
+
+    int visibleLineCount() const;
+
     void setWrapMode(WordWrapMode mode);
     WordWrapMode wrapMode() const;
 
@@ -48,6 +55,7 @@ Q_SIGNALS:
     void alignmentChanged(Qt::Alignment);
     void textAlignChanged(Qt::Alignment);
     void wrapModeChanged(WordWrapMode);
+    void maxLineCountChanged(int);
 
 protected:
     void paintEvent(QPaintEvent* event) Q_DECL_OVERRIDE;

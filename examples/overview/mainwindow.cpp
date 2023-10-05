@@ -4,6 +4,7 @@
 
 #include <QtWidgets>
 #include <QtOverviewWidget>
+#include <QtMainWindowManager>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -12,6 +13,10 @@ MainWindow::MainWindow(QWidget *parent)
     createActions();
     createDockWidgets();
     menuBar()->setNativeMenuBar(false);
+
+    manager = new QtMainWindowManager(this);
+    manager->setMainWindow(this);
+    manager->setHighlightEnabled(true);
 }
 
 MainWindow::~MainWindow()

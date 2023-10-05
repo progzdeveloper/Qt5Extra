@@ -22,11 +22,24 @@ public:
     QString elidedText;
     Qt::Alignment align = Qt::AlignCenter;
     QtTextLabel::WordWrapMode wrapMode;
+    int visibleLineCount = 0;
+    int maxLineCount = 0;
     bool elided = false;
 
     QtTextLabelPrivate(QtTextLabel* label)
         : q(label)
     {}
+
+    int findMaxLabelHeight() const
+    {
+        if (maxLineCount <= 0)
+            return QWIDGETSIZE_MAX;
+
+        const int fontHeight = q->fontMetrics().height();
+        const int spacing = q->fontMetrics().lineSpacing() * maxLineCount;
+        const int offset = verticalMargins(q->contentsMargins());
+        return (fontHeight + spacing + offset);
+    }
 
     QString textString() const
     {
@@ -46,6 +59,7 @@ public:
         QRect rect = q->contentsRect();
         rect.moveTo(0, 0);
 
+        visibleLineCount = 0;
         textRect.setRect(0, 0, 0, 0);
         elidedText.clear();
 
@@ -74,6 +88,7 @@ public:
             QRectF r = line.rect();
             r.moveTo((double)rect.x(), (double)y);
             textRect |= r;
+            ++visibleLineCount;
 
             int nextLineY = y + lineSpacing;
             if (h >= (nextLineY + lineSpacing))
@@ -292,6 +307,31 @@ void QtTextLabel::setTextAlign(Qt::Alignment align)
 Qt::Alignment QtTextLabel::textAlign() const
 {
     return d->option.alignment();
+}
+
+void QtTextLabel::setMaxLineCount(int count)
+{
+    if (d->maxLineCount == count)
+        return;
+
+    d->maxLineCount = count;
+    setMaximumHeight(d->findMaxLabelHeight());
+
+    refreshEliding();
+    Q_EMIT maxLineCountChanged(count);
+
+    updateGeometry();
+    update();
+}
+
+int QtTextLabel::maxLineCount() const
+{
+    return d->maxLineCount;
+}
+
+int QtTextLabel::visibleLineCount() const
+{
+    return d->visibleLineCount;
 }
 
 void QtTextLabel::setWrapMode(WordWrapMode mode)

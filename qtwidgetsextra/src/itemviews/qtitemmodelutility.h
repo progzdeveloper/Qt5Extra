@@ -25,7 +25,7 @@ static _Model findModel(QAbstractItemModel* model)
     static_assert(std::is_same<_Model, QAbstractItemModel>::value,
                   "searching for predecessor as QAbstractItemModel is nonsense, since any model is QAbstractItemModel subclass");
     if (!model)
-        return nullptr;
+        return Q_NULLPTR;
 
     if (auto m = qobject_cast<_Model>(model))
         return m;
@@ -33,6 +33,6 @@ static _Model findModel(QAbstractItemModel* model)
     if (auto proxy = qobject_cast<QAbstractProxyModel*>(model))
         return findModel<_Model>(proxy->sourceModel());
 
-    return nullptr;
+    return Q_NULLPTR;
 }
 

@@ -7,15 +7,15 @@ class QMainWindow;
 
 class QListWidgetItem;
 
-class QtAppWindowManagerPrivate;
-class QTWIDGETSEXTRA_EXPORT QtAppWindowManager :
+class QtMainWindowManagerPrivate;
+class QTWIDGETSEXTRA_EXPORT QtMainWindowManager :
         public QFrame
 {
     Q_OBJECT
 
 public:
-    QtAppWindowManager(QWidget* parent = 0, Qt::WindowFlags flags = Qt::ToolTip);
-    ~QtAppWindowManager();
+    QtMainWindowManager(QWidget* parent = 0, Qt::WindowFlags flags = Qt::ToolTip);
+    ~QtMainWindowManager();
 
     void setMainWindow(QMainWindow* w);
     QMainWindow* mainWindow() const;
@@ -37,6 +37,6 @@ private Q_SLOTS:
     void itemClicked(QListWidgetItem*);
 
 private:
-    friend class QtAppWindowManagerPrivate;
-    QScopedPointer<class QtAppWindowManagerPrivate> d;
+    friend class QtMainWindowManagerPrivate;
+    QScopedPointer<class QtMainWindowManagerPrivate> d;
 };

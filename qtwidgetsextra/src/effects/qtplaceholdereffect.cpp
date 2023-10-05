@@ -120,7 +120,6 @@ void QtPlaceholderEffect::setOpacity(qreal opacity)
 
 qreal QtPlaceholderEffect::opacity() const
 {
-
     return d->opacity;
 }
 

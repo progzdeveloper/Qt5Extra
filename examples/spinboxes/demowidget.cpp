@@ -15,7 +15,7 @@
 #include <QtSlideButton>
 #include <QtSlideCheckBox>
 
-#include <QtCardWidget>
+#include <QtBadgeEffect>
 
 #include <QToolTip>
 
@@ -70,7 +70,7 @@ DemoWidget::DemoWidget(QWidget *parent)
     //checkBoxVer->setMaximumSize(checkBoxVer->minimumSizeHint());
     insertWidget(checkBoxVer);
 
-    bageEffect = new QtGraphicsBadgeEffect(this);
+    bageEffect = new QtBadgeEffect(this);
 
     QFrame* frame = new QFrame(this);
     frame->setMinimumSize(64, 64);
