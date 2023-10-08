@@ -7,7 +7,9 @@
 #include <QtTextLabel>
 #include <QtPropertyWidget>
 
-static const QString text = "Lorem <b>ipsum</b> <i>dolor</i> sit amet, <b>consectetuer</b> adipiscing <u>elit</u>. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo.";
+#include <QDebug>
+
+static const QString text = "Lorem <b>ipsum</b> <i>dolor</i> sit amet, <b>consectetuer</b> <a href=\"https://www.google.com\">adipiscing</a> <u>elit</u>. Aenean commodo ligula eget dolor. <a href=\"github.com\">Aenean massa.</a> Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, <a href =\"https://www.yahoo.com\"><b>justo<b>.</a>";
 
 Widget::Widget(QWidget *parent) : QWidget(parent)
 {
@@ -17,13 +19,18 @@ Widget::Widget(QWidget *parent) : QWidget(parent)
     userCard->setCardStyle(Qt::ToolButtonTextUnderIcon);
     userCard->setAvatarRoundness(-1);
     userCard->setAvatar(QPixmap{":/images/avatar"});
-    userCard->setText("<b>Jennifer Johnson</b>");
+    userCard->setText("<b><a href=\"http://github.com\">Jennifer Johnson</a></b>");
     userCard->setComment(tr("<i>Some comment about %1</i>").arg(userCard->text()));
 
+    connect(userCard->textLabel(), &QtTextLabel::linkActivated, this, [](const QString& link) { qDebug() << "clicked" << link; });
+    connect(userCard->commentLabel(), &QtTextLabel::linkActivated, this, [](const QString& link) { qDebug()  << "clicked" << link; });
+
     QtTextLabel* label = new QtTextLabel(text, this);
-    label->setAlignment(Qt::AlignTop|Qt::AlignHCenter);
+    label->setAlignment(Qt::AlignCenter);
     label->setTextAlign(Qt::AlignJustify);
+    label->setWrapMode(QtTextLabel::WrapAnywhere);
     label->setMaxLineCount(0);
+    connect(label, &QtTextLabel::linkActivated, this, [](const QString& link) { qDebug() << "clicked" << link; });
 
     QWidget* content = new QWidget(this);
     QVBoxLayout* layout = new QVBoxLayout(content);

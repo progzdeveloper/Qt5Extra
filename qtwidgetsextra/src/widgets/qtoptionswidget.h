@@ -5,7 +5,7 @@
 
 class QWidget;
 class QListWidgetItem;
-
+class QAbstractItemDelegate;
 
 class QTWIDGETSEXTRA_EXPORT QtOptionsWidget :
         public QWidget
@@ -15,6 +15,9 @@ class QTWIDGETSEXTRA_EXPORT QtOptionsWidget :
 public:
     explicit QtOptionsWidget(QWidget *parent = Q_NULLPTR);
     ~QtOptionsWidget();
+
+    void setListDelegate(QAbstractItemDelegate* delegate);
+    QAbstractItemDelegate* listDelegate() const;
 
     int addWidget ( QWidget * widget );
     int count () const;

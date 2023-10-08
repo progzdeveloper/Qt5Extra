@@ -25,10 +25,25 @@ public:
     };
     Q_ENUM(WordWrapMode)
 
+    enum LinkHighlightFlag
+    {
+        NoHighlightFeatures = 0,
+        HighlightPressedLinks = 1 << 0,
+        HighlightHoveredLinks = 1 << 1,
+        HighlightVisitedLinks = 1 << 2
+    };
+    Q_DECLARE_FLAGS(LinkHighlighting, LinkHighlightFlag)
+    Q_FLAG(LinkHighlighting)
+
     explicit QtTextLabel(QWidget* parent = Q_NULLPTR);
     explicit QtTextLabel(const QString& text, QWidget* parent = Q_NULLPTR);
     ~QtTextLabel();
 
+    void setHtml(const QString& html);
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
+    void setMarkdown(const QString& markdown);
+#endif
+    void setPlainText(const QString& text);
     void setText(const QString& text);
     QString text() const;
     QString plainText() const;
@@ -49,6 +64,11 @@ public:
     void setWrapMode(WordWrapMode mode);
     WordWrapMode wrapMode() const;
 
+    void setLinkHighlighting(LinkHighlighting features);
+    LinkHighlighting linkHighlighting() const;
+
+    void clearVisitedLinks();
+
 Q_SIGNALS:
     void textChanged(const QString&);
     void elisionChanged(bool);
@@ -56,16 +76,32 @@ Q_SIGNALS:
     void textAlignChanged(Qt::Alignment);
     void wrapModeChanged(WordWrapMode);
     void maxLineCountChanged(int);
+    void linkActivated(const QString& url);
 
 protected:
     void paintEvent(QPaintEvent* event) Q_DECL_OVERRIDE;
     void resizeEvent(QResizeEvent* event) Q_DECL_OVERRIDE;
     void changeEvent(QEvent* event) Q_DECL_OVERRIDE;
+    void mousePressEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
+    void mouseReleaseEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
+    bool event(QEvent* event) Q_DECL_OVERRIDE;
+
+protected:
+    int linkAt(const QPoint& p) const;
+    int hoveredLink() const;
+
+    QRegion linkRegion(int i) const;
+    QString linkText(int i) const;
+    QString linkUrl(int i) const;
+
+    QBrush linkBrush(int state) const;
 
 private:
     void refreshEliding();
 
 private:
+    friend class QtTextLabelPrivate;
     QScopedPointer<class QtTextLabelPrivate> d;
 };
 
+Q_DECLARE_OPERATORS_FOR_FLAGS(QtTextLabel::LinkHighlighting)

@@ -7,21 +7,44 @@
 #include <QTextLayout>
 #include <QTextDocument>
 #include <QTextFrame>
+#include <QBitArray>
 #include <QDebug>
 
 
 class QtTextLabelPrivate
 {
 public:
+
+    enum RichTextFormat
+    {
+        HtmlFormat,
+        MarkdownFormat
+    };
+
+    struct HrefData
+    {
+        QRegion region;
+        int position;
+        int length;
+        QString url;
+    };
+    static constexpr int kPreallocatedLiks = 8;
+    using LinksDataMap = QVarLengthArray<HrefData, kPreallocatedLiks>;
+
     QtTextLabel* q;
+    LinksDataMap linksData;
+    QBitArray visitedLinks;
+    QVector<QTextLayout::FormatRange> formatRanges;
     QTextOption option;
     QRectF textRect;
-    QVector<QTextLayout::FormatRange> formatRanges;
     QString content;
     QString plainText;
     QString elidedText;
     Qt::Alignment align = Qt::AlignCenter;
     QtTextLabel::WordWrapMode wrapMode;
+    QtTextLabel::LinkHighlighting linkHighlighting = QtTextLabel::HighlightPressedLinks |
+                                                     QtTextLabel::HighlightHoveredLinks;
+    std::pair<int, QStyle::State> activeLink{ -1, QStyle::State_None };
     int visibleLineCount = 0;
     int maxLineCount = 0;
     bool elided = false;
@@ -51,13 +74,71 @@ public:
         return elidedText.isEmpty() ? textString() : elidedText;
     }
 
+    void resetHrefRegions()
+    {
+        static QRegion empty;
+        for (auto& href : linksData)
+        {
+            href.region = empty;
+        }
+    }
+
+    void updateHrefRegion(const QTextLine& line, int y, int dx, int dy)
+    {
+        const int h = (int)line.height() + 1;
+        const int first = line.textStart();
+        const int last = first + line.textLength();
+        for (auto& href : linksData)
+        {
+            int endpos = href.position + href.length;
+            if (endpos < first || href.position > last)
+                continue;
+
+            endpos = std::min(endpos, last);
+
+            const int x = line.cursorToX(href.position, QTextLine::Leading);
+            const int w = line.cursorToX(endpos, QTextLine::Leading) - x;
+            href.region += QRect{x + dx, y - 1 + dy, w, h};
+        }
+    }
+
+    void updateHrefRegions(const QRect& contentsRect)
+    {
+        resetHrefRegions();
+        const QString text = visibleText();
+        if (text.isEmpty())
+            return;
+
+        const QRect textArea = adjustedRect(textRect, contentsRect, align).toRect();
+        const QFontMetrics metrics = q->fontMetrics();
+        const int lineSpacing = metrics.lineSpacing();
+        const int w = textArea.width();
+        const int dx = textArea.x();
+        const int dy = textArea.y();
+        int y = 0;
+
+        QTextLayout layout(text, q->font());
+        layout.setFormats(formatRanges);
+        layout.setTextOption(option);
+        layout.beginLayout();
+        forever
+        {
+            QTextLine line = layout.createLine();
+            if (!line.isValid())
+                break;
+
+            line.setLineWidth(w);
+            updateHrefRegion(line, y, dx, dy);
+            y += lineSpacing;
+        }
+        layout.endLayout();
+    }
+
     bool updateEliding(const QRect& contentsRect)
     {
         constexpr QChar ellipsisChar(0x2026);
 
-        QVarLengthArray<std::pair<int, int>, 16> fragments;
-        QRect rect = q->contentsRect();
-        rect.moveTo(0, 0);
+        std::pair<int, int> textFragment{0, 0};
 
         visibleLineCount = 0;
         textRect.setRect(0, 0, 0, 0);
@@ -66,9 +147,9 @@ public:
         const QFontMetrics metrics = q->fontMetrics();
         const QString text = textString();
         const int lineSpacing = metrics.lineSpacing();
-        const int w = rect.width();
-        const int h = rect.height();
-        int y = 0;
+        const int w = contentsRect.width();
+        const int h = contentsRect.height();
+        double y = 0;
         bool didElide = false;
 
         QString elidedLastLine;
@@ -86,7 +167,7 @@ public:
             line.setLineWidth(w);
 
             QRectF r = line.rect();
-            r.moveTo((double)rect.x(), (double)y);
+            r.moveTo(0.0, y);
             textRect |= r;
             ++visibleLineCount;
 
@@ -94,16 +175,10 @@ public:
             if (h >= (nextLineY + lineSpacing))
             {
                 y = nextLineY;
-                if (!fragments.empty())
-                {
-                    auto& frag = fragments.back();
-                    if ((frag.first + frag.second) == line.textStart())
-                    {
-                        frag.second += line.textLength();
-                        continue;
-                    }
-                }
-                fragments.push_back(std::make_pair(line.textStart(), line.textLength()));
+
+                if (textFragment.first == 0 && textFragment.second == 0)
+                    textFragment.first = line.textStart();
+                textFragment.second += line.textLength();
             }
             else
             {
@@ -118,29 +193,34 @@ public:
 
         if (didElide)
         {
-            int elidedLength = elidedLastLine.length();
-            for (const auto& [_, len] : fragments)
-                elidedLength += len;
-
+            const int elidedLength = elidedLastLine.length() + textFragment.second;
             elidedText.reserve(elidedLength);
-            for (const auto& [pos, len] : fragments)
-                elidedText += text.midRef(pos, len);
+            elidedText += text.midRef(textFragment.first, textFragment.second);
             elidedText += elidedLastLine;
         }
+
         return didElide;
     }
 
-    void renderText(QPainter& painter, const QRectF& rect)
+    void renderText(QPainter& painter, const QRectF& rect) const
     {
+        const QString text = visibleText();
+        if (text.isEmpty())
+            return;
+
         const QFontMetrics metrics = q->fontMetrics();
         const int lineSpacing = metrics.lineSpacing();
         const int w = rect.width();
         const int x = rect.x();
         int y = rect.y();
 
-        QTextLayout render(visibleText(), q->font());
-        render.setFormats(formatRanges);
+        QVector<QTextLayout::FormatRange> formatting;
+        setupFormatting(formatting);
+
+        QTextLayout render(text, q->font());
+        render.setFormats(formatting);
         render.setTextOption(option);
+        render.setCacheEnabled(true);
         render.beginLayout();
         forever
         {
@@ -153,6 +233,97 @@ public:
             y += lineSpacing;
         }
         render.endLayout();
+
+#ifdef QT5EXTRA_DEBUG_LINKRECTS
+        painter.setPen(Qt::red);
+        painter.setBrush(Qt::NoBrush);
+        for (const auto& href : linksData)
+        {
+            for (const auto& r : href.region)
+                painter.drawRect(r);
+        }
+#endif
+
+    }
+
+    void extractLinks()
+    {
+        visitedLinks.clear();
+        linksData.clear();
+        for (const auto& fmtrange : qAsConst(formatRanges))
+        {
+            const auto& fmt = fmtrange.format;
+            if (fmt.isAnchor() ||
+                !fmt.anchorHref().isEmpty() ||
+                !fmt.anchorNames().isEmpty())
+            {
+                HrefData href;
+                href.position = fmtrange.start;
+                href.length = fmtrange.length;
+                href.url = fmt.anchorHref();
+                linksData.push_back(href);
+            }
+        }
+        visitedLinks.resize(linksData.size());
+    }
+
+    void setupFormatting(QVector<QTextLayout::FormatRange>& result) const
+    {
+        result.reserve(formatRanges.size());
+        const QString text = visibleText();
+        const int textLength = text.size();
+        for (const auto& fmt : qAsConst(formatRanges))
+        {
+            const int pos = fmt.start;
+            const int len = fmt.length;
+
+            if (pos > textLength)
+                break;
+
+            auto it = std::find_if(linksData.cbegin(), linksData.cend(),
+                                   [pos, len](const auto& link) { return link.position == pos && link.length == len; });
+            if (it == linksData.end())
+            {
+                result.push_back(fmt);
+                continue;
+            }
+
+            QTextLayout::FormatRange linkFormat = fmt;
+            QTextCharFormat charFormat = fmt.format;
+
+            const int i = std::distance(linksData.cbegin(), it);
+            const bool isActiveLink = i == activeLink.first;
+            const bool isVisitedLink = (linkHighlighting & QtTextLabel::HighlightVisitedLinks) && visitedLinks.testBit(i);
+            const QStyle::State state = isActiveLink ? activeLink.second : (isVisitedLink ? QStyle::State_Selected : QStyle::State_None);
+            charFormat.setForeground(q->linkBrush(state));
+
+            linkFormat.format = charFormat;
+            result.push_back(linkFormat);
+        }
+    }
+
+    bool retrieveFormatting(const QString& text, RichTextFormat textFormat)
+    {
+        QTextDocument doc;
+        switch (textFormat)
+        {
+        case HtmlFormat:
+            doc.setHtml(text);
+            break;
+        case MarkdownFormat:
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
+            doc.setMarkdown(markdown, QTextDocument::MarkdownDialectCommonMark);
+            break;
+#endif
+        default:
+            qWarning() << "Unknown rich text format";
+            return false;
+        }
+
+        formatRanges = formats(doc.rootFrame());
+        plainText = doc.toPlainText();
+        extractLinks();
+        return true;
     }
 
     static QVector<QTextLayout::FormatRange> formats(const QTextBlock& block)
@@ -205,6 +376,8 @@ QtTextLabel::QtTextLabel(const QString &text, QWidget* parent)
     : QFrame(parent)
     , d(new QtTextLabelPrivate(this))
 {
+    setMouseTracking(true);
+    setAttribute(Qt::WA_Hover);
     setSizePolicy({ QSizePolicy::Preferred, QSizePolicy::Preferred, QSizePolicy::Label });
     setContentsMargins({8, 8, 8, 8});
     setMinimumHeight(fontMetrics().height() + contentsMargins().bottom() + contentsMargins().top());
@@ -223,7 +396,53 @@ void QtTextLabel::refreshEliding()
             d->elided = wasElided;
             Q_EMIT elisionChanged(d->elided);
         }
+        d->updateHrefRegions(contentsRect());
     }
+}
+
+void QtTextLabel::setHtml(const QString &html)
+{
+    if (d->content == html)
+        return;
+
+    d->content = html;
+    if (!d->retrieveFormatting(html, QtTextLabelPrivate::HtmlFormat))
+    {
+        setPlainText(html);
+        return;
+    }
+    refreshEliding();
+    update();
+}
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
+void QtTextLabel::setMarkdown(const QString& markdown)
+{
+    if (d->content == markdown)
+        return;
+
+    d->content = markdown;
+    if (!d->retrieveFormatting(markdown, QtTextLabelPrivate::MarkdownFormat))
+    {
+        setPlainText(markdown);
+        return;
+    }
+    refreshEliding();
+    update();
+}
+#endif
+
+void QtTextLabel::setPlainText(const QString& text)
+{
+    if (d->content == text)
+        return;
+
+    d->content = text;
+    d->formatRanges.clear();
+    d->plainText.clear();
+    d->elidedText.clear();
+    refreshEliding();
+    update();
 }
 
 void QtTextLabel::setText(const QString &text)
@@ -231,23 +450,10 @@ void QtTextLabel::setText(const QString &text)
     if (d->content == text)
         return;
 
-    d->content = text;
     if (Qt::mightBeRichText(text))
-    {
-        QTextDocument doc;
-        doc.setHtml(text);
-        d->formatRanges = d->formats(doc.rootFrame());
-        d->plainText = doc.toPlainText();
-    }
+        setHtml(text);
     else
-    {
-        d->formatRanges.clear();
-        d->plainText.clear();
-        d->elidedText.clear();
-    }
-
-    refreshEliding();
-    update();
+        setPlainText(text);
 }
 
 QString QtTextLabel::text() const
@@ -352,6 +558,28 @@ QtTextLabel::WordWrapMode QtTextLabel::wrapMode() const
     return d->wrapMode;
 }
 
+void QtTextLabel::setLinkHighlighting(QtTextLabel::LinkHighlighting features)
+{
+    if (d->linkHighlighting == features)
+        return;
+
+    if (!(d->linkHighlighting & HighlightVisitedLinks))
+        d->visitedLinks.clear();
+
+    d->linkHighlighting = features;
+    update();
+}
+
+QtTextLabel::LinkHighlighting QtTextLabel::linkHighlighting() const
+{
+    return d->linkHighlighting;
+}
+
+void QtTextLabel::clearVisitedLinks()
+{
+    d->visitedLinks.fill(false);
+}
+
 void QtTextLabel::paintEvent(QPaintEvent* event)
 {
     QFrame::paintEvent(event);
@@ -395,4 +623,110 @@ void QtTextLabel::changeEvent(QEvent *event)
     return QFrame::changeEvent(event);
 }
 
+void QtTextLabel::mousePressEvent(QMouseEvent *event)
+{
+    if (event->button() == Qt::LeftButton &&
+        event->modifiers() == Qt::NoModifier)
+    {
+        const int i = linkAt(event->pos());
+        const bool isOverLink = i >= 0;
+        d->activeLink.first = i;
+        d->activeLink.second.setFlag(QStyle::State_Sunken, isOverLink);
+        if (isOverLink)
+            update();
+    }
+    QFrame::mouseReleaseEvent(event);
+}
 
+void QtTextLabel::mouseReleaseEvent(QMouseEvent *event)
+{
+    if (event->button() == Qt::LeftButton &&
+        event->modifiers() == Qt::NoModifier)
+    {
+        const int i = linkAt(event->pos());
+        d->activeLink.first = i;
+        d->activeLink.second.setFlag(QStyle::State_Sunken, false);
+        d->activeLink.second.setFlag(QStyle::State_MouseOver, i >= 0);
+        if (i >= 0)
+        {
+            if (d->linkHighlighting & HighlightVisitedLinks)
+                d->visitedLinks.setBit(i);
+            Q_EMIT linkActivated(d->linksData[i].url);
+        }
+        update();
+    }
+    QFrame::mouseReleaseEvent(event);
+}
+
+bool QtTextLabel::event(QEvent *e)
+{
+    if (e->type() == QEvent::HoverMove)
+    {
+        const int i = linkAt(static_cast<QHoverEvent*>(e)->pos());
+        if (i >= 0)
+            setCursor(Qt::PointingHandCursor);
+        else
+            unsetCursor();
+
+        const bool requireUpdate = i != d->activeLink.first;
+        d->activeLink.first = i;
+        d->activeLink.second.setFlag(QStyle::State_MouseOver, i >= 0);
+        if (requireUpdate)
+            update(); // shedule repaint event
+    }
+    if (e->type() == QEvent::HoverLeave)
+    {
+        d->activeLink.first = -1;
+        d->activeLink.second = QStyle::State_None;
+        unsetCursor();
+        update(); // shedule repaint event
+    }
+
+    return QWidget::event(e);
+}
+
+int QtTextLabel::linkAt(const QPoint &p) const
+{
+    auto it = std::find_if(d->linksData.cbegin(), d->linksData.cend(),
+                           [p](const auto& link) { return link.region.contains(p); });
+
+    return it == d->linksData.cend() ? -1 : std::distance(d->linksData.cbegin(), it);
+}
+
+int QtTextLabel::hoveredLink() const
+{
+    return (d->activeLink.second & QStyle::State_MouseOver) ? d->activeLink.first : -1;
+}
+
+QRegion QtTextLabel::linkRegion(int i) const
+{
+    if (i < 0 || i >= d->linksData.size())
+        return {};
+    return d->linksData[i].region;
+}
+
+QString QtTextLabel::linkText(int i) const
+{
+    if (i < 0 || i >= d->linksData.size())
+        return {};
+    return d->plainText.mid(d->linksData[i].position, d->linksData[i].length);
+}
+
+QString QtTextLabel::linkUrl(int i) const
+{
+    if (i < 0 || i >= d->linksData.size())
+        return {};
+    return d->linksData[i].url;
+}
+
+QBrush QtTextLabel::linkBrush(int state) const
+{
+    if (state & QStyle::State_Sunken)
+        return palette().color(QPalette::Link).darker(120);
+    else if (state & QStyle::State_MouseOver)
+        return palette().color(QPalette::Link).lighter(160);
+    else if (state & QStyle::State_Selected)
+        return palette().color(QPalette::LinkVisited).darker(120);
+    else
+        return palette().link();
+}

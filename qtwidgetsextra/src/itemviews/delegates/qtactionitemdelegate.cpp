@@ -72,37 +72,31 @@ QtActionItemDelegate::~QtActionItemDelegate() = default;
 
 void QtActionItemDelegate::setToolButtonStyle(Qt::ToolButtonStyle style)
 {
-     
     d->buttonStyle = style;
 }
 
 Qt::ToolButtonStyle QtActionItemDelegate::toolButtonStyle() const
 {
-     
     return d->buttonStyle;
 }
 
 void QtActionItemDelegate::setAutoRaise(bool on)
 {
-     
     d->isAutoRaise = on;
 }
 
 bool QtActionItemDelegate::isAutoRaise() const
 {
-     
     return d->isAutoRaise;
 }
 
 void QtActionItemDelegate::setIconSize(const QSize& size)
 {
-     
     d->iconSize = size;
 }
 
 QSize QtActionItemDelegate::iconSize() const
 {
-     
     return d->iconSize;
 }
 
@@ -115,14 +109,12 @@ void QtActionItemDelegate::addActions(const QList<QAction*>& actions, Side side 
 
 void QtActionItemDelegate::addAction(QAction* action, Side side /*= RightSide*/)
 {
-     
     action->setProperty("side", side);
     d->actions << action;
 }
 
 void QtActionItemDelegate::removeAction(QAction* action)
 {
-     
     d->actions.removeAll(action);
     d->mapper->removeMappings(action);
     QObject::disconnect(action, nullptr, d->mapper, nullptr);
@@ -130,13 +122,11 @@ void QtActionItemDelegate::removeAction(QAction* action)
 
 QList<QAction*> QtActionItemDelegate::actions() const
 {
-     
     return d->actions;
 }
 
 QWidget *QtActionItemDelegate::createEditor(QWidget * parent, const QStyleOptionViewItem & option, const QModelIndex & index) const
 {
-     
     QWidget* editor = QStyledItemDelegate::createEditor(parent, option, index);
 
     QtItemEditor* itemEditor = new QtItemEditor(editor, parent);
@@ -179,7 +169,6 @@ void QtActionItemDelegate::setModelData(QWidget * editor, QAbstractItemModel * m
 
 void QtActionItemDelegate::updateButton(QWidget* widget)
 {
-     
     QToolButton* button = qobject_cast<QToolButton*>(widget);
     if (!button)
         return;
@@ -204,7 +193,8 @@ void QtActionItemDelegate::updateEditorGeometry(QWidget * editor, const QStyleOp
 void QtActionItemDelegate::editorDestroyed(QObject*)
 {
     QList<QAction*>::const_iterator it = d->actions.cbegin();
-    for (; it != d->actions.cend(); ++it) {
+    for (; it != d->actions.cend(); ++it)
+    {
         d->mapper->removeMappings(*it);
         QObject::disconnect(*it, nullptr, d->mapper, nullptr);
     }
