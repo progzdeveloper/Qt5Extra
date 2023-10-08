@@ -28,7 +28,7 @@ QString formatPath(const QModelIndex &current, const QString &separator, int rol
 QModelIndex sourceIndex(const QModelIndex &index)
 {
     const QAbstractProxyModel* proxy = qobject_cast<const QAbstractProxyModel*>(index.model());
-    return  (proxy != Q_NULLPTR ? proxy->mapToSource(index) : index);
+    return  (proxy != Q_NULLPTR ? sourceIndex(proxy->mapToSource(index)) : index);
 }
 
 const QAbstractItemModel* sourceModel(const QModelIndex &index)

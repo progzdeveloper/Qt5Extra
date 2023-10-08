@@ -4,8 +4,8 @@
 #include <unordered_set>
 
 #include <QtWidgets>
-
-#include <QtWidgetItemDelegate>
+#include <QtItemWidget>
+#include <QtItemWidgetDelegate>
 
 
 class QtFileListModel;
@@ -62,7 +62,7 @@ Q_SIGNALS:
     void requestContextMenuAt(const QPoint&);
 
 protected:
-    bool viewportEvent(QEvent* e, QWidget* w) Q_DECL_OVERRIDE;
+    bool viewportEvent(QEvent* e, QWidget* w, const QStyleOptionViewItem& option) Q_DECL_OVERRIDE;
 
 private:
     QString elidedText(const QString& text) const;
@@ -82,7 +82,7 @@ private:
 // Example of delegate for displaying static-only content
 // (no dynamic/clickable elements)
 //
-class ItemWidgetDelegate : public QtWidgetItemDelegate
+class ItemWidgetDelegate : public QtItemWidgetDelegate
 {
     Q_OBJECT
 public:
@@ -93,7 +93,7 @@ protected:
 };
 
 
-class FileItemDelegate : public QtWidgetItemDelegate
+class FileItemDelegate : public QtItemWidgetDelegate
 {
     Q_OBJECT
 public:

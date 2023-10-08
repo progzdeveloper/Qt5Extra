@@ -49,8 +49,7 @@ Widget::Widget(QWidget *parent)
     tableView->viewport()->setMouseTracking(true);
 
     delegate = new FileItemDelegate(tableView);
-    delegate->setAutoFillBackground(false);
-    delegate->setStaticContent(false);
+    delegate->setOptions(FileItemDelegate::CacheItemPixmap|FileItemDelegate::HighlightHovered|FileItemDelegate::HighlightSelected);
 
     connect(delegate, &FileItemDelegate::removeIndex, this, &Widget::removeItem);
     connect(delegate, &FileItemDelegate::showItemMenu, this, &Widget::showContextMenu);
@@ -132,8 +131,12 @@ void Widget::onModelReset()
 void Widget::removeItem(const QModelIndex &index)
 {
     if (index.isValid())
+    {
         model->removeRow(index.row());
-
+        delegate->invalidate();
+        tableView->doItemsLayout();
+        listView->doItemsLayout();
+    }
     label->setText(tr("Total items in model: %1").arg(model->rowCount()));
 }
 
@@ -355,6 +358,7 @@ void FileItemWidget::setData(const QModelIndex &index, const QStyleOptionViewIte
             sizeLabel->setVisible(false);
 
             removeButton->setVisible(false);
+            removeButton->setEnabled(false);
         }
         else
         {
@@ -367,6 +371,7 @@ void FileItemWidget::setData(const QModelIndex &index, const QStyleOptionViewIte
             sizeLabel->setVisible(true);
             // show remove button only when mouse hover over item
             removeButton->setVisible(option.state & QStyle::State_MouseOver);
+            removeButton->setEnabled(true);
         }
     }
 }
@@ -376,7 +381,7 @@ void FileItemWidget::updateProgress()
     previewLabel->updateProgress();
 }
 
-bool FileItemWidget::viewportEvent(QEvent *e, QWidget *w)
+bool FileItemWidget::viewportEvent(QEvent *e, QWidget *w, const QStyleOptionViewItem& option)
 {
     // example of custom item event processing
     if (e->type() == QEvent::MouseButtonPress)
@@ -389,7 +394,7 @@ bool FileItemWidget::viewportEvent(QEvent *e, QWidget *w)
             return true;
         }
     }
-    return QtItemWidget::viewportEvent(e, w);
+    return QtItemWidget::viewportEvent(e, w, option);
 }
 
 QString FileItemWidget::elidedText(const QString &text) const
@@ -399,14 +404,15 @@ QString FileItemWidget::elidedText(const QString &text) const
     return metrics.elidedText(text, Qt::ElideRight, width);
 }
 
+
 //
 // class ItemWidgetDelegate implementation
 // This is show how it's easy to implement a custom
 // delegate: only a few methods overloading is required!
 //
-ItemWidgetDelegate::ItemWidgetDelegate(QObject *parent) : QtWidgetItemDelegate(parent)
+ItemWidgetDelegate::ItemWidgetDelegate(QObject *parent) : QtItemWidgetDelegate(parent)
 {
-    setStaticContent(true);
+    setOptions(StaticContents|CacheItemPixmap|HighlightHovered|HighlightSelected);
 }
 
 QtItemWidget *ItemWidgetDelegate::createItemWidget() const
@@ -421,7 +427,7 @@ QtItemWidget *ItemWidgetDelegate::createItemWidget() const
 // This is a more complicated since we want
 // more control over appearance and behavior
 //
-FileItemDelegate::FileItemDelegate(QObject *parent) : QtWidgetItemDelegate(parent), itemWidget(Q_NULLPTR)
+FileItemDelegate::FileItemDelegate(QObject *parent) : QtItemWidgetDelegate(parent), itemWidget(Q_NULLPTR)
 {
     timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, &FileItemDelegate::updateProgress);
@@ -434,8 +440,6 @@ void FileItemDelegate::itemRemoveRequest()
         const QPoint globalPoint = QCursor::pos();
         const QPoint localPoint = view->mapFromGlobal(globalPoint);
         Q_EMIT removeIndex(view->indexAt(localPoint));
-
-        view->doItemsLayout();
     }
 }
 
@@ -510,16 +514,16 @@ QSize FileItemDelegate::sizeHint(const QStyleOptionViewItem &option, const QMode
         widget()->adjustSize(); // adjust size to get correct widget minimum size
         return widget()->minimumSize();
     }
-    return QtWidgetItemDelegate::sizeHint(option, index);
+    return QtItemWidgetDelegate::sizeHint(option, index);
 }
 
-QtWidgetItemDelegate::RenderHint FileItemDelegate::renderHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
+QtItemWidgetDelegate::RenderHint FileItemDelegate::renderHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     // example of overriding renderHint() method
     if (index.isValid() && index.data(QtFileListModel::FileStatusRole).toBool())
         return RenderHint::RenderDirect; // draw direct if item is loading - no need to cache animation
     else
-        return QtWidgetItemDelegate::renderHint(option, index);
+        return QtItemWidgetDelegate::renderHint(option, index);
 }
 
 QtItemWidget *FileItemDelegate::createItemWidget() const

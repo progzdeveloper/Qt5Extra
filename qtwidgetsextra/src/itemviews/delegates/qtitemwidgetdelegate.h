@@ -9,7 +9,7 @@ class QtItemWidget;
 // class QtWidgetItemDelegate provides the ability
 // to embed custom widgets as elements of QAbstractItemView
 //
-class QTWIDGETSEXTRA_EXPORT QtWidgetItemDelegate : public QStyledItemDelegate
+class QTWIDGETSEXTRA_EXPORT QtItemWidgetDelegate : public QStyledItemDelegate
 {
     Q_OBJECT
 public:
@@ -19,17 +19,24 @@ public:
         RenderCached  // cached rendering
     };
 
-    explicit QtWidgetItemDelegate(QObject* parent = Q_NULLPTR);
-    ~QtWidgetItemDelegate();
+    enum Option
+    {
+        NoOptions = 0,
+        HighlightSelected = 1 << 0, // enable/disable highlighting item background on mouse press
+        HighlightHovered = 1 << 1, // enable/disable highlighting item background on mouse hover
+        AutoFillBackground = 1 << 2, // enable/disable auto-fill background of items
+        StaticContents = 1 << 3, // hint for static contents
+        CacheItemPixmap = 1 << 4, // enable/disable pixmap caching
+        CustomEventFilter = 1 << 5 // use QObject::eventFilter() instead of QStyleItemDelegate::editorEvent() for item event handling
+    };
+    Q_DECLARE_FLAGS(Options, Option)
+    Q_FLAG(Option)
 
-    void setAutoFillBackground(bool on);
-    bool isAutoFillBackground() const;
+    explicit QtItemWidgetDelegate(QObject* parent = Q_NULLPTR);
+    ~QtItemWidgetDelegate();
 
-    void setStaticContent(bool on);
-    bool isStaticContent() const;
-
-    void setCacheEnabled(bool enabled);
-    bool isCacheEnabled() const;
+    void setOptions(Options options);
+    Options options() const;
 
     void setCacheLimit(int cacheSize);
     int cacheLimit() const;
@@ -64,28 +71,9 @@ protected:
     void createWidgetOnDemand() const;
 
 private:
-    friend class QtWidgetItemDelegatePrivate;
-    QScopedPointer<class QtWidgetItemDelegatePrivate> d;
+    friend class QtItemWidgetDelegatePrivate;
+    QScopedPointer<class QtItemWidgetDelegatePrivate> d;
 };
 
-struct WidgetState;
-class QTWIDGETSEXTRA_EXPORT QtItemWidget : public QWidget
-{
-    Q_OBJECT
+Q_DECLARE_OPERATORS_FOR_FLAGS(QtItemWidgetDelegate::Options)
 
-public:
-    friend class QtWidgetItemDelegate;
-
-    explicit QtItemWidget(QWidget* parent);
-    virtual ~QtItemWidget();
-
-    virtual void setData(const QModelIndex&, const QStyleOptionViewItem&);
-
-protected:
-    virtual bool viewportEvent(QEvent *e, QWidget*);
-
-    bool isMouseOver(QWidget* w, QMouseEvent* e) const;
-
-private:
-    bool handleEvent(QEvent* e, QWidget* w, WidgetState& wstate);
-};

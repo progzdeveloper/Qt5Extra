@@ -84,6 +84,7 @@ QtFloatingToolButton::QtFloatingToolButton(QWidget *parent)
     : QAbstractButton(parent)
     , d(new QtFloatingToolButtonPrivate(this, parent))
 {
+
 }
 
 QtFloatingToolButton::~QtFloatingToolButton() = default;
@@ -127,7 +128,6 @@ bool QtFloatingToolButton::isAnimated() const
 
 void QtFloatingToolButton::setAlignment(Qt::Alignment align)
 {
-     
     d->alignment = align;
     updateGeometry();
     if (isVisible())
@@ -174,8 +174,6 @@ QMargins QtFloatingToolButton::margins() const
 
 void QtFloatingToolButton::setDefaultAction(QAction *action)
 {
-     
-
 #if QT_CONFIG(menu)
     //bool hadMenu = false;
     //hadMenu = d->hasMenu();
@@ -210,8 +208,6 @@ QAction *QtFloatingToolButton::defaultAction() const
 
 void QtFloatingToolButton::setMenu(QMenu *menu)
 {
-     
-
     if (d->menuAction == (menu ? menu->menuAction() : 0))
         return;
     if (d->menuAction)
