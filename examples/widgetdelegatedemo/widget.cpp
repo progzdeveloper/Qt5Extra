@@ -298,7 +298,6 @@ FileItemWidget::FileItemWidget(bool isStatic, QWidget *parent) : QtItemWidget(pa
 
 void FileItemWidget::setData(const QModelIndex &index, const QStyleOptionViewItem& option)
 {
-    qDebug() << "setData";
     static QSize smallIconSize(64, 64);
     static QSize largeIconSize(256, 256);
 
