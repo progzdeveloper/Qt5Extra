@@ -79,13 +79,20 @@ bool QtItemWidget::handleEvent(QEvent *e, QWidget *viewport, const QStyleOptionV
 
 void QtItemWidget::handleMousePress(QMouseEvent* event, QWidget*, const QStyleOptionViewItem& option)
 {
+    const bool isMouseClicked = (event->button() == Qt::LeftButton && event->modifiers() == Qt::NoModifier);
+    if (!isMouseClicked)
+        return;
+
     QWidget* pointedWidget = childAt(event->pos() - option.rect.topLeft());
     if (!pointedWidget ||!pointedWidget->isEnabled())
         pointedWidget = nullptr;
 
     const QList<QAbstractButton*> buttons = findChildren<QAbstractButton*>();
     for (auto button : buttons)
-        button->setDown(button == pointedWidget);
+    {
+        if (button)
+            button->setDown(button == pointedWidget);
+    }
 }
 
 void QtItemWidget::handleMouseMove(QMouseEvent* event, QWidget* viewport, const QStyleOptionViewItem& option)
@@ -118,10 +125,16 @@ void QtItemWidget::handleMouseRelease(QMouseEvent* event, QWidget*, const QStyle
     if (!pointedWidget ||!pointedWidget->isEnabled())
         pointedWidget = nullptr;
 
+    const bool isMouseClicked = (event->button() == Qt::LeftButton && event->modifiers() == Qt::NoModifier);
+
     const QList<QAbstractButton*> buttons = findChildren<QAbstractButton*>();
     for (auto button : buttons)
     {
-        const bool isClickable = (button == pointedWidget &&
+        if (!button)
+            continue;
+
+        const bool isClickable = (isMouseClicked &&
+                                  button == pointedWidget &&
                                   button->isDown() &&
                                   button->isEnabled() /*&&
                                   button->testAttribute(Qt::WA_WState_Visible)*/);

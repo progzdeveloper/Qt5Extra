@@ -324,7 +324,9 @@ void QtItemWidgetDelegate::createWidgetOnDemand() const
 void QtItemWidgetDelegate::updateWidgetData(const QModelIndex& index, const QStyleOptionViewItem& option) const
 {
     if (d->widget)
+    {
         d->widget->setData(index, option); // setup widget from data in index
+    }
 }
 
 
@@ -366,7 +368,10 @@ bool QtItemWidgetDelegate::eventHandler(QEvent *event, QAbstractItemModel *model
         d->widget->move(viewport->mapToGlobal(option.rect.topLeft()));
 
         if (d->currentIndex != index) // index mismatch - update cuurrent index
+        {
             d->widget->setData(index, option);
+        }
+
         d->currentIndex = index;
 
         if (d->options & StaticContents)
