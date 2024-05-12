@@ -79,14 +79,15 @@ public:
         return encoding;
     }
 
-    static QStringList extractDirAndSubdirs(const QString& _path)
+    static QStringList buildSubDirsList(const QString& _path)
     {
         if (!QFileInfo::exists(_path))
             return {};
 
         QStringList dirs = { _path };
 
-        for (const QFileInfo& subDir : QDir(_path).entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot))
+        const auto& entryList = QDir(_path).entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot);
+        for (const QFileInfo& subDir : entryList)
             dirs.push_back(subDir.absoluteFilePath());
 
         return dirs;
@@ -96,7 +97,8 @@ public:
     {
         for (const QString& dirPath : _searchDirs)
         {
-            for (const QFileInfo& dict : QDir(dirPath).entryInfoList({ QLatin1String("*.aff") }, QDir::Files))
+            const auto entryList = QDir(dirPath).entryInfoList({ QLatin1String("*.aff"), QLatin1String("*.dic") }, QDir::Files);
+            for (const QFileInfo& dict : entryList)
             {
                 const QString language = dict.baseName();
                 if (!dict.isSymLink())
@@ -125,6 +127,8 @@ public:
             qWarning() << "Unable to load dictionary for" << _language << "in path" << _dirPath;
             return;
         }
+
+        qDebug() << LIBHUNSPELL_VERSION;
 
         const QString encoding = detectEncoding(affixFilePath);
         auto codec = QTextCodec::codecForName(encoding.toLatin1());
@@ -167,12 +171,11 @@ bool HunspellBackend::load()
     // add QStandardPaths
     searchDirs.append(QStandardPaths::locateAll(QStandardPaths::GenericDataLocation, QLatin1String("hunspell"), QStandardPaths::LocateDirectory));
     // add app resources
-    searchDirs.append(qApp->applicationDirPath() + QLatin1String("/resources/hunspell/"));
-
+    searchDirs.append(d->buildSubDirsList(qApp->applicationDirPath()));
     // search additional user paths
-    searchDirs.append(d->extractDirAndSubdirs(QLatin1String("/System/Library/Spelling")));
-    searchDirs.append(d->extractDirAndSubdirs(QLatin1String("/usr/share/hunspell/")));
-    searchDirs.append(d->extractDirAndSubdirs(QLatin1String("/usr/share/myspell/")));
+    searchDirs.append(d->buildSubDirsList(QLatin1String("/System/Library/Spelling")));
+    searchDirs.append(d->buildSubDirsList(QLatin1String("/usr/share/hunspell/")));
+    searchDirs.append(d->buildSubDirsList(QLatin1String("/usr/share/myspell/")));
 
     HunspellBackendPrivate::UStringMap languagePaths, languageAliases;
     d->detectInstalledLangs(searchDirs, languagePaths, languageAliases);
@@ -204,11 +207,8 @@ bool HunspellBackend::validate(const QString& _word) const
 
 QStringList HunspellBackend::suggestions(const QString& _word, int _count) const
 {
-    QStringList list;
-    list.reserve(_count);
-#if LIBHUNSPELL_VERSION <= 150
-    char** results = new char*[1024];
-#endif
+    QSet<QString> stringSet;
+    stringSet.reserve(_count);
 
     for (const auto& e : d->spellcheckers_)
     {
@@ -218,29 +218,26 @@ QStringList HunspellBackend::suggestions(const QString& _word, int _count) const
         for (const auto& s : results)
         {
             if (s.size() > 0)
-                list << e.codec_->toUnicode(s.data(), s.size());
-            if (list.size() >= _count)
+                stringSet << e.codec_->toUnicode(s.data(), s.size());
+            if (stringSet.size() >= _count)
                 break;
         }
 #else
-        int n = e.checker_->suggest((char***)&results, w.data());
+        char** results = nullptr;
+        int n = e.checker_->suggest(&results, w.data());
         for (int i = 0; i < n; ++i)
         {
             const char* s = results[i];
             const int l = qstrnlen(s, 256);
             if (l > 0)
-                list << e.codec_->toUnicode(s, l);
-            if (list.size() >= _count)
+                stringSet << e.codec_->toUnicode(s, l);
+            if (stringSet.size() >= _count)
                 break;
         }
+        e.checker_->free_list(&results, n);
 #endif
     }
-
-#if LIBHUNSPELL_VERSION <= 150
-    delete[] results;
-#endif
-
-    return list;
+    return stringSet.toList();
 }
 
 void HunspellBackend::append(const QString& _word)

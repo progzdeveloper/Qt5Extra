@@ -18,6 +18,7 @@
 
 class QtSpellCompleterPrivate
 {
+    Q_DECLARE_TR_FUNCTIONS(QtSpellCompleterPrivate)
 public:
     struct Word
     {
@@ -128,15 +129,15 @@ public:
         switch (_action)
         {
         case QtSpellCheckEngine::AppendWord:
-            action = new QAction(QT_TRANSLATE_NOOP("context_menu", "Add to dictionary"), _parent);
+            action = new QAction(tr("Add to dictionary"), _parent);
             QObject::connect(action, &QAction::triggered, q, [_word]() { QtSpellCheckEngine::instance().append(_word); });
             break;
         case QtSpellCheckEngine::RemoveWord:
-            action = new QAction(QT_TRANSLATE_NOOP("context_menu", "Remove from dictionary"), _parent);
+            action = new QAction(tr("Remove from dictionary"), _parent);
             QObject::connect(action, &QAction::triggered, q, [_word]() { QtSpellCheckEngine::instance().remove(_word); });
             break;
         case QtSpellCheckEngine::IgnoreWord:
-            action = new QAction(QT_TRANSLATE_NOOP("context_menu", "Ignore"), _parent);
+            action = new QAction(tr("Ignore"), _parent);
             QObject::connect(action, &QAction::triggered, q, [_word]() { QtSpellCheckEngine::instance().ignore(_word); });
             break;
         default:
@@ -456,13 +457,12 @@ void QtSpellCompleter::popupMenu(QMenu* _menu, const QPoint& _globalPos, MenuSty
     _menu->move(_globalPos);
     _menu->resize(_menu->sizeHint());
     _menu->popup(_globalPos);
-    //Ui::ContextMenu::updatePosition(_menu, _globalPos);
 }
 
 void QtSpellCompleter::embedActions(QMenu* _menu,
-                                       const QString& _word,
-                                       const QStringList& _suggests,
-                                       QtSpellCheckEngine::CorrectionActions _actions) const
+                                    const QString& _word,
+                                    const QStringList& _suggests,
+                                    QtSpellCheckEngine::CorrectionActions _actions) const
 {
     if (!_menu || _actions == QtSpellCheckEngine::NoActions)
         return;
@@ -479,7 +479,8 @@ void QtSpellCompleter::embedActions(QMenu* _menu,
     if (!_suggests.isEmpty())
         actions.append(d->createSeparator(_menu));
 
-    _menu->insertActions(_menu->isEmpty() ? nullptr : _menu->actions().front(), actions);
+    const auto menuActs = _menu->actions();
+    _menu->insertActions(_menu->isEmpty() ? nullptr : menuActs.front(), actions);
 }
 
 QMenu* QtSpellCompleter::createMenu() const
@@ -512,9 +513,9 @@ QtSpellCompleter::MenuStyle QtSpellCompleter::preferredMenuStyle(QEvent::Type _e
 }
 
 void QtSpellCompleter::onSuggestsReady(QObject* _receiver,
-                                          const QString& _word,
-                                          const QStringList& _results,
-                                          QtSpellCheckEngine::CorrectionActions _actions)
+                                       const QString& _word,
+                                       const QStringList& _results,
+                                       QtSpellCheckEngine::CorrectionActions _actions)
 {
     if (_receiver == this)
     {
@@ -524,8 +525,8 @@ void QtSpellCompleter::onSuggestsReady(QObject* _receiver,
 }
 
 void QtSpellCompleter::onSuggests(const QString& _word,
-                                     const QStringList& _results,
-                                     QtSpellCheckEngine::CorrectionActions _actions)
+                                  const QStringList& _results,
+                                  QtSpellCheckEngine::CorrectionActions _actions)
 {
     if (d->eventType_ == QEvent::HoverMove)
     {

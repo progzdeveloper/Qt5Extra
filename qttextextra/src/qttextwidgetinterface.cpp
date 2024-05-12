@@ -169,7 +169,10 @@ public:
 
     TextEditModel(QLineEdit* edit)
         : widget(edit)
-    {}
+    {
+        if (Q_LIKELY(edit != Q_NULLPTR))
+            QObject::connect(edit, &QLineEdit::textChanged, edit, [this](const QString& s) { updateLayout(s); });
+    }
 
     QWidget* object() const Q_DECL_OVERRIDE { return widget; }
 
@@ -183,12 +186,12 @@ public:
 
         QRect r = static_cast<_LineEdit*>(widget.data())->cursorRect();
         r.translate(offset);
-        //if (cursorPos < 0)
+        if (cursorPos < 0)
             return r;
 
-        //const int delta = control->cursorToX(cursorPos) - control->cursorToX();
-        //r.translate(delta);
-        //return r;
+        const int delta = cursorToX(cursorPos) - cursorToX();
+        r.translate(delta, 0);
+        return r;
     }
 
     bool isMultiLine() const Q_DECL_OVERRIDE { return false; }
@@ -221,7 +224,34 @@ public:
     QMenu* createContextMenu() const Q_DECL_OVERRIDE { return widget ? widget->createStandardContextMenu() : nullptr; }
 
 private:
+    void updateLayout(const QString& text)
+    {
+        textLayout.setText(text);
+
+        QTextOption option = textLayout.textOption();
+        option.setTextDirection(widget->layoutDirection());
+        option.setFlags(QTextOption::IncludeTrailingSpaces);
+        textLayout.setTextOption(option);
+
+        textLayout.clearLayout();
+        textLayout.beginLayout();
+        textLayout.createLine();
+        textLayout.endLayout();
+    }
+
+    qreal cursorToX(int cursor) const
+    {
+        return textLayout.lineAt(0).cursorToX(cursor);
+    }
+
+    qreal cursorToX() const
+    {
+       return cursorToX(widget->cursorPosition());
+    }
+
+private:
     QPointer<QLineEdit> widget;
+    QTextLayout textLayout;
 };
 
 

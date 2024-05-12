@@ -59,7 +59,9 @@ public:
     {
         if (row < 0)
             return QVariant();
-        switch(row) {
+
+        switch(row)
+        {
         case IIDField:   return tr("Interface");
         case KeyField:   return tr("Class Name");
         case TitleField: return tr("Title");

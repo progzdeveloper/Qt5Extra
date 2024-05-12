@@ -1,5 +1,6 @@
 #include "hunspellplugin.h"
 #include "hunspellbackend.h"
+#include <QDebug>
 
 HunspellBackendPlugin::HunspellBackendPlugin(QObject *parent)
     : QObject(parent)
@@ -15,6 +16,7 @@ QString HunspellBackendPlugin::backendName() const
 {
     return "Hunspell";
 }
+
 
 #if QT_VERSION < 0x050000
 #ifdef _DEBUG
