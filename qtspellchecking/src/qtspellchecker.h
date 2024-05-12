@@ -42,14 +42,12 @@ public:
     bool hasMisspelled(int offset, int length) const;
     bool hasMisspelled(const IndexRange& range) const;
 
-    bool isValid() const;
-
 public Q_SLOTS:
     void rescan();
     void update();
 
 private Q_SLOTS:
-    void onMisspelled(QObject* _receiver, const QString& _word, int _offset, bool _needMarkAsMisspelled = true);
+    void onMisspelled(QObject* _receiver, const QString& _word, int _offset);
     void onCompleted(QObject* _receiver);
 
 Q_SIGNALS:

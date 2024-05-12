@@ -291,7 +291,7 @@ public:
         const bool hasSpecChars = std::any_of(txt.cbegin(), txt.cend(), isDelimiter);
         const bool isBackspaceKey = key == Qt::Key_Backspace;
         if ((isAutoCorrectionEnabled() && !isBackspaceKey && !isTriggerKey && hasSpecChars) ||
-                (isAutoCompletionEnabled() && !isBackspaceKey && hasSpecChars))
+            (isAutoCompletionEnabled() && !isBackspaceKey && hasSpecChars))
         {
             return EventIgnoreReset;
         }

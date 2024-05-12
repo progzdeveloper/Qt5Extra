@@ -237,14 +237,13 @@ public:
 
         if (_cache.contains(_event.word_))
         {
-            Q_EMIT q->misspelled(_object, _event.word_, _event.offset_, true);
-            return;
+            Q_EMIT q->misspelled(_object, _event.word_, _event.offset_);
         }
-
-        const bool isValid = backend_->validate(_event.word_);
-        if (!isValid)
+        else if (!backend_->validate(_event.word_))
+        {
             updateCache(_cache, _event.word_);
-        Q_EMIT q->misspelled(_object, _event.word_, _event.offset_, !isValid);
+            Q_EMIT q->misspelled(_object, _event.word_, _event.offset_);
+        }
     }
 
     void supplyEvent(const SpellCheckEvent& _event, MisspelledCache& _cache)

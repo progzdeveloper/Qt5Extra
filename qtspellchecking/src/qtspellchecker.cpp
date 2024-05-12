@@ -121,6 +121,9 @@ public:
         if (text.isEmpty())
             return;
 
+        misspelledRanges_.clear();
+        QtSpellCheckEngine::instance().cancel(q);
+
         QtTextTokenizer::TokenHandler handler = [this](QStringView _word, int _offset)
         {
             QtSpellCheckEngine::instance().spell(_word.toString(), _offset, q);
@@ -261,6 +264,7 @@ void QtSpellChecker::setWidget(QWidget *w)
         viewport->installEventFilter(this);
 
     connect(d->target_, &QObject::destroyed, this, [this]() { setWidget(nullptr); });
+    connect(&d->target_, &QtTextWidgetInterface::textChanged, this, &QtSpellChecker::rescan);
 
     if (QScrollBar* vbar = d->target_.scrollBar(Qt::Vertical))
         connect(vbar, &QScrollBar::valueChanged, this, &QtSpellChecker::update);
@@ -304,32 +308,29 @@ bool QtSpellChecker::hasMisspelled(const IndexRange& _range) const
     return d->containsMisspelled(_range);
 }
 
-bool QtSpellChecker::isValid() const
-{
-    return (d->enabled_ && d->target_);
-}
-
 void QtSpellChecker::rescan()
 {
-    if (!isValid() || d->hightlightActive_)
+    if (!d->enabled_ || !d->target_ || d->hightlightActive_)
         return;
+
     d->rescan();
 }
 
 void QtSpellChecker::update()
 {
-    if (!isValid() || d->hightlightActive_)
+    if (!d->enabled_ || !d->target_ || d->hightlightActive_)
         return;
+
     if (d->target_.visibleTextRange() != d->visibleRange_)
         d->rescan();
 }
 
-void QtSpellChecker::onMisspelled(QObject* _receiver, const QString& _word, int _offset, bool _needMarkAsMisspelled)
+void QtSpellChecker::onMisspelled(QObject* _receiver, const QString& _word, int _offset)
 {
-    if (!isValid() || _receiver != this)
+    if (_receiver != this || !d->enabled_ || !d->target_)
         return;
 
-    if (_needMarkAsMisspelled)
+    if (d->target_)
         d->misspelledRanges_.push_back({ _offset, _word.length() });
 }
 
@@ -337,6 +338,7 @@ void QtSpellChecker::onCompleted(QObject* _receiver)
 {
     if (!d->enabled_ || _receiver != this || !d->highlighter_)
         return;
+
     QScopedValueRollback guard(d->hightlightActive_, true);
     d->highlighter_->reset();
     d->highlighter_->highlight(d->misspelledRanges_.constData(), d->misspelledRanges_.size());
@@ -356,7 +358,7 @@ bool QtSpellChecker::eventFilter(QObject* _watched, QEvent* _event)
             break;
         case QEvent::KeyRelease:
         case QEvent::KeyPress:
-            update();
+            //update();
         case QEvent::MouseButtonPress:
         case QEvent::MouseButtonRelease:
         case QEvent::MouseButtonDblClick:

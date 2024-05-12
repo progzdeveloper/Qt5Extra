@@ -40,7 +40,7 @@ public:
     void cancel(QObject* _object);
 
 Q_SIGNALS:
-    void misspelled(QObject* _object, const QString& _word, int _offset, bool _needMarkAsMisspelled = true);
+    void misspelled(QObject* _object, const QString& _word, int _offset);
     void completed(QObject* _object);
     void appended(const QString& _word);
     void removed(const QString& _word);

@@ -1,5 +1,6 @@
 #include "widget.h"
 #include <QtSpellChecker>
+#include <QtSpellCompleter>
 #include <QtPluginManagerDialog>
 
 Widget::Widget(QWidget* parent)
@@ -7,8 +8,10 @@ Widget::Widget(QWidget* parent)
     button = new QToolButton(this);
     connect(button, &QToolButton::clicked, this, &Widget::aboutPlugins);
     lineEdit = new QLineEdit(this);
-    new QtSpellChecker(lineEdit);
-
+    lineEdit->setAttribute(Qt::WA_Hover);
+    QtSpellChecker* checker = new QtSpellChecker(lineEdit);
+    checker->completer()->setOptions(QtSpellCompleter::SuggestsTooltip | QtSpellCompleter::ShortcutMenu | QtSpellCompleter::ContextMenuEmbed);
+    checker->completer()->setShortcut(Qt::ControlModifier + Qt::Key_Space);
     textEdit = new QTextEdit(this);
     new QtSpellChecker(textEdit);
 
