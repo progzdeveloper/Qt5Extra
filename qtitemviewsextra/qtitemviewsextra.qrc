@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/text">
+        <file alias="codeclist">resources/text/textcodecs.txt</file>
+    </qresource>
+</RCC>
