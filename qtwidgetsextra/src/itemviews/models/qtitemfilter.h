@@ -61,7 +61,7 @@ private:
     int mRole;
 };
 
-class QtAbstractItemFilter
+class QTWIDGETSEXTRA_EXPORT QtAbstractItemFilter
 {
     Q_GADGET
     Q_DISABLE_COPY(QtAbstractItemFilter)
@@ -269,7 +269,7 @@ private:
 
 class QTWIDGETSEXTRA_EXPORT QtItemMapper : public QtItemFilter
 {
-    //Q_GADGET
+    Q_GADGET
 public:
     virtual QVariant map(const QtProxyModelIndex& index) const {
         if (isEnabled() && index.isValid()) {

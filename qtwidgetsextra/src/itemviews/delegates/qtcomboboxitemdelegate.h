@@ -1,6 +1,7 @@
 #pragma once
-#include <QtWidgetsExtra>
 #include <QItemDelegate>
+
+#include <QtWidgetsExtra>
 
 class QWidget;
 class QCompleter;

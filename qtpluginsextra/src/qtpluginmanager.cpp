@@ -16,7 +16,6 @@
 
 #include <QDebug>
 
-
 inline uint qHash(QtPluginInterface* iface) {
     return (iface != Q_NULLPTR ? 0 : qHash(iface->iid()));
 }
@@ -28,11 +27,22 @@ public:
     QMultiHash<QString, QString> classMap;
     QSet<QtPluginInterface*> interfaces;
     QHash<QString, QtPluginMetadata> metadata;
+    bool isAutoLoad = false;
 
     QtPluginManagerPrivate(QtPluginManager* q);
     ~QtPluginManagerPrivate();
 
     bool isLoaded(const QString& path) const;
+
+    static void onAppStartup()
+    {
+        QtPluginManager& manager = QtPluginManager::instance();
+
+        QDir pluginsDir(qApp->applicationDirPath());
+        pluginsDir.cd("plugins");
+        manager.load(pluginsDir);
+        manager.load();
+    }
 };
 
 
@@ -77,6 +87,20 @@ void QtPluginManager::registrate(QtPluginInterface *iface)
         d->interfaces.erase(it);
     }
     d->interfaces.insert(iface);
+}
+
+void QtPluginManager::setAutoLoad(bool on)
+{
+    if (on)
+    {
+        qAddPreRoutine(&QtPluginManagerPrivate::onAppStartup);
+        d->isAutoLoad = true;
+    }
+}
+
+bool QtPluginManager::isAutoLoad() const
+{
+    return d->isAutoLoad;
 }
 
 QStringList QtPluginManager::keys(const QString &iid) const

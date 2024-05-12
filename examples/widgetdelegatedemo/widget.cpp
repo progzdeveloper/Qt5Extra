@@ -49,7 +49,6 @@ Widget::Widget(QWidget *parent)
     tableView->viewport()->setMouseTracking(true);
 
     delegate = new FileItemDelegate(tableView);
-    delegate->setOptions(FileItemDelegate::CacheItemPixmap|FileItemDelegate::HighlightHovered|FileItemDelegate::HighlightSelected);
 
     connect(delegate, &FileItemDelegate::removeIndex, this, &Widget::removeItem);
     connect(delegate, &FileItemDelegate::showItemMenu, this, &Widget::showContextMenu);
@@ -78,7 +77,9 @@ Widget::Widget(QWidget *parent)
     // mouse tracking required to mouse hover events work properly
     listView->setMouseTracking(true);
     listView->setModel(model);
-    listView->setItemDelegate(new ItemWidgetDelegate(listView));
+    ItemWidgetDelegate* d = new ItemWidgetDelegate(listView);
+    d->setOptions(ItemWidgetDelegate::StaticContents|FileItemDelegate::HighlightHovered|FileItemDelegate::HighlightSelected);
+    listView->setItemDelegate(d);
 
 
     QPushButton* openButton = new QPushButton(tr("Select Images/Files..."), this);
@@ -357,8 +358,8 @@ void FileItemWidget::setData(const QModelIndex &index, const QStyleOptionViewIte
             pathLabel->setVisible(false);
             sizeLabel->setVisible(false);
 
-            removeButton->setVisible(false);
-            removeButton->setEnabled(false);
+            //removeButton->setVisible(false);
+            //removeButton->setEnabled(false);
         }
         else
         {
@@ -370,8 +371,8 @@ void FileItemWidget::setData(const QModelIndex &index, const QStyleOptionViewIte
             pathLabel->setVisible(true);
             sizeLabel->setVisible(true);
             // show remove button only when mouse hover over item
-            removeButton->setVisible(option.state & QStyle::State_MouseOver);
-            removeButton->setEnabled(true);
+            //removeButton->setVisible(option.state & QStyle::State_MouseOver);
+            //removeButton->setEnabled(true);
         }
     }
 }
@@ -412,7 +413,6 @@ QString FileItemWidget::elidedText(const QString &text) const
 //
 ItemWidgetDelegate::ItemWidgetDelegate(QObject *parent) : QtItemWidgetDelegate(parent)
 {
-    setOptions(StaticContents|CacheItemPixmap|HighlightHovered|HighlightSelected);
 }
 
 QtItemWidget *ItemWidgetDelegate::createItemWidget() const
@@ -431,6 +431,7 @@ FileItemDelegate::FileItemDelegate(QObject *parent) : QtItemWidgetDelegate(paren
 {
     timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, &FileItemDelegate::updateProgress);
+    setOptions(FileItemDelegate::HighlightHovered|FileItemDelegate::HighlightSelected);
 }
 
 void FileItemDelegate::itemRemoveRequest()
@@ -520,9 +521,9 @@ QSize FileItemDelegate::sizeHint(const QStyleOptionViewItem &option, const QMode
 QtItemWidgetDelegate::RenderHint FileItemDelegate::renderHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     // example of overriding renderHint() method
-    if (index.isValid() && index.data(QtFileListModel::FileStatusRole).toBool())
-        return RenderHint::RenderDirect; // draw direct if item is loading - no need to cache animation
-    else
+    //if (index.isValid() && index.data(QtFileListModel::FileStatusRole).toBool())
+    //    return RenderHint::RenderDirect; // draw direct if item is loading - no need to cache animation
+    //else
         return QtItemWidgetDelegate::renderHint(option, index);
 }
 

@@ -1,8 +1,8 @@
 #pragma once
 #include <QAbstractListModel>
+
 #include <QtWidgetsExtra>
 
-class QtTextCodecModelPrivate;
 class QTWIDGETSEXTRA_EXPORT QtTextCodecModel :
         public QAbstractListModel
 {

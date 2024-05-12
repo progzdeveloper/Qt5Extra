@@ -18,8 +18,15 @@ find_sources(SUBPROJECT_HEADERS "${SUBPROJECT_ROOT}/src" "h")
 include_directories(${PROJECT_NAME} "${SUBPROJECT_ROOT}/include")
 include_directories(${PROJECT_NAME} "${SUBPROJECT_ROOT}/src/utils")
 
+include_directories(${QT5EXTRA_ROOT}/qtextraaux/include)
+
+add_definitions(-DQTGEOMETRY_DLL)
+include_directories(${QT5EXTRA_ROOT}/qtgeometry/include)
+
 add_library(${PROJECT_NAME} SHARED ${SUBPROJECT_SOURCES} ${SUBPROJECT_HEADERS} ${SUBPROJECT_INTERFACE_HEADER} ${PROJECT_NAME}.qrc)
-target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Widgets)
+target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Widgets qtgeometry)
+add_dependencies(${PROJECT_NAME} qtgeometry)
+
 if (MSVC)
     set_target_properties(${PROJECT_NAME} PROPERTIES LIBRARY_OUTPUT_NAME lib${PROJECT_NAME})
     set_target_properties(${PROJECT_NAME} PROPERTIES LIBRARY_OUTPUT_NAME_DEBUG lib${PROJECT_NAME}d)

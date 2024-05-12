@@ -1,8 +1,7 @@
-#ifndef QTRICHTEXTDELEGATE_H
-#define QTRICHTEXTDELEGATE_H
+#pragma once
+#include <QStyledItemDelegate>
 
 #include <QtWidgetsExtra>
-#include <QStyledItemDelegate>
 
 class QHeaderView;
 
@@ -38,4 +37,3 @@ private:
     QScopedPointer<class QtRichTextItemDelegatePrivate> d;
 };
 
-#endif // QTRICHTEXTDELEGATE_H

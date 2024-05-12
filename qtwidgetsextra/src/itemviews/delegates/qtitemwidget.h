@@ -1,10 +1,11 @@
-#ifndef QTITEMWIDGET_H
-#define QTITEMWIDGET_H
-
+#pragma once
+#include <QPointer>
 #include <QWidget>
+
 #include <QtWidgetsExtra>
 
 class QStyleOptionViewItem;
+class QAbstractButton;
 
 class QTWIDGETSEXTRA_EXPORT QtItemWidget : public QWidget
 {
@@ -31,7 +32,11 @@ private:
     void handleMousePress(QMouseEvent* event, QWidget* w, const QStyleOptionViewItem&);
     void handleMouseMove(QMouseEvent* event, QWidget* w, const QStyleOptionViewItem&);
     void handleMouseRelease(QMouseEvent* event, QWidget* w, const QStyleOptionViewItem&);
+
+    void clearState();
+    void applyState();
+    void resetState();
+
+private:
+    QPointer<QAbstractButton> activeButton;
 };
-
-
-#endif // QTITEMWIDGET_H

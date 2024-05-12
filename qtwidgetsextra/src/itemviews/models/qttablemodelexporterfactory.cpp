@@ -3,49 +3,58 @@
 #include "qttablemodelexporterplugin.h"
 #include "qttablemodelexporter.h"
 
+class QtTableModelExporterFactoryPrivate
+{
+public:
+    typedef QHash<QString, QtTableModelExporterPlugin*> CreatorHash;
+    CreatorHash creatorsMap;
+};
+
 
 QtTableModelExporterFactory::QtTableModelExporterFactory()
+    : d(new QtTableModelExporterFactoryPrivate)
 {
 }
 
 QtTableModelExporterFactory::~QtTableModelExporterFactory()
 {
-    qDeleteAll(m_creatorHash);
+    qDeleteAll(d->creatorsMap);
 }
 
 void QtTableModelExporterFactory::registerExporter(QtTableModelExporterPlugin* plugin)
 {
-    if (plugin) {
-        m_creatorHash[plugin->exporterName()] = plugin;
-    }
+    if (plugin)
+        d->creatorsMap[plugin->exporterName()] = plugin;
 }
 
 QtTableModelExporter* QtTableModelExporterFactory::createExporter(const QString& exporter,
                                                                   QAbstractTableModel* model) const
 {
-    CreatorHash::const_iterator it = m_creatorHash.find(exporter);
-    if (it == m_creatorHash.end())
-        return 0;
+    auto it = d->creatorsMap.constFind(exporter);
+    if (it == d->creatorsMap.cend())
+        return Q_NULLPTR;
+
     return (*it)->create(model);
 }
 
 QIcon QtTableModelExporterFactory::exporterIcon( const QString& exporter ) const
 {
-    CreatorHash::const_iterator it = m_creatorHash.find(exporter);
-    if (it == m_creatorHash.end())
-        return QIcon();
+    auto it = d->creatorsMap.constFind(exporter);
+    if (it == d->creatorsMap.cend())
+        return {};
+
     return (*it)->icon();
 }
 
 QStringList QtTableModelExporterFactory::keys() const
 {
-    return m_creatorHash.keys();
+    return d->creatorsMap.keys();
 }
 
-QtTableModelExporterFactory* QtTableModelExporterFactory::instance()
+QtTableModelExporterFactory& QtTableModelExporterFactory::instance()
 {
     static QtTableModelExporterFactory globalInstance;
-    return &globalInstance;
+    return globalInstance;
 }
 
 

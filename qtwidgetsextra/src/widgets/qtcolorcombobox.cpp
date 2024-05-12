@@ -1,6 +1,5 @@
 #include "qtcolorcombobox.h"
 
-#include <QItemDelegate>
 #include <QAbstractItemView>
 #include <QStandardItemModel>
 

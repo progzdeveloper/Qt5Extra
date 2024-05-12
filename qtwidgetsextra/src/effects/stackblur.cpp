@@ -40,7 +40,7 @@ public:
     {
     }
 
-    void run() override
+    void run() Q_DECL_OVERRIDE
     {
         stackblurJob(src_, w_, h_, radius_, cores_, core_, step_, stack_);
     }

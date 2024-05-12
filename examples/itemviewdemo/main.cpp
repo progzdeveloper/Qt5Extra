@@ -18,19 +18,19 @@ public:
         InterfaceBase(QObject::tr("Model Export")) {
     }
 
-    bool resolve(QObject *instance) const Q_DECL_OVERRIDE {
+    bool resolve(QObject *instance) const Q_DECL_OVERRIDE
+    {
         QtTableModelExporterPlugin* plugin = qobject_cast<QtTableModelExporterPlugin*>(instance);
         if (plugin) {
-            QtTableModelExporterFactory::instance()->registerExporter(plugin);
+            QtTableModelExporterFactory::instance().registerExporter(plugin);
             return true;
         }
         return false;
     }
 };
-
 QT_PLUGIN_INTERFACE(QtItemModelExporterInterface)
 
-void loadPlugins()
+/*void loadPlugins()
 {
     QtPluginManager& manager = QtPluginManager::instance();
 
@@ -38,13 +38,15 @@ void loadPlugins()
     pluginsDir.cd("plugins");
     manager.load(pluginsDir);
     manager.load();
-}
+}*/
 
 
 int main(int argc, char *argv[])
 {
+    QtPluginManager::instance().setAutoLoad(true);
+
     QApplication a(argc, argv);
-    loadPlugins();
+    //loadPlugins();
 
     DemoWidget w;
     w.show();

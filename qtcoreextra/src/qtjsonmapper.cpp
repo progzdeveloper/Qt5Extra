@@ -53,7 +53,7 @@ bool QtJsonMapper::read(const QJsonObject& json, QObject *obj, const QMetaProper
 
 bool QtJsonMapper::validate(const QJsonObject& json, const QMetaProperty &p) const
 {
-    QJsonObject::const_iterator it = json.find(p.name());
+    QJsonObject::const_iterator it = json.constFind(p.name());
     if (it == json.constEnd())
         return false; // name not found
 
@@ -76,7 +76,7 @@ QtTypedJsonMapper::~QtTypedJsonMapper()
 
 bool QtTypedJsonMapper::validate(const QJsonObject &jsonObject, const QMetaProperty &p) const
 {
-    QJsonObject::const_iterator it = jsonObject.find(p.name());
+    QJsonObject::const_iterator it = jsonObject.constFind(p.name());
     if (it == jsonObject.constEnd())
         return false;
 

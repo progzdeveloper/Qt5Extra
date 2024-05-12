@@ -15,6 +15,7 @@ get_filename_component(QT5EXTRA_ROOT "${CMAKE_SOURCE_DIR}" ABSOLUTE)
 cmake_path(SET QT5EXTRA_ROOT "${QT5EXTRA_ROOT}") # source root directiory
 cmake_path(SET QT5EXTRA_BIN_DIR "${QT5EXTRA_ROOT}/bin") # binaries output directiory
 cmake_path(SET QT5EXTRA_LIB_DIR "${QT5EXTRA_BIN_DIR}/libs") # libraries output directiory
+cmake_path(SET QT5EXTRA_PLUGIN_DIR "${QT5EXTRA_BIN_DIR}/plugins") # plugins output directiory
 
 # ---- scan for source files ----
 function(find_sources output source_dir extension)
@@ -22,8 +23,20 @@ function(find_sources output source_dir extension)
     set(${output} ${_pathlist} PARENT_SCOPE)
 endfunction()
 
+message(STATUS "Configuring Auxiliary Module")
+add_subdirectory(qtextraaux)
+
 message(STATUS "Configuring QtCoreExtra Module")
 add_subdirectory(qtcoreextra)
+
+message(STATUS "Configuring QtTextExtra Module")
+add_subdirectory(qttextextra)
+
+message(STATUS "Configuring QtGeometry Module")
+add_subdirectory(qtgeometry)
+
+message(STATUS "Configuring QtLayoutsExtra Module")
+add_subdirectory(qtlayoutsextra)
 
 message(STATUS "Configuring QtWidgetsExtra Module")
 add_subdirectory(qtwidgetsextra)
@@ -39,6 +52,12 @@ add_subdirectory(qtsqlextra)
 
 message(STATUS "Configuring QtSqlWidgets Module")
 add_subdirectory(qtsqlwidgets)
+
+message(STATUS "Configuring QtSpellChecking Module")
+add_subdirectory(qtspellchecking)
+
+message(STATUS "Configuring Plugins")
+add_subdirectory(plugins)
 
 message(STATUS "Configuring Examples")
 add_subdirectory(examples)

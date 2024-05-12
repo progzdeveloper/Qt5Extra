@@ -1,7 +1,7 @@
 #include "qtitemmodelutility.h"
 #include <stack>
 
-QString formatPath(const QModelIndex &current, const QString &separator, int role)
+QString formatIndexPath(const QModelIndex &current, const QString &separator, int role)
 {
     QModelIndex index = current;
     QString result;
@@ -25,24 +25,37 @@ QString formatPath(const QModelIndex &current, const QString &separator, int rol
     return result;
 }
 
-QModelIndex sourceIndex(const QModelIndex &index)
+QModelIndex findSourceIndex(const QModelIndex &index)
 {
-    const QAbstractProxyModel* proxy = qobject_cast<const QAbstractProxyModel*>(index.model());
-    return  (proxy != Q_NULLPTR ? sourceIndex(proxy->mapToSource(index)) : index);
+    using ConstProxyModel = const QAbstractProxyModel*;
+
+    QModelIndex srcIdx = index;
+    auto proxy = qobject_cast<ConstProxyModel>(index.model());
+    while(proxy) // traverse through all proxies in bottom-up fasion
+    {
+        srcIdx = proxy->mapToSource(srcIdx);
+        if (!srcIdx.isValid())
+            return srcIdx; // break if we've got an invalid index
+
+        proxy = qobject_cast<ConstProxyModel>(proxy->sourceModel());
+    }
+    return srcIdx;
 }
 
-const QAbstractItemModel* sourceModel(const QModelIndex &index)
+const QAbstractItemModel* findSourceModel(const QModelIndex &index)
 {
-    return sourceModel(index.model());
+    return findSourceModel(index.model());
 }
 
-const QAbstractItemModel *sourceModel(const QAbstractItemModel *model)
+const QAbstractItemModel *findSourceModel(const QAbstractItemModel *model)
 {
-    const QAbstractProxyModel* proxy = qobject_cast<const QAbstractProxyModel*>(model);
+    using ConstProxyModel = const QAbstractProxyModel*;
+
+    auto proxy = qobject_cast<ConstProxyModel>(model);
     while(proxy != Q_NULLPTR)
     {
         model = proxy->sourceModel();
-        proxy = qobject_cast<const QAbstractProxyModel*>(model);
+        proxy = qobject_cast<ConstProxyModel>(model);
     }
     return model;
 }

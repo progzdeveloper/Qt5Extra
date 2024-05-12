@@ -148,8 +148,8 @@ void DemoWidget::exportModel()
     QString errorTitle = tr("Export Error");
     bool isOk = false;
 
-    QtTableModelExporterFactory* exporterFactory = QtTableModelExporterFactory::instance();
-    QStringList keys = exporterFactory->keys();
+    QtTableModelExporterFactory& exporterFactory = QtTableModelExporterFactory::instance();
+    QStringList keys = exporterFactory.keys();
     std::sort(keys.begin(), keys.end());
     QString key = QInputDialog::getItem(this, dialogTitle,
                                         tr("Select export format: "),
@@ -158,7 +158,7 @@ void DemoWidget::exportModel()
         return;
 
 
-    QScopedPointer<QtTableModelExporter> exporter(exporterFactory->createExporter(key, this->model));
+    QScopedPointer<QtTableModelExporter> exporter(exporterFactory.createExporter(key, this->model));
     if (!exporter) {
         QMessageBox::critical(this, errorTitle, tr("Failed to export in '%1' format!").arg(key));
         return;

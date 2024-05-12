@@ -1,147 +1,59 @@
-#include <unordered_map>
-
 #include <QPainter>
 #include <QEvent>
 #include <QMouseEvent>
 #include <QPixmapCache>
 #include <QApplication>
+#include <QScreen>
 #include <QAbstractItemView>
 #include <QPointer>
 #include <QScopedValueRollback>
 
 #include <QDebug>
 
+#include <CacheMap> // from Qt5Extra aux
 
 #include "qtitemwidgetdelegate.h"
 #include "qtitemwidget.h"
-
-namespace
-{
-Q_CONSTEXPR int kDefaultPixmapCacheLimit = 64;
-
-// Compute hash of model index and size of it cell representation.
-// Hashing is doing by first packing row/column of index
-// and width/height of size into 64-bit unsigned integers
-// and reinterpreting them as a QLatin-1 string: this is
-// one of the fastest methods
-QByteArray uniqueName(const QModelIndex& index, const QSize& size)
-{
-#ifdef QT_DEBUG
-    Q_CONSTEXPR size_t kMaxBufSize = 512;
-    Q_CONSTEXPR const char* fmt = "%i:%i_%ix%i#%i";
-    QByteArray readable;
-    const int n = qsnprintf(nullptr, 0, fmt, index.row(), index.column(), size.width(), size.height());
-    readable.resize(n);
-    qsnprintf(readable.data(), kMaxBufSize, fmt, index.row(), index.column(), size.width(), size.height());
-    return readable;
-#else
-    char buf[2 * sizeof(uint64_t)];
-
-    uint64_t h1 = uint64_t(index.row()) | uint64_t(index.column()) << 32; // pack index
-    memcpy(buf + sizeof(uint64_t) * 0, &h1, sizeof(uint64_t)); // a la std::bit_cast
-
-    uint64_t h2 = uint64_t(size.width()) | uint64_t(size.height()) << 32; // pack size
-    memcpy(buf + sizeof(uint64_t) * 1, &h2, sizeof(uint64_t)); // a la std::bit_cast
-
-   return QByteArray{ buf, sizeof(buf) }; // reinterpret as a byte array
-#endif
-}
-
-}
-
-
-class PixmapCache
-{
-    struct Hasher
-    {
-        inline size_t operator()(const QByteArray& ba) const Q_DECL_NOTHROW
-        {
-            return qHash(ba);
-        }
-    };
-
-public:
-    explicit PixmapCache(int limit)
-        : maxSize(limit)
-    {
-        storage.reserve(limit);
-    }
-
-    void setCacheLimit(int limit)
-    {
-        maxSize = static_cast<int>(std::max(0, limit));
-    }
-
-    int cacheLimit() const
-    {
-        return static_cast<int>(maxSize);
-    }
-
-    void clear()
-    {
-        storage.clear();
-    }
-
-    bool find(const QByteArray& key, QPixmap& result) const
-    {
-        auto it = storage.find(key);
-        if (it != storage.end())
-        {
-            result = it->second;
-            return true;
-        }
-        return false;
-    }
-
-    void insert(const QByteArray& key, const QPixmap& pixmap)
-    {
-        auto result = storage.emplace(key, pixmap);
-        if (result.second)
-            shrink(result.first);
-        else
-            result.first->second = pixmap;
-    }
-
-    void remove(const QByteArray& key)
-    {
-        storage.erase(key);
-    }
-
-private:
-    template<class _It>
-    void shrink(_It pos)
-    {
-        if (maxSize < 1)
-            return;
-
-        auto it = storage.begin();
-        while(storage.size() > maxSize)
-        {
-            if (it != pos)
-                it = storage.erase(it);
-            else
-                ++it;
-        }
-    }
-
-private:
-    std::unordered_map<QByteArray, QPixmap, Hasher> storage;
-    size_t maxSize;
-};
 
 
 class QtItemWidgetDelegatePrivate
 {
 public:
-    mutable QModelIndex currentIndex; // current model index (index that under mouse cursor)
+    struct Hint
+    {
+        QSize size;
+        QStyle::State state;
+
+        bool operator==(const Hint& other) const noexcept
+        {
+            return size == other.size && state == other.state;
+        }
+        bool operator!=(const Hint& other) const noexcept
+        {
+            return !(*this == other);
+        }
+    };
+    using PixmapCache = Qt5Extra::CacheMap<uint64_t, Hint, QPixmap>;
+
+    static Q_CONSTEXPR size_t kDefaultPixmapCacheLimit = 64;
+    static Q_CONSTEXPR size_t kDefaultPixmapCacheDepth = 4;
+
+    QModelIndex currentIndex; // current model index (index that under mouse cursor)
     mutable QPointer<QtItemWidget> widget; // widget to embed
-    mutable PixmapCache pixmapCache{ kDefaultPixmapCacheLimit };
-    mutable int cachedWidth = 0; // cacitem width - if it's changed we will drop the pixmap cache
+    mutable PixmapCache pixmapCache{ kDefaultPixmapCacheLimit, kDefaultPixmapCacheDepth };
+    mutable int cachedWidth = 0; // cached item width - if it's changed we will drop the pixmap cache
+    mutable double dpr = 1.0;
     QtItemWidgetDelegate::Options options = QtItemWidgetDelegate::NoOptions;
     QWidget::RenderFlags flags = QWidget::DrawChildren; // widget rendering flags
 
+    static uint64_t packedIndex(const QModelIndex& index)
+    {
+        return uint64_t(index.row()) | (uint64_t(index.column()) << 32);
+    }
+
     void renderDirect(QPainter* painter, const QRect& rect) const;
     void renderCached(QPainter* painter, const QStyleOptionViewItem &option, const QModelIndex &index, const QtItemWidgetDelegate *delegate) const;
+    void updateDevicePixelRatio(const QScreen* screen);
 };
 
 
@@ -156,11 +68,12 @@ void QtItemWidgetDelegatePrivate::renderDirect(QPainter *painter, const QRect &r
 void QtItemWidgetDelegatePrivate::renderCached(QPainter *painter, const QStyleOptionViewItem& option, const QModelIndex& index, const QtItemWidgetDelegate *delegate) const
 {
     // same as above - but use cache to speed-up things
-    const QByteArray id = uniqueName(index, option.rect.size());
-
+    const uint64_t key = packedIndex(index);
+    const Hint hint = { option.rect.size(), option.state };
     QPixmap pixmap;
-    if (pixmapCache.find(id, pixmap)) // cache hit
+    if (pixmapCache.find(key, hint, pixmap)) // cache hit
     {
+        qDebug() << "cacheHit for (" << index.row() << index.column() << ')';
         painter->save();
         painter->translate(option.rect.topLeft());
         painter->drawPixmap(0, 0, pixmap); // draw pixmap from cache
@@ -168,16 +81,34 @@ void QtItemWidgetDelegatePrivate::renderCached(QPainter *painter, const QStyleOp
     }
     else // cache miss
     {
+        qDebug() << "cacheMiss for (" << index.row() << index.column() << ')';
         delegate->updateWidgetData(index, option); // update widget data
-        pixmap = QPixmap(option.rect.size());
+        pixmap = QPixmap(option.rect.size() * dpr);
+        pixmap.setDevicePixelRatio(dpr);
         pixmap.fill(Qt::transparent);
 
         QPainter pixmapPainter(&pixmap);
         widget->render(&pixmapPainter, QPoint(), QRegion(), flags);
 
-        pixmapCache.insert(id, pixmap); // cache pixmap
+        pixmapCache.insert(key, hint, pixmap); // cache pixmap
 
         painter->drawPixmap(option.rect.topLeft(), pixmap);
+    }
+}
+
+void QtItemWidgetDelegatePrivate::updateDevicePixelRatio(const QScreen* screen)
+{
+    if (!screen)
+    {
+        qWarning() << "failed to detect device pixel ratio: screen is nullptr";
+        return;
+    }
+
+    const double currDpr = screen->devicePixelRatio();
+    if (currDpr != dpr)
+    {
+        dpr = currDpr;
+        pixmapCache.clear();
     }
 }
 
@@ -188,6 +119,8 @@ QtItemWidgetDelegate::QtItemWidgetDelegate(QObject *parent)
 {
 }
 
+QtItemWidgetDelegate::~QtItemWidgetDelegate() = default;
+
 void QtItemWidgetDelegate::setOptions(QtItemWidgetDelegate::Options options)
 {
     if (d->options == options)
@@ -195,6 +128,9 @@ void QtItemWidgetDelegate::setOptions(QtItemWidgetDelegate::Options options)
 
     d->options = options;
     d->flags.setFlag(QWidget::DrawWindowBackground, d->options & AutoFillBackground);
+    if (d->options & StaticContents)
+        d->options.setFlag(CacheItemPixmap, true);
+
     if (!(d->options & CacheItemPixmap))
         d->pixmapCache.clear();
 }
@@ -204,16 +140,14 @@ QtItemWidgetDelegate::Options QtItemWidgetDelegate::options() const
     return d->options;
 }
 
-QtItemWidgetDelegate::~QtItemWidgetDelegate() = default;
-
 void QtItemWidgetDelegate::setCacheLimit(int cacheSize)
 {
-    d->pixmapCache.setCacheLimit(cacheSize);
+    d->pixmapCache.resize(std::max(0, cacheSize));
 }
 
 int QtItemWidgetDelegate::cacheLimit() const
 {
-    return d->pixmapCache.cacheLimit();
+    return d->pixmapCache.capacity();
 }
 
 void QtItemWidgetDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
@@ -224,6 +158,19 @@ void QtItemWidgetDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
     createWidgetOnDemand(); // lazy widget creation
     if ((d->widget == Q_NULLPTR))
         return QStyledItemDelegate::paint(painter, option, index);
+
+    if (index == d->currentIndex)
+        d->widget->applyState();
+    else
+        d->widget->clearState();
+
+    if (option.widget)
+    {
+        const int width = option.widget->width();
+        if (width != d->cachedWidth)
+            d->pixmapCache.clear();
+        d->cachedWidth = width;
+    }
 
     if (auto view = qobject_cast<const QAbstractItemView*>(option.widget))
     {
@@ -241,10 +188,6 @@ void QtItemWidgetDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
         }
     }
 
-    // resize widget if needed
-    if (d->widget->size() != option.rect.size())
-        d->widget->resize(option.rect.size());
-
     // draw item backdground
     if ((d->options & HighlightSelected) && (option.state & QStyle::State_Selected))
         painter->fillRect(option.rect, option.palette.highlight());
@@ -257,6 +200,10 @@ void QtItemWidgetDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
     if (hint == RenderDirect)
     {
         updateWidgetData(index, option);
+        // resize widget if needed
+        if (d->widget->size() != option.rect.size())
+            d->widget->resize(option.rect.size());
+
         d->renderDirect(painter, option.rect);
     }
     else
@@ -276,11 +223,10 @@ QtItemWidgetDelegate::RenderHint QtItemWidgetDelegate::renderHint(const QStyleOp
     const bool isSelectedOrHovered = (option.state & (QStyle::State_MouseOver | QStyle::State_Selected));
     const bool isCachingEnabled = d->options & CacheItemPixmap;
     const bool isStaticContents = d->options & StaticContents;
-    if (isCachingEnabled && isStaticContents)
+    if ((isCachingEnabled || isStaticContents) && !isSelectedOrHovered)
         return RenderCached;
-    if (isCachingEnabled && !isSelectedOrHovered)
-        return RenderCached;
-    return RenderDirect;
+    else
+        return RenderDirect;
 }
 
 QtItemWidget *QtItemWidgetDelegate::widget() const
@@ -324,9 +270,7 @@ void QtItemWidgetDelegate::createWidgetOnDemand() const
 void QtItemWidgetDelegate::updateWidgetData(const QModelIndex& index, const QStyleOptionViewItem& option) const
 {
     if (d->widget)
-    {
         d->widget->setData(index, option); // setup widget from data in index
-    }
 }
 
 
@@ -364,23 +308,23 @@ bool QtItemWidgetDelegate::eventHandler(QEvent *event, QAbstractItemModel *model
     case QEvent::MouseButtonPress:
     case QEvent::MouseButtonRelease:
     {
-        // move widget (this save us from coping event data)
-        d->widget->move(viewport->mapToGlobal(option.rect.topLeft()));
-
         if (d->currentIndex != index) // index mismatch - update cuurrent index
-        {
             d->widget->setData(index, option);
-        }
 
         d->currentIndex = index;
+        invalidateIndex(d->currentIndex);
+        d->widget->applyState();
 
+        // move widget (this save us from coping event data)
+        d->widget->move(viewport->mapToGlobal(option.rect.topLeft()));
+        d->widget->setData(d->currentIndex, option);
         if (d->options & StaticContents)
             d->widget->viewportEvent(event, widget, option); // resend event directly
         else
             d->widget->handleEvent(event, widget, option); // resend event directly, while updating current state
 
         // force to repaint item rect
-        viewport->repaint();
+        view->doItemsLayout();
 
         return QStyledItemDelegate::editorEvent(event, model, option, index);
     }
@@ -440,18 +384,13 @@ void QtItemWidgetDelegate::invalidate()
 
 void QtItemWidgetDelegate::invalidateIndex(const QModelIndex &index)
 {
-    if (auto view = qobject_cast<QAbstractItemView*>(parent()))
-        d->pixmapCache.remove(uniqueName(index, view->visualRect(index).size()));
+    d->pixmapCache.erase(d->packedIndex(index));
 }
 
 void QtItemWidgetDelegate::invalidateRange(const QModelIndex &topLeft, const QModelIndex &bottomRight)
 {
-    auto view = qobject_cast<QAbstractItemView*>(parent());
-    if (!view)
-        return;
-
     const QModelIndex index = topLeft;
     for (int i = topLeft.row(), n = bottomRight.row(); i <= n; ++i)
         for (int j = topLeft.column(), m = bottomRight.column(); j <= m; ++j)
-            d->pixmapCache.remove(uniqueName(index.sibling(i, j), view->visualRect(index).size()));
+            d->pixmapCache.erase(d->packedIndex(index));
 }

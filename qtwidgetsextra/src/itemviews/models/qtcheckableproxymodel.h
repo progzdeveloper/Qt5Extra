@@ -1,5 +1,6 @@
 #pragma once
 #include <QSortFilterProxyModel>
+
 #include <QtWidgetsExtra>
 
 class QTWIDGETSEXTRA_EXPORT QtCheckableProxyModel :

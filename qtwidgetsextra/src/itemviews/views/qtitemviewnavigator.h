@@ -1,6 +1,8 @@
 #pragma once
 #include <QtRangeNavigator>
 
+#include <QtWidgetsExtra>
+
 class QAbstractItemView;
 
 class QTWIDGETSEXTRA_EXPORT QtItemViewNavigator :

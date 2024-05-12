@@ -18,7 +18,7 @@ class QTWIDGETSEXTRA_EXPORT QtTextLabel
 public:
     enum WordWrapMode
     {
-        NoWrap,
+        NoWordWrap,
         WrapWordBound,
         WrapAnywhere,
         WrapWordBoundOrMiddle

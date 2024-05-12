@@ -1,7 +1,7 @@
 #pragma once
-#include <QtWidgetsExtra>
-
 #include <QIdentityProxyModel>
+
+#include <QtWidgetsExtra>
 
 class QTWIDGETSEXTRA_EXPORT QtColumnProxyModel :
         public QIdentityProxyModel
@@ -22,7 +22,7 @@ public:
     int rowCount(const QModelIndex &parent = QModelIndex()) const Q_DECL_OVERRIDE;
 
     QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const Q_DECL_OVERRIDE;
-    QModelIndex parent(const QModelIndex &child) const override;
+    QModelIndex parent(const QModelIndex &child) const Q_DECL_OVERRIDE;
 
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
 

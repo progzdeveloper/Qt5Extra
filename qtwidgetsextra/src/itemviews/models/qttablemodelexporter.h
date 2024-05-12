@@ -1,9 +1,10 @@
 #pragma once
-#include <QtWidgetsExtra>
 #include <QObject>
 #include <QString>
 #include <QStringList>
 #include <QModelIndex>
+
+#include <QtWidgetsExtra>
 
 class QDialog;
 class QIODevice;

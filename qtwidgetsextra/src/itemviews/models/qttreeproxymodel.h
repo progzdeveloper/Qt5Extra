@@ -1,5 +1,6 @@
 #pragma once
 #include <QAbstractItemModel>
+
 #include <QtWidgetsExtra>
 
 class QTWIDGETSEXTRA_EXPORT QtTreeProxyModel : public QAbstractItemModel

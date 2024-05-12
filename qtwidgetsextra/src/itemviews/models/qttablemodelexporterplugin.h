@@ -1,8 +1,9 @@
 #pragma once
-#include <QtWidgetsExtra>
 #include <QtPlugin>
 #include <QString>
 #include <QIcon>
+
+#include <QtWidgetsExtra>
 
 class QAbstractTableModel;
 class QtTableModelExporter;

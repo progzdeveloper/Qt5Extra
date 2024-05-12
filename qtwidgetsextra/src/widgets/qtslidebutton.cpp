@@ -10,6 +10,7 @@
 #include <QPaintEvent>
 #include <QResizeEvent>
 
+
 QtSlideButtonPrivate::QtSlideButtonPrivate(QtSlideButton *q) :
     q_ptr(q), pos(0.0), animation(new QPropertyAnimation(this))
 {
@@ -120,7 +121,6 @@ void QtSlideButtonPrivate::animate(bool checked)
 }
 
 
-
 QtSlideButton::QtSlideButton(QWidget *parent /*= 0*/)
     : QAbstractButton(parent)
     , d(new QtSlideButtonPrivate(this))
@@ -146,7 +146,6 @@ bool QtSlideButton::hitButton(const QPoint& p) const
 
 void QtSlideButton::paintEvent(QPaintEvent *)
 {
-
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
     d->drawSlider(&painter);
@@ -154,7 +153,6 @@ void QtSlideButton::paintEvent(QPaintEvent *)
 
 void QtSlideButton::resizeEvent(QResizeEvent *e)
 {
-
     d->updateSliderRect(e->size());
     repaint();
 }

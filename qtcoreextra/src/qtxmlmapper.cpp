@@ -69,14 +69,15 @@ bool QtXmlMapper::read(QXmlStreamReader& xml, QObject* o)
         if (!xml.readNextStartElement())
             break;
 
-        if (xml.name() == "properties") {
+        if (xml.name() == "properties")
+        {
             while(xml.readNext())
             {
-                if (xml.tokenType() == QXmlStreamReader::EndElement &&
-                        xml.name() == "properties") {
+                if (xml.tokenType() == QXmlStreamReader::EndElement && xml.name() == "properties")
                     break;
-                }
-                if (xml.tokenType() == QXmlStreamReader::StartElement) {
+
+                if (xml.tokenType() == QXmlStreamReader::StartElement)
+                {
                     if (!xmlReadProperty(xml, o))
                         return false;
                 }

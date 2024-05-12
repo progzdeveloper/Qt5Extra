@@ -5,7 +5,6 @@
 class QPainter;
 class QPropertyAnimation;
 
-
 class QtSlideButtonPrivate :
         public QObject
 {
@@ -33,4 +32,3 @@ private:
 public:
     QPropertyAnimation *animation;
 };
-

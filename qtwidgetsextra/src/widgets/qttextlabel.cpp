@@ -1,6 +1,5 @@
 #include "qttextlabel.h"
-#include "algext.h"
-#include "geometry/qtgeometryutils.h"
+
 #include <QStyle>
 #include <QPainter>
 #include <QSizePolicy>
@@ -9,6 +8,9 @@
 #include <QTextFrame>
 #include <QBitArray>
 #include <QDebug>
+
+#include <QtGeometryAlgorithms> // from QtGeometry
+#include <AlgExt> // from Qt5Extra aux
 
 
 class QtTextLabelPrivate
@@ -41,7 +43,7 @@ public:
     QString plainText;
     QString elidedText;
     Qt::Alignment align = Qt::AlignCenter;
-    QtTextLabel::WordWrapMode wrapMode;
+    QtTextLabel::WordWrapMode wrapMode = QtTextLabel::NoWordWrap;
     QtTextLabel::LinkHighlighting linkHighlighting = QtTextLabel::HighlightPressedLinks |
                                                      QtTextLabel::HighlightHoveredLinks;
     std::pair<int, QStyle::State> activeLink{ -1, QStyle::State_None };
@@ -109,7 +111,7 @@ public:
         if (text.isEmpty())
             return;
 
-        const QRect textArea = adjustedRect(textRect, contentsRect, align).toRect();
+        const QRect textArea = alignedRect(textRect, contentsRect, align).toRect();
         const QFontMetrics metrics = q->fontMetrics();
         const int lineSpacing = metrics.lineSpacing();
         const int w = textArea.width();
@@ -359,7 +361,7 @@ public:
             return QTextOption::WrapAnywhere;
         case QtTextLabel::WrapWordBoundOrMiddle:
             return QTextOption::WrapAtWordBoundaryOrAnywhere;
-        case QtTextLabel::NoWrap:
+        case QtTextLabel::NoWordWrap:
         default:
             break;
         }
@@ -586,7 +588,7 @@ void QtTextLabel::paintEvent(QPaintEvent* event)
     QPainter painter(this);
     painter.setBrush(Qt::NoBrush);
     painter.setPen(palette().color(QPalette::Text));
-    d->renderText(painter, adjustedRect(d->textRect, contentsRect(), d->align));
+    d->renderText(painter, alignedRect(d->textRect, contentsRect(), d->align));
 }
 
 void QtTextLabel::resizeEvent(QResizeEvent* event)
@@ -613,11 +615,11 @@ void QtTextLabel::changeEvent(QEvent *event)
         QEvent::EnabledChange
     };
 
-    const bool requireElide = AlgExt::contains(elideEventMap, event->type());
+    const bool requireElide = Qt5Extra::contains(elideEventMap, event->type());
     if (requireElide)
         refreshEliding();
 
-    if (requireElide || AlgExt::contains(updateEventMap, event->type()))
+    if (requireElide || Qt5Extra::contains(updateEventMap, event->type()))
         update();
 
     return QFrame::changeEvent(event);

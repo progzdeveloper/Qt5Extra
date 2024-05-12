@@ -1,7 +1,8 @@
 #pragma once
-#include <QtWidgetsExtra>
 #include <QAbstractListModel>
 #include <QMetaEnum>
+
+#include <QtWidgetsExtra>
 
 class QTWIDGETSEXTRA_EXPORT QtEnumListModel : public QAbstractListModel
 {

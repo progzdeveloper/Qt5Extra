@@ -1,6 +1,7 @@
 #pragma once
-#include <QtWidgetsExtra>
 #include <QDialog>
+
+#include <QtWidgetsExtra>
 
 class QtTableModelExporter;
 

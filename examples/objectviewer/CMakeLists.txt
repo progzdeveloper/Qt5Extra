@@ -21,4 +21,4 @@ find_sources(SUBPROJECT_HEADERS "${SUBPROJECT_ROOT}" "h")
 add_executable(${PROJECT_NAME} ${SUBPROJECT_SOURCES} ${SUBPROJECT_HEADERS})
 add_dependencies(${PROJECT_NAME} qtcoreextra qtwidgetsextra qtpropertybrowser)
 target_link_libraries(${PROJECT_NAME} qtcoreextra qtwidgetsextra qtpropertybrowser Qt5::Core Qt5::Widgets)
-
+set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${QT5EXTRA_BIN_DIR})

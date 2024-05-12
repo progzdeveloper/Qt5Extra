@@ -91,7 +91,12 @@ void QtItemWidget::handleMousePress(QMouseEvent* event, QWidget*, const QStyleOp
     for (auto button : buttons)
     {
         if (button)
-            button->setDown(button == pointedWidget);
+        {
+            const bool isActiveBtn = button == pointedWidget;
+            button->setDown(isActiveBtn);
+            if (isActiveBtn)
+                activeButton = button;
+        }
     }
 }
 
@@ -143,4 +148,22 @@ void QtItemWidget::handleMouseRelease(QMouseEvent* event, QWidget*, const QStyle
             button->click();
         button->setDown(false);
     }
+    resetState();
+}
+
+void QtItemWidget::clearState()
+{
+    if (activeButton)
+        activeButton->setDown(false);
+}
+
+void QtItemWidget::applyState()
+{
+    if (activeButton)
+        activeButton->setDown(true);
+}
+
+void QtItemWidget::resetState()
+{
+    activeButton = nullptr;
 }

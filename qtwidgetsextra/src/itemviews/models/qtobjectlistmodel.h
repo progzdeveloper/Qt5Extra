@@ -1,7 +1,9 @@
 #pragma once
 #include <QAbstractListModel>
 
-class QtObjectListModel : public QAbstractListModel
+#include <QtWidgetsExtra>
+
+class QTWIDGETSEXTRA_EXPORT QtObjectListModel : public QAbstractListModel
 {
     Q_OBJECT
 
@@ -26,20 +28,20 @@ public:
     QObjectList objects() const;
 
     // Basic functionality:
-    int rowCount(const QModelIndex &parent = QModelIndex()) const override;
+    int rowCount(const QModelIndex &parent = QModelIndex()) const Q_DECL_OVERRIDE;
 
-    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
 
     // Editable:
-    bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole) override;
+    bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole) Q_DECL_OVERRIDE;
 
-    Qt::ItemFlags flags(const QModelIndex& index) const override;
+    Qt::ItemFlags flags(const QModelIndex& index) const Q_DECL_OVERRIDE;
 
     // Add data:
-    //bool insertRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
+    //bool insertRows(int row, int count, const QModelIndex &parent = QModelIndex()) Q_DECL_OVERRIDE;
 
     // Remove data:
-    //bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
+    //bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex()) Q_DECL_OVERRIDE;
 public Q_SLOTS:
     void reset();
 

@@ -1,6 +1,7 @@
 #pragma once
-#include <QtWidgetsExtra>
 #include <QIdentityProxyModel>
+
+#include <QtWidgetsExtra>
 
 class QTWIDGETSEXTRA_EXPORT QtHeaderProxyModel :
         public QIdentityProxyModel

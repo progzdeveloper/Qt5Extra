@@ -1,6 +1,6 @@
 <RCC>
     <qresource prefix="/text">
-        <file alias="textcodecs.txt">resources/text/textcodecs.txt</file>
+        <file alias="codeclist">resources/text/textcodecs.txt</file>
     </qresource>
     <qresource prefix="/images">
         <file alias="patterns-aA.png">resources/images/patterns-aA.png</file>

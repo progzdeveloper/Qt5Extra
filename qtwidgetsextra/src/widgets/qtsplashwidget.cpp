@@ -64,19 +64,19 @@ void QtSplashWidgetPrivate::init()
 void QtSplashWidgetPrivate::drawContents()
 {
     QPixmap texturePixmap = background;
-    if (!texturePixmap.isNull())
-    {
-        QPainter painter(&texturePixmap);
+    if (texturePixmap.isNull())
+        return;
 
-        painter.initFrom(q);
-        q->drawContents(&painter);
+    QPainter painter(&texturePixmap);
 
-        QPalette p = q->palette();
-        p.setBrush(q->backgroundRole(), QBrush(texturePixmap));
-        q->setPalette(p);
+    painter.initFrom(q);
+    q->drawContents(&painter);
 
-        progressBar->setPalette(qApp->palette());
-    }
+    QPalette p = q->palette();
+    p.setBrush(q->backgroundRole(), QBrush(texturePixmap));
+    q->setPalette(p);
+
+    progressBar->setPalette(qApp->palette());
 }
 
 
@@ -127,11 +127,11 @@ void QtSplashWidget::repaint()
 
 void QtSplashWidget::drawContents( QPainter *painter )
 {
-
     painter->setPen(d->currColor);
     QRect r = rect();
     r.setRect(r.x() + 5, r.y() + 5, r.width() - 10, r.height() - 10);
-    if (Qt::mightBeRichText(d->text)) {
+    if (Qt::mightBeRichText(d->text))
+    {
         d->doc.setTextWidth(r.width());
         QTextCursor cursor(&d->doc);
         cursor.select(QTextCursor::Document);
@@ -142,16 +142,17 @@ void QtSplashWidget::drawContents( QPainter *painter )
         painter->translate(r.topLeft());
         d->doc.drawContents(painter);
         painter->restore();
-    } else {
+    }
+    else
+    {
         painter->drawText(r, d->align, d->text);
     }
 }
 
 void QtSplashWidget::setBackground( const QPixmap& pixmap )
 {
-
-
-    if (pixmap.hasAlpha()) {
+    if (pixmap.hasAlpha())
+    {
         QPixmap opaque(pixmap.size());
         QPainter p;
         p.begin(&opaque);
@@ -159,7 +160,9 @@ void QtSplashWidget::setBackground( const QPixmap& pixmap )
         p.drawPixmap(0, 0, pixmap);
         p.end();
         d->background = opaque;
-    } else {
+    }
+    else
+    {
         d->background = pixmap;
     }
 
@@ -179,79 +182,66 @@ void QtSplashWidget::setBackground( const QPixmap& pixmap )
 
 QPixmap QtSplashWidget::background() const
 {
-
     return d->background;
 }
 
 void QtSplashWidget::setPixmap( QPixmap& pixmap )
 {
-
     d->pixmapLabel->setPixmap(pixmap);
 }
 
 const QPixmap QtSplashWidget::pixmap() const
 {
-
     return (*d->pixmapLabel->pixmap());
 }
 
 void QtSplashWidget::setTitle( const QString& title )
 {
-
     d->titleLabel->setText(title);
 }
 
 QString QtSplashWidget::title() const
 {
-
     return d->titleLabel->text();
 }
 
 void QtSplashWidget::setCopyright( const QString& text )
 {
-
     d->copyrightLabel->setText(text);
 }
 
 QString QtSplashWidget::copyright() const
 {
-
     return d->copyrightLabel->text();
 }
 
 void QtSplashWidget::setRange( int min, int max )
 {
-
     d->progressBar->setRange(min, max);
 }
 
 void QtSplashWidget::setMinimum( int min )
 {
-
     d->progressBar->setMinimum(min);
 }
 
 void QtSplashWidget::setMaximum( int max )
 {
-
     d->progressBar->setMaximum(max);
 }
 
 int QtSplashWidget::minimum() const
 {
-
     return d->progressBar->minimum();
 }
 
 int QtSplashWidget::maximum() const
 {
-
     return d->progressBar->maximum();
 }
 
 void QtSplashWidget::showMessage( const QString& text, int alignment, const QColor& color )
 {
-
     d->text = text;
     d->align = alignment;
     d->currColor = color;
@@ -266,7 +256,6 @@ void QtSplashWidget::showMessage( const QString& text, int alignment, const QCol
 
 void QtSplashWidget::clearMessage()
 {
-
     d->text.clear();
     emit messageChanged(d->text);
     repaint();
@@ -274,14 +263,12 @@ void QtSplashWidget::clearMessage()
 
 void QtSplashWidget::setProgress( int value )
 {
-
     d->progressBar->setValue(value);
     qApp->processEvents();
 }
 
 void QtSplashWidget::paintEvent(QPaintEvent *)
 {
-
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
     QStyleOptionFrame opt;
 #else

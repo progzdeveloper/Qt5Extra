@@ -1,8 +1,7 @@
 #pragma once
 #include <QHeaderView>
-#include <QtWidgetsExtra>
 
-class QtCustomHeaderViewPrivate;
+#include <QtWidgetsExtra>
 
 class QTWIDGETSEXTRA_EXPORT QtCustomHeaderView :
         public QHeaderView
@@ -39,6 +38,6 @@ Q_SIGNALS:
     void sectionClicked(int logicalIndex);
 
 private:
-    QScopedPointer<QtCustomHeaderViewPrivate> d;
+    QScopedPointer<class QtCustomHeaderViewPrivate> d;
 };
 

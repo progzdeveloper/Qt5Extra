@@ -248,5 +248,5 @@ Widget::Widget(QWidget *parent) : QWidget(parent)
 
 void Widget::formatPath()
 {
-    qDebug() << ::formatPath(view->currentIndex());
+    qDebug() << ::formatIndexPath(view->currentIndex());
 }

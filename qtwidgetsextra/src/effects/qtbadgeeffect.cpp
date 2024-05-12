@@ -1,5 +1,7 @@
 #include "qtbadgeeffect.h"
-#include "geometry/qtgeometryutils.h"
+#include <cstring>
+#include <cstdlib>
+
 #include <QVariant>
 #include <QStyle>
 #include <QTextOption>
@@ -7,8 +9,8 @@
 #include <QPainter>
 #include <QPainterPath>
 #include <QApplication>
-#include <cstring>
-#include <cstdlib>
+
+#include <QtGeometryAlgorithms>
 
 class QtStyleOptionChip
 {
@@ -276,7 +278,7 @@ void QtBadgeEffect::draw(QPainter *painter)
 
     const double w = std::min(rect.width(), (qreal)d->maximumSize.width());
     const double h = std::min(rect.height(), (qreal)d->maximumSize.height());
-    const QRectF target = adjustedRect({ 0, 0, w, h }, rect, d->alignment);
+    const QRectF target = alignedRect({ 0, 0, w, h }, rect, d->alignment);
 
     d->styleOption.rect = target.toRect();
     if (d->value < 0)

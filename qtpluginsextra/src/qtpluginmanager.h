@@ -28,6 +28,9 @@ public:
         registrate(new _CustomInterface());
     }
 
+    void setAutoLoad(bool on);
+    bool isAutoLoad() const;
+
     QStringList keys(const QString& iid = QString()) const;
     QStringList iids() const;
     QString category(const QString& iid) const;

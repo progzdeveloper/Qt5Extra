@@ -64,18 +64,18 @@ public:
     // QAbstractListModel interface
 public:
     // Header:
-    QVariant headerData(int section, Qt::Orientation, int = Qt::DisplayRole) const override;
+    QVariant headerData(int section, Qt::Orientation, int = Qt::DisplayRole) const Q_DECL_OVERRIDE;
 
     // Basic functionality:
-    int rowCount(const QModelIndex &parent = QModelIndex()) const override;
+    int rowCount(const QModelIndex &parent = QModelIndex()) const Q_DECL_OVERRIDE;
 
-    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
 
     // Add data:
-    bool insertRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
+    bool insertRows(int row, int count, const QModelIndex &parent = QModelIndex()) Q_DECL_OVERRIDE;
 
     // Remove data:
-    bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
+    bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex()) Q_DECL_OVERRIDE;
 
 private Q_SLOTS:
     void onPixmapLoaded(const QString& path, const QPixmap& pixmap);

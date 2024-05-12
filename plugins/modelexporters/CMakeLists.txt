@@ -1,0 +1,10 @@
+cmake_path(SET QT5EXTRA_MODELEXPORTERS_ROOT "${QT5EXTRA_PLUGINS_ROOT}/modelexporters")
+message(STATUS "QT5EXTRA_MODELEXPORTERS_ROOT=${QT5EXTRA_MODELEXPORTERS_ROOT}")
+
+add_subdirectory(csvexporter)
+add_subdirectory(htmlexporter)
+add_subdirectory(jsonexporter)
+add_subdirectory(xmlexporter)
+if (WIN32)
+    add_subdirectory(excelexporter)
+endif (WIN32)

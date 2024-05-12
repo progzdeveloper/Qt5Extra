@@ -1,7 +1,8 @@
 #pragma once
-#include <QtWidgetsExtra>
 #include <QStyledItemDelegate>
 #include <QActionGroup>
+
+#include <QtWidgetsExtra>
 
 class QAction;
 

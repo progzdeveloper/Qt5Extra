@@ -1,9 +1,9 @@
 #pragma once
-#include <QtWidgetsExtra>
-
 #include <QVariant>
 #include <QStyledItemDelegate>
 #include <QItemEditorFactory>
+
+#include <QtWidgetsExtra>
 
 class QWidget;
 class QModelIndex;

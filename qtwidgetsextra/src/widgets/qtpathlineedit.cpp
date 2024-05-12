@@ -79,9 +79,6 @@ void QtPathLineEdit::setPath()
 
 
 
-
-
-
 class QtPathLineDelegatePrivate
 {
 public:
@@ -91,8 +88,6 @@ public:
     int column, role;
     QModelIndex curIdx;
 };
-
-
 
 QtPathLineDelegate::QtPathLineDelegate(QObject *parent)
     : QItemDelegate(parent)
@@ -216,8 +211,6 @@ void QtPathLineDelegate::updateEditorGeometry(QWidget *editor, const QStyleOptio
 
 void QtPathLineDelegate::setPath()
 {
-
-
     blockSignals(true);
 
     QtLineBoxEdit *edit = qobject_cast<QtLineBoxEdit*>(sender());

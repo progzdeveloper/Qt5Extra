@@ -1,10 +1,11 @@
 #pragma once
-#include <QtWidgetsExtra>
 #include <QFactoryInterface>
 #include <QString>
 #include <QHash>
 #include <QObject>
 #include <QIcon>
+
+#include <QtWidgetsExtra>
 
 class QAbstractTableModel;
 class QtTableModelExporter;
@@ -25,11 +26,10 @@ public:
 
     QIcon exporterIcon(const QString& exporter) const;
 
-    QStringList keys() const;
+    QStringList keys() const Q_DECL_OVERRIDE;
 
-    static QtTableModelExporterFactory* instance();
+    static QtTableModelExporterFactory& instance();
 
 private:
-    typedef QHash<QString, QtTableModelExporterPlugin*> CreatorHash;
-    CreatorHash m_creatorHash;
+    QScopedPointer<class QtTableModelExporterFactoryPrivate> d;
 };

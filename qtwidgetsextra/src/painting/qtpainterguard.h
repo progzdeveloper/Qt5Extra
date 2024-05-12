@@ -35,5 +35,5 @@ public:
     ~QtPainterGuard();
 
 private:
-    QPainter * painter;
+    QPainter* painter;
 };

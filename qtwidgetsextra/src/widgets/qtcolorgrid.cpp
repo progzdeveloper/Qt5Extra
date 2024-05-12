@@ -8,116 +8,118 @@
 #include "qtcolorgrid.h"
 #include "qtcolorgrid_p.h"
 
-
-QtColorGridModel::QtColorGridModel(QObject *parent) :
-    QAbstractListModel(parent)
+namespace QtWidgetExtraInternal
 {
-}
+    QtColorGridModel::QtColorGridModel(QObject *parent) :
+        QAbstractListModel(parent)
+    {
+    }
 
-void QtColorGridModel::setPalette(const QtColorPalette &palette)
-{
-    if (!mPalette.isEmpty()) {
-        if (palette.size() == mPalette.size()) {
+    void QtColorGridModel::setPalette(const QtColorPalette &palette)
+    {
+        if (!mPalette.isEmpty()) {
+            if (palette.size() == mPalette.size()) {
+                mPalette = palette;
+                emit dataChanged(index(0), index(rowCount() - 1));
+                return;
+            }
+            clear();
+        }
+
+        if (!palette.isEmpty()) {
+            beginInsertRows(QModelIndex(), 0, palette.size() - 1);
             mPalette = palette;
-            emit dataChanged(index(0), index(rowCount() - 1));
+            endInsertRows();
+        }
+    }
+
+    const QtColorPalette &QtColorGridModel::palette()
+    {
+        return mPalette;
+    }
+
+    int QtColorGridModel::rowCount(const QModelIndex &parent) const
+    {
+        // For list models only the root node (an invalid parent) should return the list's size. For all
+        // other (valid) parents, rowCount() should return 0 so that it does not become a tree model.
+        if (parent.isValid())
+            return 0;
+
+        return mPalette.size();
+    }
+
+    QVariant QtColorGridModel::data(const QModelIndex &index, int role) const
+    {
+        if (!index.isValid())
+            return QVariant();
+
+        int row = index.row();
+        if (row < 0 || row >= mPalette.size()) {
+            return QVariant();
+        }
+
+        switch (role) {
+        case Qt::DecorationRole:
+            return mPalette.at(row);
+        case Qt::EditRole:
+            return mPalette.at(row);
+        case Qt::ToolTipRole:
+            return mPalette.at(row).name();
+        default:
+            break;
+        }
+        return QVariant();
+    }
+
+    void QtColorGridModel::clear()
+    {
+        beginRemoveRows(QModelIndex(), 0, mPalette.size() - 1);
+        mPalette.clear();
+        endRemoveRows();
+    }
+
+
+    QtColorGridDelegate::QtColorGridDelegate(QObject *parent) :
+        QStyledItemDelegate(parent)
+    {
+    }
+
+    void QtColorGridDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
+    {
+        QStyleOptionViewItem opt = option;
+        initStyleOption(&opt, index);
+
+        const QWidget *widget = option.widget;
+        QStyle *style = widget ? widget->style() : QApplication::style();
+
+        opt.showDecorationSelected = false;
+        if (opt.state & QStyle::State_Selected) {
+            painter->fillRect(opt.rect.adjusted(0, 0, 1, 1), Qt::red);
+            opt.state ^= QStyle::State_Selected;
+            style->drawControl(QStyle::CE_ItemViewItem, &opt, painter, widget);
             return;
         }
-        clear();
-    }
 
-    if (!palette.isEmpty()) {
-        beginInsertRows(QModelIndex(), 0, palette.size() - 1);
-        mPalette = palette;
-        endInsertRows();
-    }
-}
+        if (opt.state & QStyle::State_MouseOver)
+        {
+            const QPalette& pal = widget ? widget->palette() : QApplication::palette();
+            painter->fillRect(opt.rect.adjusted(1, 1, 0, 0), pal.color(QPalette::Highlight));
+            opt.rect.adjust(2, 1, -1, -1);
+            style->drawControl(QStyle::CE_ItemViewItem, &opt, painter, widget);
+            return;
+        }
 
-const QtColorPalette &QtColorGridModel::palette()
-{
-    return mPalette;
-}
-
-int QtColorGridModel::rowCount(const QModelIndex &parent) const
-{
-    // For list models only the root node (an invalid parent) should return the list's size. For all
-    // other (valid) parents, rowCount() should return 0 so that it does not become a tree model.
-    if (parent.isValid())
-        return 0;
-
-    return mPalette.size();
-}
-
-QVariant QtColorGridModel::data(const QModelIndex &index, int role) const
-{
-    if (!index.isValid())
-        return QVariant();
-
-    int row = index.row();
-    if (row < 0 || row >= mPalette.size()) {
-        return QVariant();
-    }
-
-    switch (role) {
-    case Qt::DecorationRole:
-        return mPalette.at(row);
-    case Qt::EditRole:
-        return mPalette.at(row);
-    case Qt::ToolTipRole:
-        return mPalette.at(row).name();
-    default:
-        break;
-    }
-    return QVariant();
-}
-
-void QtColorGridModel::clear()
-{
-    beginRemoveRows(QModelIndex(), 0, mPalette.size() - 1);
-    mPalette.clear();
-    endRemoveRows();
-}
-
-
-QtColorGridDelegate::QtColorGridDelegate(QObject *parent) :
-    QStyledItemDelegate(parent)
-{
-}
-
-void QtColorGridDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
-{
-    QStyleOptionViewItem opt = option;
-    initStyleOption(&opt, index);
-
-    const QWidget *widget = option.widget;
-    QStyle *style = widget ? widget->style() : QApplication::style();
-
-    opt.showDecorationSelected = false;
-    if (opt.state & QStyle::State_Selected) {
-        painter->fillRect(opt.rect.adjusted(0, 0, 1, 1), Qt::red);
-        opt.state ^= QStyle::State_Selected;
         style->drawControl(QStyle::CE_ItemViewItem, &opt, painter, widget);
-        return;
     }
-
-    if (opt.state & QStyle::State_MouseOver)
-    {
-        const QPalette& pal = widget ? widget->palette() : QApplication::palette();
-        painter->fillRect(opt.rect.adjusted(1, 1, 0, 0), pal.color(QPalette::Highlight));
-        opt.rect.adjust(2, 1, -1, -1);
-        style->drawControl(QStyle::CE_ItemViewItem, &opt, painter, widget);
-        return;
-    }
-
-    style->drawControl(QStyle::CE_ItemViewItem, &opt, painter, widget);
-}
+} // end namespace QtWidgetsExtraInternal
 
 
 class QtColorGridPrivate
 {
 public:
-    QScopedPointer<QtColorGridModel> model;
+    QScopedPointer<QtWidgetExtraInternal::QtColorGridModel> model;
     QtColorGridPrivate(QtColorGrid* q) :
-        model(new QtColorGridModel(q)) {
+        model(new QtWidgetExtraInternal::QtColorGridModel(q)) {
     }
 };
 
@@ -133,7 +135,7 @@ QtColorGrid::QtColorGrid(QWidget *parent)
     setWrapping(true);
     setResizeMode(QListView::Adjust);
     setUniformItemSizes(true);
-    setItemDelegate(new QtColorGridDelegate(this));
+    setItemDelegate(new QtWidgetExtraInternal::QtColorGridDelegate(this));
     setMouseTracking(true);
     QtColorGrid::setModel(d->model.data());
     connect(this, &QtColorGrid::iconSizeChanged, this, &QtColorGrid::resizeIcons);
@@ -163,7 +165,6 @@ void QtColorGrid::setColors(const QList<QColor> &colors)
 
 void QtColorGrid::setColors(const QtColorPalette &palette)
 {
-     
     if (d->model->palette() != palette) {
         d->model->setPalette(palette);
         setMinimumSize(gridSize().width() + 3, gridSize().height() + 3);
@@ -175,7 +176,6 @@ void QtColorGrid::setColors(const QtColorPalette &palette)
 
 const QtColorPalette &QtColorGrid::colors() const
 {
-     
     return d->model->palette();
 }
 
@@ -190,13 +190,11 @@ QColor QtColorGrid::currentColor() const
 
 void QtColorGrid::clear()
 {
-     
     d->model->clear();
 }
 
 void QtColorGrid::resizeIcons(const QSize &size)
 {
-     
     blockSignals(true);
     QtColorPalette palette = d->model->palette();
     setIconSize(QSize(size.width()-1, size.height()));
@@ -214,7 +212,6 @@ void QtColorGrid::currentChanged(const QModelIndex &current, const QModelIndex &
         Q_EMIT colorChanged(current.data(Qt::EditRole).value<QColor>());
     doItemsLayout();
 }
-
 
 void QtColorGrid::mouseMoveEvent(QMouseEvent *event)
 {
@@ -235,6 +232,5 @@ void QtColorGrid::mouseMoveEvent(QMouseEvent *event)
     QRect r2 = visualRect(index);
     if (r1.right() >= r2.left() || r1.bottom() >= r2.top())
         doItemsLayout();
-
 }
 
