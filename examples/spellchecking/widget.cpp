@@ -21,19 +21,6 @@ Widget::Widget(QWidget* parent)
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->addLayout(boxLayout);
     layout->addWidget(textEdit);
-
-
-    /*const QObjectList list = lineEdit->findChildren<QObject*>();
-    for (auto* object : list)
-    {
-        if (object->inherits("QWidgetLineControl"))
-        {
-            const QMetaObject* metaObject = object->metaObject();
-            for (int i = 0; i < metaObject->methodCount(); ++i)
-                qDebug() << metaObject->method(i).name();
-        }
-        break;
-    }*/
 }
 
 void Widget::aboutPlugins()
