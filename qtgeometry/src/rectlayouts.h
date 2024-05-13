@@ -25,10 +25,10 @@ struct RectLayout
 struct GridRectLayout : public RectLayout
 {
     template<class _Size>
-    static _Size boundingSize(int rows, int cols, const _Size& itemSize) const
+    static _Size boundingSize(int rows, int cols, const _Size& itemSize)
     {
         static_assert(IsSizeType<_Size>, "only QSize/QSizeF types are supported");
-        return _Size{ rows * itemSize.height(); cols * itemSize.width() };
+        return _Size{ rows * itemSize.height(), cols * itemSize.width() };
     }
 
     template<class _Rect>
@@ -129,7 +129,7 @@ struct BoxRectLayout : public RectLayout
     }
 
     template<class... _Args>
-    static auto boundingRectOf(const Options& options, const _Args&... args)
+    static auto boundingRectOf(const Options& options, const _Args&... rects)
     {
         std::array ilist{ rects... };
         return boundingRect(options, ilist.begin(), ilist.end());
@@ -221,7 +221,7 @@ struct BoxRectLayout : public RectLayout
     {
         using scalar_type = decltype (frame.x());
         using OutputValue = typename std::iterator_traits<_OutIt>::value_type;
-        static_assert(IsRectType<RectType> && IsRectType<OutputValue>, "only QRect/QRectF types are supported");
+        static_assert(IsRectType<_Rect> && IsRectType<OutputValue>, "only QRect/QRectF types are supported");
 
         if (n < 1)
             return out;
