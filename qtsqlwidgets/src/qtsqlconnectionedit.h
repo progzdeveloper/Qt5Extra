@@ -7,9 +7,18 @@ class QSqlDatabase;
 class QTSQLWIDGETS_EXPORT QtSqlConnectionEdit : public QWidget
 {
     Q_OBJECT
-    Q_DISABLE_COPY(QtSqlConnectionEdit)
-public:
 
+    Q_PROPERTY(QString connectionName READ connectionName WRITE setConnectionName)
+    Q_PROPERTY(QString databaseName READ databaseName WRITE setDatabaseName)
+    Q_PROPERTY(QString driverName READ driverName WRITE setDriverName)
+    Q_PROPERTY(QString userName READ userName WRITE setUserName)
+    Q_PROPERTY(QString password READ password WRITE setPassword)
+    Q_PROPERTY(QString hostName READ hostName WRITE setHostName)
+    Q_PROPERTY(int port READ port WRITE setPort)
+    Q_PROPERTY(QString options READ options WRITE setOptions)
+    Q_PROPERTY(bool isReadOnly READ isReadOnly)
+
+public:
     enum Field {
         ConnectionName = 0,
         DriverName,

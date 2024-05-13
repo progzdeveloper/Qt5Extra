@@ -25,6 +25,7 @@ public:
     QProgressBar* progressBar;
     QLabel* progressLabel;
     QFutureWatcher<void>* watcher;
+    bool messagesEnabled = true;
 
     QtSqlConnectionDialogPrivate(QtSqlConnectionDialog* dialog);
     void initUi();
@@ -190,8 +191,20 @@ QString QtSqlConnectionDialog::options() const
     return d->edit->options();
 }
 
+void QtSqlConnectionDialog::setMessagesEnabled(bool on)
+{
+    d->messagesEnabled = on;
+}
+
+bool QtSqlConnectionDialog::isMessagesEnabled() const
+{
+    return d->messagesEnabled;
+}
+
 void QtSqlConnectionDialog::test()
 {
+    Q_EMIT testStarted();
+
     d->progressLabel->setText(tr("Connecting with '%1'...").arg(d->edit->connectionName()));
     d->watcher->setFuture(QtConcurrent::run(d->edit, &QtSqlConnectionEdit::test));
     d->lock();
@@ -200,34 +213,50 @@ void QtSqlConnectionDialog::test()
 
 void QtSqlConnectionDialog::success()
 {
-    QMessageBox messageBox(this);
-    messageBox.setWindowTitle(tr("Connection Test"));
-    messageBox.setIcon(QMessageBox::Information);
-    messageBox.setText(tr("Connection test is successfull."));
-    messageBox.exec();
+    Q_EMIT testSucceeded();
+
+    if (d->messagesEnabled)
+    {
+        QMessageBox messageBox(this);
+        messageBox.setWindowTitle(tr("Connection Test"));
+        messageBox.setIcon(QMessageBox::Information);
+        messageBox.setText(tr("Connection test is successfull."));
+        messageBox.exec();
+    }
     d->unlock();
 }
 
 void QtSqlConnectionDialog::fail(const QString &message)
 {
-    QMessageBox messageBox(this);
-    messageBox.setWindowTitle(tr("Connection Test"));
-    messageBox.setIcon(QMessageBox::Critical);
-    messageBox.setText(tr("Connection test is failed."));
-    messageBox.setDetailedText(message);
-    messageBox.exec();
+    Q_EMIT testFailed(message);
+
+    if (d->messagesEnabled)
+    {
+        QMessageBox messageBox(this);
+        messageBox.setWindowTitle(tr("Connection Test"));
+        messageBox.setIcon(QMessageBox::Critical);
+        messageBox.setText(tr("Connection test is failed."));
+        messageBox.setDetailedText(message);
+        messageBox.exec();
+    }
     d->unlock();
 }
 
 void QtSqlConnectionDialog::warning(const QString &message)
 {
-    QMessageBox::warning(this, tr("Warning"), message);
+    Q_EMIT testFailed(message);
+
+    if (d->messagesEnabled)
+        QMessageBox::warning(this, tr("Warning"), message);
     d->unlock();
 }
 
 void QtSqlConnectionDialog::error(const QString &message)
 {
-    QMessageBox::critical(this, tr("Error"), message);
+    Q_EMIT testFailed(message);
+
+    if (d->messagesEnabled)
+        QMessageBox::critical(this, tr("Error"), message);
     d->unlock();
 }
 
