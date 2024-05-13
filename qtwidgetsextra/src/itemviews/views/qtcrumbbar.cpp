@@ -201,12 +201,9 @@ QCompleter *QtCrumbBar::completer() const
 void QtCrumbBar::setRootIcon(const QIcon &icon)
 {
     d->rootIcon = icon;
-    QList<QAction*> actions = d->toolBar->actions();
+    const auto actions = d->toolBar->actions();
     if (!actions.isEmpty())
-    {
-        QAction* rootAct = d->toolBar->actions().front();
-        rootAct->setIcon(icon);
-    }
+        actions.front()->setIcon(icon);
 }
 
 QIcon QtCrumbBar::rootIcon() const
@@ -225,13 +222,17 @@ void QtCrumbBar::back()
     if(d->crumbs.count() <= 1)
         return;
 
-    d->toolBar->removeAction(d->toolBar->actions().last());
+    const auto actions = d->toolBar->actions();
+    if (!actions.isEmpty())
+        d->toolBar->removeAction(actions.last());
     d->crumbs.removeLast();
     Q_EMIT indexChanged(d->crumbs.last());
 }
 
 void QtCrumbBar::setCurrentIndex(const QModelIndex &index)
 {
+    constexpr int kChainPrealloc = 16;
+
     if(d->model == Q_NULLPTR)
         return;
 
@@ -253,15 +254,16 @@ void QtCrumbBar::setCurrentIndex(const QModelIndex &index)
 
         d->addCrumb(rootIndex);
 
-        QList<QModelIndex> chain;
+        QVarLengthArray<QModelIndex, 16> chain;
         QModelIndex pos = index;
         while(pos.isValid()) {
-            chain.append(pos);
+            chain.push_back(pos);
             pos = pos.parent();
         }
+
         while(!chain.isEmpty()) {
             d->addCrumb(chain.last());
-            chain.removeLast();
+            chain.pop_back();
         }
     }
     Q_EMIT indexChanged(index);

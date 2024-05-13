@@ -152,8 +152,8 @@ Q_SIGNALS:
     void groupColumnChanged(int);
     void groupsSpannedChanged(bool);
     void identityChanged(bool);
-    void ungrouppedPolicyChanged(UngrouppedPolicy);
-    void ungrouppedPlacementChanged(UngrouppedPlacement);
+    void ungrouppedPolicyChanged(QtGroupingProxyModel::UngrouppedPolicy);
+    void ungrouppedPlacementChanged(QtGroupingProxyModel::UngrouppedPlacement);
 
 private:
     friend class QtGroupingProxyModelPrivate;

@@ -133,7 +133,7 @@ QtMultiProgressDialog::QtMultiProgressDialog(QWidget *parent, Qt::WindowFlags fl
 
 QtMultiProgressDialog::~QtMultiProgressDialog() = default;
 
-void QtMultiProgressDialog::setProgress(int value, QtMultiProgressDialog::ProgressHint hint)
+void QtMultiProgressDialog::setProgress(int value, ProgressHint hint)
 {
     d->progressBar(hint)->setValue(value);
 }

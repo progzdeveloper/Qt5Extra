@@ -200,7 +200,7 @@ uint QtMessageLogView::rotationLimit() const
     return d->model->rotationLimit();
 }
 
-void QtMessageLogView::setVisibleFields(Fields f)
+void QtMessageLogView::setVisibleFields(QtMessageLogView::Fields f)
 {
     if (d->fields == f)
         return;
@@ -262,7 +262,7 @@ QPair<QVariant, Qt::MatchFlags> QtMessageLogView::fieldFilter(QtMessageLogView::
     return d->proxy->fieldFilter(f);
 }
 
-void QtMessageLogView::clearFilters(Fields fields)
+void QtMessageLogView::clearFilters(QtMessageLogView::Fields fields)
 {
     d->proxy->clearFilters(fields);
 }

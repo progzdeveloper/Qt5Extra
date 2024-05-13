@@ -334,7 +334,7 @@ void QtMessageLogWidgetPrivate::addPendingLines()
         const QFontMetrics & fm = q_ptr->fontMetrics();
         QVector<int>& lw = cache.fontMetrics.lineWidths;
         lw.reserve( pendingLines.size() );
-        for (const auto& line : pendingLines)
+        for (const auto& line : qAsConst(pendingLines))
             lw.push_back( fm.width(line.text) );
 
         // update dimensions:

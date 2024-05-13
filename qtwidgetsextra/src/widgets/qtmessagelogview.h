@@ -53,11 +53,11 @@ public Q_SLOTS:
 
     void setRegExp(const QRegularExpression& re);
     void setRotationLimit(uint limit);
-    void setVisibleFields(Fields f);
+    void setVisibleFields(QtMessageLogView::Fields f);
 
     void setCategoryFilter(const QString& pattern, Qt::MatchFlags flags = Qt::MatchContains);
     void setMessageFilter(const QString& pattern, Qt::MatchFlags flags = Qt::MatchContains);
-    void clearFilters(Fields fields);
+    void clearFilters(QtMessageLogView::Fields fields);
 
     void clear();
 
@@ -85,7 +85,7 @@ protected:
 
 
 Q_SIGNALS:
-    void visibleFieldsChanged(Fields);
+    void visibleFieldsChanged(QtMessageLogView::Fields);
 
 private:
     QScopedPointer<class QtMessageLogViewPrivate> d;

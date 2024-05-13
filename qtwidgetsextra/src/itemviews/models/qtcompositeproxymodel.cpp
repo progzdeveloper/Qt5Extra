@@ -287,7 +287,6 @@ void QtCompositeProxyModel::attachMapping(int sourceColumn, int sourceRole, QtIt
     auto it = d->mappings.find(key);
     if (it == d->mappings.cend()) {
         d->mappings[key].push_back(mapper);
-
     } else {
         if (it->indexOf(mapper) == -1) {
             it->push_back(mapper);

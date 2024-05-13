@@ -187,9 +187,7 @@ QString QtSyntaxHighlighter::syntax() const
 
 void QtSyntaxHighlighter::highlightBlock(const QString &text)
 {
-
-
-    for (const SingleLineSyntaxRule &rule : d->slRules)
+    for (const SingleLineSyntaxRule &rule : qAsConst(d->slRules))
     {
         int index = rule.pattern.indexIn(text);
         while (index >= 0) {
@@ -200,7 +198,7 @@ void QtSyntaxHighlighter::highlightBlock(const QString &text)
     }
     setCurrentBlockState(0);
 
-    for (const MultiLineSyntaxRule &rule : d->mlRules)
+    for (const MultiLineSyntaxRule &rule : qAsConst(d->mlRules))
     {
         int startIndex = 0;
         if (previousBlockState() != 1)

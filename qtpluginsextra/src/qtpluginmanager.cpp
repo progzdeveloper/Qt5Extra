@@ -17,7 +17,7 @@
 #include <QDebug>
 
 inline uint qHash(QtPluginInterface* iface) {
-    return (iface != Q_NULLPTR ? 0 : qHash(iface->iid()));
+    return (iface == Q_NULLPTR ? 0 : qHash(iface->iid()));
 }
 
 class QtPluginManagerPrivate

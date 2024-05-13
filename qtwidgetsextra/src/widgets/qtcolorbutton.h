@@ -43,7 +43,7 @@ public:
 
 public Q_SLOTS:
     void setColor(const QColor& c);
-    void setPopupStyle(PopupStyle style);
+    void setPopupStyle(QtColorButton::PopupStyle style);
 
 private Q_SLOTS:
     void colorSelected();
@@ -51,7 +51,7 @@ private Q_SLOTS:
 
 Q_SIGNALS:
     void colorChanged(const QColor& c);
-    void popupStyleChanged(PopupStyle);
+    void popupStyleChanged(QtColorButton::PopupStyle);
 
 private:
     friend class QtColorButtonPrivate;

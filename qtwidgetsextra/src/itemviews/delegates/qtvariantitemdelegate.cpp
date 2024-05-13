@@ -206,17 +206,15 @@ QWidget *QtVariantItemEditorFactory::createEditor(int userType, QWidget * parent
 
 QByteArray QtVariantItemEditorFactory::valuePropertyName(int userType) const
 {
-     
-    PropertyMap::const_iterator it = d->propertyMap.constFind(static_cast<QVariant::Type>(userType));
-    return (it == d->propertyMap.end() ? QItemEditorFactory::valuePropertyName(userType) : *it);
+    auto it = d->propertyMap.constFind(static_cast<QVariant::Type>(userType));
+    return (it == d->propertyMap.cend() ? QItemEditorFactory::valuePropertyName(userType) : *it);
 }
 
 QVariant QtVariantItemEditorFactory::attribute(int userType, const char *key) const
 {
-     
     QVariant::Type type = static_cast<QVariant::Type>(userType);
-    AttributeMap::const_iterator it = d->attributeMap.constFind(type);
-    for (; it != d->attributeMap.end() && it.key() == type; ++it) {
+    auto it = d->attributeMap.constFind(type);
+    for (; it != d->attributeMap.cend() && it.key() == type; ++it) {
         if (it->key == key)
             return it->value;
     }
@@ -225,7 +223,6 @@ QVariant QtVariantItemEditorFactory::attribute(int userType, const char *key) co
 
 void QtVariantItemEditorFactory::setAttribute(int userType, const char *key, const QVariant &value)
 {
-     
     QVariant::Type type = static_cast<QVariant::Type>(userType);
     AttributeMap::iterator it = d->attributeMap.find(type);
     for (; it != d->attributeMap.end() && it.key() == type; ++it) {
@@ -237,9 +234,6 @@ void QtVariantItemEditorFactory::setAttribute(int userType, const char *key, con
     // insert
     d->attributeMap.insert(type, Attribute(key, value));
 }
-
-
-
 
 
 class QtVariantItemDelegatePrivate
@@ -261,27 +255,23 @@ QtVariantItemDelegate::~QtVariantItemDelegate() = default;
 
 void QtVariantItemDelegate::setItemRole(int role)
 {
-     
     d->itemRole = role;
 }
 
 int QtVariantItemDelegate::itemRole() const
 {
-     
     return d->itemRole;
 }
 
 QWidget *QtVariantItemDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem&,
                                              const QModelIndex &index) const
 {
-     
     Q_ASSERT(itemEditorFactory() != 0);
     return itemEditorFactory()->createEditor(index.data(d->itemRole).type(), parent);
 }
 
 void QtVariantItemDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const
 {
-     
     Q_ASSERT(itemEditorFactory() != 0);
     QVariant value = index.data(d->itemRole);
     QByteArray propertyName = itemEditorFactory()->valuePropertyName(value.type());
@@ -291,7 +281,6 @@ void QtVariantItemDelegate::setEditorData(QWidget *editor, const QModelIndex &in
 void QtVariantItemDelegate::setModelData(QWidget *editor, QAbstractItemModel *model,
                                          const QModelIndex &index) const
 {
-     
     Q_ASSERT(itemEditorFactory() != 0);
     int typeId = index.data(d->itemRole).type();
     QByteArray propertyName = itemEditorFactory()->valuePropertyName(typeId);

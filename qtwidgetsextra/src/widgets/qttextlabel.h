@@ -74,7 +74,7 @@ Q_SIGNALS:
     void elisionChanged(bool);
     void alignmentChanged(Qt::Alignment);
     void textAlignChanged(Qt::Alignment);
-    void wrapModeChanged(WordWrapMode);
+    void wrapModeChanged(QtTextLabel::WordWrapMode);
     void maxLineCountChanged(int);
     void linkActivated(const QString& url);
 

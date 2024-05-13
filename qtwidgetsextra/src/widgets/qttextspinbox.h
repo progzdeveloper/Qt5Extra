@@ -15,9 +15,9 @@ public:
 
     QValidator::State validate(QString& input, int& pos ) const Q_DECL_OVERRIDE;
 
+    const QStringList &list() const;
 public Q_SLOTS:
     virtual void setList(const QStringList &s);
-    const QStringList &list() const;
 
 Q_SIGNALS:
     void listChanged(const QStringList &);

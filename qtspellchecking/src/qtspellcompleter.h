@@ -58,17 +58,18 @@ public:
 public Q_SLOTS:
     void correctWord(const QString& _correction);
     virtual void onSuggests(const QString& _word, const QStringList& _results, QtSpellCheckEngine::CorrectionActions _actions);
-    virtual void popupMenu(QMenu* menu, const QPoint& _globalPos, MenuStyle _style) const;
+    virtual void popupMenu(QMenu* menu, const QPoint& _globalPos, QtSpellCompleter::MenuStyle _style) const;
     virtual void embedActions(QMenu* menu, const QString& _word, const QStringList& suggests, QtSpellCheckEngine::CorrectionActions _actions) const;
     virtual QMenu* createMenu() const;
-    virtual MenuStyle preferredMenuStyle(QEvent::Type _eventType) const;
+    virtual QtSpellCompleter::MenuStyle preferredMenuStyle(QEvent::Type _eventType) const;
 
+protected:
     bool eventFilter(QObject* _watched, QEvent* _event) Q_DECL_OVERRIDE;
 
 Q_SIGNALS:
     void corrected(const QString& _misspelled, const QString& _correction);
     void enabledChanged(bool _on);
-    void optionsChanged(Options _opts);
+    void optionsChanged(QtSpellCompleter::Options _opts);
     void shortcutChanged(const QKeySequence& _seq);
     void suggestsCountChanged(int _count);
 

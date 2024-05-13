@@ -97,7 +97,7 @@ public:
         if (coordSystem == Qt::LogicalCoordinates)
             _painter->translate(bounds.topLeft());
 
-        if (!_brush.isOpaque() && !_brush.style() == Qt::NoBrush)
+        if (!_brush.isOpaque() && _brush.style() != Qt::NoBrush)
             _painter->fillRect(r, _brush);
         _painter->setOpacity(blurOpacity);
         _painter->drawImage(r, _image);

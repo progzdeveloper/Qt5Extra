@@ -34,12 +34,12 @@ public:
     QAbstractButton* cancelButton() const;
 
 public Q_SLOTS:
-    void setProgress(int value, ProgressHint hint = PartialProgress);
-    void setRange(int minimum, int maximum, ProgressHint hint = PartialProgress);
-    void setMinimum(int minimum, ProgressHint hint = PartialProgress);
-    void setMaximum(int maximum, ProgressHint hint = PartialProgress);
+    void setProgress(int value, QtMultiProgressDialog::ProgressHint hint = PartialProgress);
+    void setRange(int minimum, int maximum, QtMultiProgressDialog::ProgressHint hint = PartialProgress);
+    void setMinimum(int minimum, QtMultiProgressDialog::ProgressHint hint = PartialProgress);
+    void setMaximum(int maximum, QtMultiProgressDialog::ProgressHint hint = PartialProgress);
 
-    void setLabelText(const QString& text, ProgressHint hint = PartialProgress);
+    void setLabelText(const QString& text, QtMultiProgressDialog::ProgressHint hint = PartialProgress);
     void setAutoClose(bool on = true);
 
     void cancel();

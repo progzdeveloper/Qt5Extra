@@ -14,7 +14,7 @@ QtMethodInvoker::QtMethodInvoker()
 
 QtMethodInvoker::QtMethodInvoker(const QMetaObject *metaObject)
 {
-    setMetaObject(metaObject);
+    setMetaObject(metaObject); // TODO: workout the construction bypasses virtual dispatch
 }
 
 QtMethodInvoker::~QtMethodInvoker()

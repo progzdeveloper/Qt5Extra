@@ -263,8 +263,8 @@ public Q_SLOTS:
 Q_SIGNALS:
     void aspectRatioChanged(double);
     void flowAlignmentChanged(Qt::Alignment);
-    void gridFlowChanged(GridFlow);
-    void fillModeChanged(PageFillMode);
+    void gridFlowChanged(GridPageLayout::GridFlow);
+    void fillModeChanged(GridPageLayout::PageFillMode);
 
     void minimumCellSizeChanged(const QSize&);
     void minRowCountChanged(int);

@@ -618,7 +618,7 @@ QLayoutItem* GridPageLayout::itemAt(int i) const
 
 QLayoutItem* GridPageLayout::takeAt(int i)
 {
-    if (i < 0 || i >= static_cast<int>(d->items.size()))
+    if ((i < 0 || i >= static_cast<int>(d->items.size())) || d->currSize.count() == 0)
         return Q_NULLPTR;
 
     auto it = d->items.begin() + i;

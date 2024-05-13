@@ -49,7 +49,7 @@ public:
 
 
 public Q_SLOTS:
-    void setShape(Shape s);
+    void setShape(QtStateIndicator::Shape s);
     void setColor(const QColor& c);
     void setClickable(bool on = true);
     void setAnimated(bool on = true);
@@ -65,7 +65,7 @@ Q_SIGNALS:
     void durationChanged(int);
     void frameWidthChanged(qreal);
     void shadowChanged(QFrame::Shadow);
-    void shapeChanged(Shape);
+    void shapeChanged(QtStateIndicator::Shape);
 
     // QObject interface
 protected:

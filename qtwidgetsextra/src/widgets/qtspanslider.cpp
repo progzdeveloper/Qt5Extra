@@ -111,7 +111,7 @@ void QtSpanSliderPrivate::handleMousePress(const QPoint& pos, QStyle::SubControl
         offset = pick(pos - sr.topLeft());
         lastPressed = handle;
         q_ptr->setSliderDown(true);
-        emit q_ptr->sliderPressed(handle);
+        emit q_ptr->sliderHandlePressed(handle);
     }
     if (control != oldControl)
         q_ptr->update(sr);

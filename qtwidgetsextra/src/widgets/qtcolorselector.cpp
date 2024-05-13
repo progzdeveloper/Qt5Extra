@@ -239,11 +239,12 @@ void QtColorSelector::paintEvent(QPaintEvent *)
     QPainter painter(this);
     paintSection(&painter, d->backgroundRect(), d->bg);
     paintSection(&painter, d->foregroundRect(), d->fg);
-    QStyle* style = this->style();
+
+    // TODO:
+    /*QStyle* style = this->style();
     if (style == Q_NULLPTR)
         style = qApp->style();
-
-    /*QIcon pix = style->standardIcon(QStyle::SP_BrowserReload);
+    QIcon pix = style->standardIcon(QStyle::SP_BrowserReload);
     pix.paint(&painter, d->switchButtonRect());*/
 }
 

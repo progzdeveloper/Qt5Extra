@@ -67,19 +67,18 @@ QtDockSideBar* QtMainWindowPrivate::createSideBar(Qt::DockWidgetArea area)
 
 void QtMainWindowPrivate::createToolBarMenu(QMenu *menu)
 {
-    typedef QList<QToolBar*> QToolBarList;
     QString title;
     QAction * action = 0;
-    QToolBarList toolbars = q_ptr->findChildren<QToolBar*>();
-    QToolBarList::const_iterator it = toolbars.begin();
-    for (; it != toolbars.end(); ++it) {
-        title = (*it)->windowTitle();
+    const auto toolbars = q_ptr->findChildren<QToolBar*>();
+    for (const auto* toolBar : toolbars)
+    {
+        title = toolBar->windowTitle();
         if (title.startsWith("_qt_"))
             continue;
 
-        action = menu->addAction(title, *it, SLOT(setVisible(bool)));
+        action = menu->addAction(title, toolBar, SLOT(setVisible(bool)));
         action->setCheckable(true);
-        action->setChecked((*it)->isVisible());
+        action->setChecked(toolBar->isVisible());
     }
 }
 
@@ -87,25 +86,26 @@ void QtMainWindowPrivate::createDockWidgetMenu(QMenu* menu)
 {
     typedef QList<QDockWidget*> QDockWidgetList;
     QAction * action = 0;
-    QDockWidgetList widgets = q_ptr->findChildren<QDockWidget*>();
-    QDockWidgetList::const_iterator it = widgets.begin();
-    for (; it != widgets.end(); ++it) {
-        action = menu->addAction((*it)->windowIcon(), (*it)->windowTitle(), *it, SLOT(setVisible(bool)));
+    const auto widgets = q_ptr->findChildren<QDockWidget*>();
+    for (const auto* w : widgets)
+    {
+        action = menu->addAction(w->windowIcon(), w->windowTitle(), w, SLOT(setVisible(bool)));
         action->setCheckable(true);
-        action->setChecked((*it)->isVisible());
+        action->setChecked(w->isVisible());
     }
 }
 
 
 static inline bool isAncestor(QWidget *w, QWidget *child, bool checkType = false)
 {
-    while (child) {
+    while (child)
+    {
         if (child == w)
             return true;
-        if (checkType) {
-            if (child->isWindow())
-                return false;
-        }
+
+        if (checkType && child->isWindow())
+            return false;
+
         child = child->parentWidget();
     }
     return false;

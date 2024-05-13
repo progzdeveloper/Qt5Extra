@@ -12,7 +12,6 @@ class QTWIDGETSEXTRA_EXPORT QtSpanSlider :
     Q_PROPERTY(int lowerPosition READ lowerPosition WRITE setLowerPosition)
     Q_PROPERTY(int upperPosition READ upperPosition WRITE setUpperPosition)
     Q_PROPERTY(HandleMovementMode handleMovementMode READ handleMovementMode WRITE setHandleMovementMode)
-    Q_ENUMS(HandleMovementMode)
 
 public:
     enum HandleMovementMode
@@ -21,6 +20,7 @@ public:
         NoCrossing,
         NoOverlapping
     };
+    Q_ENUM(HandleMovementMode)
 
     enum SpanHandle
     {
@@ -28,6 +28,7 @@ public:
         LowerHandle,
         UpperHandle
     };
+    Q_ENUM(SpanHandle)
 
 
     explicit QtSpanSlider(QWidget* parent = Q_NULLPTR);
@@ -59,7 +60,7 @@ Q_SIGNALS:
     void lowerPositionChanged(int lower);
     void upperPositionChanged(int upper);
 
-    void sliderPressed(SpanHandle handle);
+    void sliderHandlePressed(QtSpanSlider::SpanHandle handle);
 
 protected:
     void keyPressEvent(QKeyEvent* event) Q_DECL_OVERRIDE;

@@ -22,7 +22,7 @@ public:
     QtPatternEdit(const QString &pattern, QWidget *parent = Q_NULLPTR);
     ~QtPatternEdit();
 
-    void setOptions(Options opts);
+    void setOptions(QtPatternEdit::Options opts);
     Options options() const;
 
 private Q_SLOTS:
@@ -30,7 +30,7 @@ private Q_SLOTS:
     void toggleOption(bool on);
 
 Q_SIGNALS:
-    void optionsChanged(Options);
+    void optionsChanged(QtPatternEdit::Options);
 
 private:
     friend class QtPatternEditPrivate;

@@ -96,7 +96,6 @@ QtSlideCheckBox::~QtSlideCheckBox() = default;
 
 void QtSlideCheckBox::setSpacing(int m)
 {
-
     d->spacing = m;
     if (isVisible())
         update();
@@ -104,37 +103,31 @@ void QtSlideCheckBox::setSpacing(int m)
 
 int QtSlideCheckBox::spacing() const
 {
-
     return d->spacing;
 }
 
 void QtSlideCheckBox::setAnimated(bool on)
 {
-
     d->animated = on;
 }
 
 bool QtSlideCheckBox::isAnimated() const
 {
-
     return d->animated;
 }
 
 void QtSlideCheckBox::setDuration(int msec)
 {
-
     d->timeLine->setDuration(msec);
 }
 
 int QtSlideCheckBox::duration() const
 {
-
     return d->timeLine->duration();
 }
 
 void QtSlideCheckBox::setOrientation(Qt::Orientation orientation)
 {
-
     if (d->orientation == orientation)
         return;
 
@@ -148,20 +141,17 @@ void QtSlideCheckBox::setOrientation(Qt::Orientation orientation)
 
 Qt::Orientation QtSlideCheckBox::orientation() const
 {
-
     return d->orientation;
 }
 
 void QtSlideCheckBox::animate(qreal value)
 {
-
     d->position = value;
     update();
 }
 
 QSize QtSlideCheckBox::minimumSizeHint() const
 {
-
     return (d->orientation == Qt::Horizontal ? QSize(28, 16) : QSize(16, 28));
     //return (d->orientation == Qt::Horizontal ? QSize(48, 32) : QSize(32, 48));
 }
@@ -173,7 +163,6 @@ void QtSlideCheckBox::resizeEvent(QResizeEvent *e)
 
 void QtSlideCheckBox::paintEvent(QPaintEvent *)
 {
-
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
     d->drawBackground(painter, size(), checkState());
@@ -187,7 +176,6 @@ bool QtSlideCheckBox::hitButton(const QPoint &pos) const
 
 void QtSlideCheckBox::nextCheckState()
 {
-
     if (d->animated && isVisible()) {
         d->timeLine->setDirection(checkState() == Qt::Unchecked ? QTimeLine::Forward : QTimeLine::Backward);
         d->timeLine->start();

@@ -117,10 +117,14 @@ void QtMainWindowManagerPrivate::updateContents()
     if (!window)
         return;
 
-    QMdiArea* area = qobject_cast<QMdiArea*>(window->centralWidget());
+    QWidget* centralWidget = window->centralWidget();
+    if (!centralWidget)
+        return;
+
+    QMdiArea* area = qobject_cast<QMdiArea*>(centralWidget);
     if (!area) {
         dwLabel->setText(tr("<b>Windows</b>"));
-        createItem(dwList, window->centralWidget(), true);
+        createItem(dwList, centralWidget, true);
     } else {
         collectWidgets(mdiList, area->subWindowList(), false);
         QWidget* actveWidget = area->activeSubWindow();
@@ -140,15 +144,16 @@ void QtMainWindowManagerPrivate::updateContents()
 template<class Widget>
 inline void QtMainWindowManagerPrivate::collectWidgets(QListWidget* view, const QList<Widget>& widgets, bool flagVisible)
 {
-    typedef QList<Widget> WidgetList;
-    auto it = widgets.cbegin();
-    for (; it != widgets.cend(); ++it)
+    if (!view)
+        return;
+
+    for (auto* w : widgets)
     {
         if (flagVisible) {
-            if ((*it)->isVisible())
-                createItem(view, *it);
+            if (w->isVisible())
+                createItem(view, w);
         } else {
-            createItem(view, *it);
+            createItem(view, w);
         }
     }
 }
@@ -252,7 +257,7 @@ QtMainWindowManager::QtMainWindowManager(QWidget* parent /*= 0*/, Qt::WindowFlag
     d->centralWidget = 0;
     d->highlight = false;
     d->initUi();
-    setFrameStyle(QFrame::Box|QFrame::Plain);
+    setFrameStyle(QFrame::Box | QFrame::Plain);
 }
 
 QtMainWindowManager::~QtMainWindowManager() = default;
