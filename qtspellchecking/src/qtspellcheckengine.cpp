@@ -265,7 +265,7 @@ public:
 
     void suggestionsEvent(QObject* object, const SpellCheckEvent& event)
     {
-        QtSpellCheckEngine::CorrectionActions actions = QtSpellCheckEngine::NoActions;
+        QtSpellCheckEngine::SpellingActions actions = QtSpellCheckEngine::NoActions;
         QStringList results;
         if (event.word.isEmpty())
             return;
@@ -380,7 +380,7 @@ void QtSpellCheckEngine::requestSuggests(const QString& word, int count, QObject
 
 void QtSpellCheckEngine::run()
 {
-    qRegisterMetaType<QtSpellCheckEngine::CorrectionActions>("SpellCheckEngine::CorrectionActions");
+    qRegisterMetaType<QtSpellCheckEngine::SpellingActions>("SpellCheckEngine::SpellingActions");
 
     d->ready = false;
     d->interrupted = false;

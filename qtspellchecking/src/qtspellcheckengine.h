@@ -14,14 +14,15 @@ class QTSPELLCHECKING_EXPORT QtSpellCheckEngine : public QThread
     QtSpellCheckEngine();
 
 public:
-    enum CorrectionAction
+    enum SpellingAction
     {
         NoActions = 0,
         AppendWord = 1 << 0,
         IgnoreWord = 1 << 1,
         RemoveWord = 1 << 2
     };
-    Q_DECLARE_FLAGS(CorrectionActions, CorrectionAction)
+    Q_DECLARE_FLAGS(SpellingActions, SpellingAction)
+    Q_FLAG(SpellingActions)
 
     ~QtSpellCheckEngine() Q_DECL_OVERRIDE;
 
@@ -45,7 +46,7 @@ Q_SIGNALS:
     void appended(const QString& word);
     void removed(const QString& word);
     void ignored(const QString& word);
-    void suggestsFound(QObject* receiver, const QString& word, const QStringList& results, QtSpellCheckEngine::CorrectionActions actions);
+    void suggestsFound(QObject* receiver, const QString& word, const QStringList& results, QtSpellCheckEngine::SpellingActions actions);
 
 private:
     void run() Q_DECL_OVERRIDE;
@@ -54,5 +55,5 @@ private:
     QScopedPointer<class QtSpellCheckEnginePrivate> d;
 };
 
-Q_DECLARE_OPERATORS_FOR_FLAGS(QtSpellCheckEngine::CorrectionActions)
-Q_DECLARE_METATYPE(QtSpellCheckEngine::CorrectionActions)
+Q_DECLARE_OPERATORS_FOR_FLAGS(QtSpellCheckEngine::SpellingActions)
+Q_DECLARE_METATYPE(QtSpellCheckEngine::SpellingActions)

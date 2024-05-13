@@ -38,44 +38,44 @@ public:
     explicit QtSpellCompleter(QtSpellChecker* parent);
     ~QtSpellCompleter();
 
-    void setEnabled(bool _on);
+    void setEnabled(bool on);
     bool isEnabled() const;
 
-    void setSuggestsCount(int _count);
+    void setSuggestsCount(int count);
     int suggestsCount() const;
 
     void setTooltipDuration(int duration);
     int tooltipDuration() const;
 
-    void setOptions(Options _options);
+    void setOptions(Options options);
     Options options() const;
 
-    void setShortcut(const QKeySequence& _shortcut);
+    void setShortcut(const QKeySequence& shortcut);
     QKeySequence shortcut() const;
 
-    virtual bool widgetEvent(QEvent* _event);
+    virtual bool widgetEvent(QEvent* event);
 
 public Q_SLOTS:
-    void correctWord(const QString& _correction);
-    virtual void onSuggests(const QString& _word, const QStringList& _results, QtSpellCheckEngine::CorrectionActions _actions);
-    virtual void popupMenu(QMenu* menu, const QPoint& _globalPos, QtSpellCompleter::MenuStyle _style) const;
-    virtual void embedActions(QMenu* menu, const QString& _word, const QStringList& suggests, QtSpellCheckEngine::CorrectionActions _actions) const;
+    void correctWord(const QString& replacement);
+    virtual void onSuggests(const QString& word, const QStringList& results, QtSpellCheckEngine::SpellingActions actions);
+    virtual void popupMenu(QMenu* menu, const QPoint& globalPos, QtSpellCompleter::MenuStyle style) const;
+    virtual void embedActions(QMenu* menu, const QString& word, const QStringList& suggests, QtSpellCheckEngine::SpellingActions actions) const;
     virtual QMenu* createMenu() const;
-    virtual QtSpellCompleter::MenuStyle preferredMenuStyle(QEvent::Type _eventType) const;
+    virtual QtSpellCompleter::MenuStyle preferredMenuStyle(QEvent::Type eventType) const;
 
 protected:
-    bool eventFilter(QObject* _watched, QEvent* _event) Q_DECL_OVERRIDE;
+    bool eventFilter(QObject* watched, QEvent* event) Q_DECL_OVERRIDE;
 
 Q_SIGNALS:
-    void corrected(const QString& _misspelled, const QString& _correction);
-    void enabledChanged(bool _on);
-    void optionsChanged(QtSpellCompleter::Options _opts);
-    void shortcutChanged(const QKeySequence& _seq);
-    void suggestsCountChanged(int _count);
+    void corrected(const QString& misspelled, const QString& correction);
+    void enabledChanged(bool enabled);
+    void optionsChanged(QtSpellCompleter::Options options);
+    void shortcutChanged(const QKeySequence& sequence);
+    void suggestsCountChanged(int count);
 
 private Q_SLOTS:
     void onFocusChanged(QWidget*, QWidget* _curr);
-    void onSuggestsReady(QObject* _receiver, const QString& _word, const QStringList& _results, QtSpellCheckEngine::CorrectionActions _actions);
+    void onSuggestsReady(QObject* receiver, const QString& word, const QStringList& results, QtSpellCheckEngine::SpellingActions actions);
 
 private:
     friend class QtSpellCompleterPrivate;
