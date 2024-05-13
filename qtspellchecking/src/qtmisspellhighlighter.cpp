@@ -12,18 +12,18 @@
 class QtMisspellHighlighterPrivate
 {
 public:
-    QTextCharFormat format_;
-    QtSpellChecker* checker_ = nullptr;
-    bool enabled_ = true;
+    QTextCharFormat format;
+    QtSpellChecker* checker = nullptr;
+    bool enabled = true;
 
     QtMisspellHighlighterPrivate(QtSpellChecker* parent)
-        : checker_(parent)
+        : checker(parent)
     {
-        format_.setUnderlineColor(Qt::red);
+        format.setUnderlineColor(Qt::red);
 #ifdef Q_OS_MACOS
-        format_.setUnderlineStyle(QTextCharFormat::WaveUnderline);
+        format.setUnderlineStyle(QTextCharFormat::WaveUnderline);
 #else
-        format_.setUnderlineStyle(QTextCharFormat::SpellCheckUnderline);
+        format.setUnderlineStyle(QTextCharFormat::SpellCheckUnderline);
 #endif
     }
 
@@ -38,7 +38,7 @@ public:
             cursor.setPosition(r->offset);
             cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor, r->length);
             selection.cursor = cursor;
-            selection.format = format_;
+            selection.format = format;
             extra << selection;
         }
         widget.setExtraSelections(extra);
@@ -51,57 +51,57 @@ public:
         QSignalBlocker blocker(target);
         QList<QInputMethodEvent::Attribute> attributes;
         for (auto r = ranges, end = ranges + n; r != end; ++r)
-            attributes.push_back({ kEventType, r->offset - cursorPos, r->length, format_ });
+            attributes.push_back({ kEventType, r->offset - cursorPos, r->length, format });
 
         QInputMethodEvent event({}, attributes);
         QCoreApplication::sendEvent(target, &event);
     }
 };
 
-QtMisspellHighlighter::QtMisspellHighlighter(QtSpellChecker* _parent)
-    : QObject(_parent)
-    , d(new QtMisspellHighlighterPrivate(_parent))
+QtMisspellHighlighter::QtMisspellHighlighter(QtSpellChecker* parent)
+    : QObject(parent)
+    , d(new QtMisspellHighlighterPrivate(parent))
 {
 }
 
 QtMisspellHighlighter::~QtMisspellHighlighter() = default;
 
-void QtMisspellHighlighter::setEnabled(bool _on)
+void QtMisspellHighlighter::setEnabled(bool on)
 {
-    if (d->enabled_ == _on)
+    if (d->enabled == on)
         return;
 
-    d->enabled_ = _on;
-    if (!d->enabled_)
+    d->enabled = on;
+    if (!d->enabled)
         reset();
     else
         Q_EMIT formatChanged();
 
-    Q_EMIT enabledChanged(d->enabled_);
+    Q_EMIT enabledChanged(d->enabled);
 }
 
 bool QtMisspellHighlighter::isEnabled() const
 {
-    return d->enabled_;
+    return d->enabled;
 }
 
-void QtMisspellHighlighter::setFormat(const QTextCharFormat& _format)
+void QtMisspellHighlighter::setFormat(const QTextCharFormat& format)
 {
-    if (d->format_ == _format)
+    if (d->format == format)
         return;
 
-    d->format_ = _format;
+    d->format = format;
     Q_EMIT formatChanged();
 }
 
 QTextCharFormat QtMisspellHighlighter::format() const
 {
-    return d->format_;
+    return d->format;
 }
 
 void QtMisspellHighlighter::reset()
 {
-    auto& target = d->checker_->target();
+    auto& target = d->checker->target();
     if (!target)
         return;
     if (target.document())
@@ -112,7 +112,7 @@ void QtMisspellHighlighter::reset()
 
 void QtMisspellHighlighter::highlight(const IndexRange* ranges, int size)
 {
-    auto& target = d->checker_->target();
+    auto& target = d->checker->target();
     if (!target || !isEnabled() || ranges == nullptr || size == 0)
         return;
 

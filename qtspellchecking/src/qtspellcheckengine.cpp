@@ -21,18 +21,18 @@ namespace
             Suggestions
         };
 
-        QString word_;
-        int offset_ = -1;
-        int type_ = None;
-        int count_ = 0;
+        QString word;
+        int offset = -1;
+        int type = None;
+        int count = 0;
 
         SpellCheckEvent() = default;
 
-        SpellCheckEvent(int _type, const QString& _word, int _offset = -1, int _count = 0)
-            : word_(_word)
-            , offset_(_offset)
-            , type_(_type)
-            , count_(_count)
+        SpellCheckEvent(int t, const QString& s, int i = -1, int n = 0)
+            : word(s)
+            , offset(i)
+            , type(t)
+            , count(n)
         {}
     };
 
@@ -40,114 +40,111 @@ namespace
     {
         struct Entry
         {
-            QObject* object_;
-            std::deque<SpellCheckEvent> queue_;
+            QObject* object;
+            std::deque<SpellCheckEvent> queue;
 
-            explicit Entry(QObject* _obj) : object_(_obj) {}
+            explicit Entry(QObject* obj) : object(obj) {}
 
-            void emplace(int _type, const QString& _word, int _offset, int _count)
+            void emplace(int type, const QString& word, int offset, int count)
             {
-                queue_.emplace_back(_type, _word, _offset, _count);
+                queue.emplace_back(type, word, offset, count);
             }
 
-            void pop(SpellCheckEvent& _event)
+            void pop(SpellCheckEvent& event)
             {
-                _event = std::move(queue_.front());
-                queue_.pop_front();
+                event = std::move(queue.front());
+                queue.pop_front();
             }
 
-            bool empty() const { return queue_.empty(); }
+            bool empty() const { return queue.empty(); }
 
-            void clear() { queue_.clear(); }
+            void clear() { queue.clear(); }
 
-            void swap(Entry& _other)
+            void swap(Entry& other)
             {
                 using std::swap; // for Koenig lookup
-                swap(object_, _other.object_);
-                swap(queue_, _other.queue_);
+                swap(object, other.object);
+                swap(queue, other.queue);
             }
         };
 
-        auto findQueue(QObject* _object)
+        auto findQueue(QObject* object)
         {
-            return std::find_if(queueMap_.begin(), queueMap_.end(), [_object](const auto& e) { return e.object_ == _object; });
+            return std::find_if(queueMap.begin(), queueMap.end(), [object](const auto& e) { return e.object == object; });
         }
 
     public:
         ~SpellEventQueue()
         {
-            QMutexLocker locker(&mutex_);
-            valid_ = false;
+            QMutexLocker locker(&mutex);
+            valid = false;
         }
 
-        void emplace(QObject* _object, int _type, const QString& _word, int _offset, int _count)
+        void emplace(QObject* object, int type, const QString& word, int offset, int count)
         {
-            QMutexLocker locker(&mutex_);
-            auto it = findQueue(_object);
-            if (it == queueMap_.end())
-                it = queueMap_.emplace(queueMap_.end(), _object);
+            QMutexLocker locker(&mutex);
+            auto it = findQueue(object);
+            if (it == queueMap.end())
+                it = queueMap.emplace(queueMap.end(), object);
 
-            it->emplace(_type, _word, _offset, _count);
+            it->emplace(type, word, offset, count);
         }
 
-        void discard(QObject* _object)
+        void discard(QObject* object)
         {
-            QMutexLocker locker(&mutex_);
-            if (queueMap_.empty() || !valid_)
+            QMutexLocker locker(&mutex);
+            if (queueMap.empty() || !valid)
                 return;
 
-            auto it = findQueue(_object);
-            if (it == queueMap_.end())
+            auto it = findQueue(object);
+            if (it == queueMap.end())
                 return;
 
-            if (queueMap_.size() != 1)
-                *it = std::move(queueMap_.back());
+            *it = std::move(queueMap.back());
 
-            queueMap_.pop_back();
-            current_ = 0;
+            queueMap.pop_back();
+            current = 0;
         }
 
         void clear()
         {
-            QMutexLocker locker(&mutex_);
-            queueMap_.clear();
+            QMutexLocker locker(&mutex);
+            queueMap.clear();
         }
 
         bool empty() const
         {
-            QMutexLocker locker(&mutex_);
-            return queueMap_.empty();
+            QMutexLocker locker(&mutex);
+            return queueMap.empty();
         }
 
-        bool tryPop(SpellCheckEvent& _event, QObject*& _receiver)
+        bool tryPop(SpellCheckEvent& event, QObject*& receiver)
         {
-            QMutexLocker locker(&mutex_);
-            if (queueMap_.empty() || !valid_)
+            QMutexLocker locker(&mutex);
+            if (queueMap.empty() || !valid)
                 return false;
 
-            auto it = queueMap_.begin() + current_;
+            auto it = queueMap.begin() + current;
             if (it->empty())
                 return false;
 
-            _receiver = it->object_;
-            it->pop(_event);
+            receiver = it->object;
+            it->pop(event);
             if (it->empty())
             {
-                if (queueMap_.size() != 1)
-                    it->swap(queueMap_.back());
-
-                queueMap_.pop_back();
+                it->swap(queueMap.back());
+                queueMap.pop_back();
             }
 
-            current_ = (!queueMap_.empty()) ? ((current_ + 1) % queueMap_.size()) : 0;
+            current = (!queueMap.empty()) ? ((current + 1) % queueMap.size()) : 0;
             return true;
         }
 
     private:
-        mutable QMutex mutex_;
-        std::vector<Entry> queueMap_;
-        size_t current_ = 0;
-        bool valid_ = true;
+        mutable QMutex mutex;
+        std::vector<Entry> queueMap;
+        size_t current = 0;
+        bool valid = true;
     };
 }
 
@@ -162,17 +159,16 @@ public:
     using MisspelledCache = QSet<QString>;
 
     QtSpellCheckEngine* q;
-    QScopedPointer<QtSpellCheckBackend> backend_;
+    QScopedPointer<QtSpellCheckBackend> backend;
     QString preferredBackend, currentBackend;
-    SpellEventQueue queue_;
-    QMutex mtx_;
-    QWaitCondition cv_;
-    int suggestsCount_ = 1;
-    bool ready_ = false;
-    bool interrupted_ = false;
+    SpellEventQueue queue;
+    QMutex mtx;
+    QWaitCondition cv;
+    bool ready = false;
+    bool interrupted = false;
 
-    explicit QtSpellCheckEnginePrivate(QtSpellCheckEngine* _engine)
-        : q(_engine)
+    explicit QtSpellCheckEnginePrivate(QtSpellCheckEngine* engine)
+        : q(engine)
     {
         createBackend();
     }
@@ -181,122 +177,123 @@ public:
     {
         auto& factoryInstance = QtSpellCheckBackendFactory::instance();
         if (!preferredBackend.isEmpty())
-            backend_.reset(factoryInstance.createBackend(preferredBackend));
-        if (!backend_)
-            backend_.reset(factoryInstance.createBackend(factoryInstance.platformBackend()));
-        if (!backend_)
-            backend_.reset(new QtSpellCheckBackend);
+            backend.reset(factoryInstance.createBackend(preferredBackend));
+        if (!backend)
+            backend.reset(factoryInstance.createBackend(factoryInstance.platformBackend()));
+        if (!backend)
+            backend.reset(new QtSpellCheckBackend);
     }
 
-    static void updateCache(MisspelledCache& _cache, const QString& _word)
+    static void updateCache(MisspelledCache& cache, const QString& word)
     {
-        _cache.insert(_word);
-        if (_cache.size() < kMaxCacheCapacity)
+        cache.insert(word);
+        if (cache.size() < kMaxCacheCapacity)
             return;
 
-        auto it = _cache.cbegin();
-        while (_cache.size() >= kMaxCacheCapacity) // make room for new entries
+        auto it = cache.cbegin();
+        while (cache.size() >= kMaxCacheCapacity) // make room for new entries
         {
-            while (it != _cache.cend() && *it == _word)
+            while (it != cache.cend() && *it == word)
                 ++it;
-            it = _cache.erase(it);
+            it = cache.erase(it);
         }
     }
 
-    void processSpellEvent(QObject* _object, const SpellCheckEvent& _event, MisspelledCache& _cache)
+    void processSpellEvent(QObject* object, const SpellCheckEvent& event, MisspelledCache& cache)
     {
-        switch (_event.type_)
+        switch (event.type)
         {
         case SpellCheckEvent::SpellWord:
-            spellEvent(_object, _event, _cache);
+            spellEvent(object, event, cache);
             break;
         case SpellCheckEvent::AppendWord:
-            supplyEvent(_event, _cache);
+            supplyEvent(event, cache);
             break;
         case SpellCheckEvent::RemoveWord:
-            discardEvent(_event, _cache);
+            discardEvent(event, cache);
             break;
         case SpellCheckEvent::IgnoreWord:
-            ignoreEvent(_event, _cache);
+            ignoreEvent(event, cache);
             break;
         case SpellCheckEvent::Suggestions:
-            suggestionsEvent(_object, _event);
+            suggestionsEvent(object, event);
             break;
         default:
             break;
         }
     }
 
-    void spellEvent(QObject* _object, const SpellCheckEvent& _event, MisspelledCache& _cache)
+    void spellEvent(QObject* object, const SpellCheckEvent& event, MisspelledCache& cache)
     {
-        if (!backend_ || _event.word_.isEmpty() || _event.offset_ < 0) // poisoned message detected
+        if (!backend || event.word.isEmpty() || event.offset < 0) // poisoned message detected
         {
-            Q_EMIT q->completed(_object);
+            Q_EMIT q->completed(object);
             return;
         }
 
-        if (_cache.contains(_event.word_))
+        if (cache.contains(event.word))
         {
-            Q_EMIT q->misspelled(_object, _event.word_, _event.offset_);
+            Q_EMIT q->misspelled(object, event.word, event.offset);
         }
-        else if (!backend_->validate(_event.word_))
+        else if (!backend->validate(event.word))
         {
-            updateCache(_cache, _event.word_);
-            Q_EMIT q->misspelled(_object, _event.word_, _event.offset_);
+            updateCache(cache, event.word);
+            Q_EMIT q->misspelled(object, event.word, event.offset);
         }
     }
 
-    void supplyEvent(const SpellCheckEvent& _event, MisspelledCache& _cache)
+    void supplyEvent(const SpellCheckEvent& event, MisspelledCache& cache)
     {
-        _cache.remove(_event.word_);
-        backend_->append(_event.word_);
-        Q_EMIT q->appended(_event.word_);
+        cache.remove(event.word);
+        backend->append(event.word);
+        Q_EMIT q->appended(event.word);
     }
 
-    void discardEvent(const SpellCheckEvent& _event, MisspelledCache& _cache)
+    void discardEvent(const SpellCheckEvent& event, MisspelledCache& cache)
     {
-        updateCache(_cache, _event.word_);
-        backend_->remove(_event.word_);
-        Q_EMIT q->removed(_event.word_);
+        updateCache(cache, event.word);
+        backend->remove(event.word);
+        Q_EMIT q->removed(event.word);
     }
 
-    void ignoreEvent(const SpellCheckEvent& _event, MisspelledCache& _cache)
+    void ignoreEvent(const SpellCheckEvent& event, MisspelledCache& cache)
     {
-        _cache.remove(_event.word_);
-        backend_->ignore(_event.word_);
-        Q_EMIT q->ignored(_event.word_);
+        cache.remove(event.word);
+        backend->ignore(event.word);
+        Q_EMIT q->ignored(event.word);
     }
 
-    void suggestionsEvent(QObject* _object, const SpellCheckEvent& _event)
+    void suggestionsEvent(QObject* object, const SpellCheckEvent& event)
     {
         QtSpellCheckEngine::CorrectionActions actions = QtSpellCheckEngine::NoActions;
         QStringList results;
-        if (_event.word_.isEmpty())
+        if (event.word.isEmpty())
             return;
-        if (backend_->validate(_event.word_))
+
+        if (backend->validate(event.word) &&
+            backend->contains(event.word))
         {
-            if (backend_->contains(_event.word_))
-                actions |= QtSpellCheckEngine::RemoveWord;
+            actions |= QtSpellCheckEngine::RemoveWord;
         }
         else
         {
             actions |= (QtSpellCheckEngine::AppendWord | QtSpellCheckEngine::IgnoreWord);
-            results = backend_->suggestions(_event.word_, _event.count_);
+            results = backend->suggestions(event.word, event.count);
         }
-        Q_EMIT q->suggestsFound(_object, _event.word_, results, actions);
+        Q_EMIT q->suggestsFound(object, event.word, results, actions);
     }
 
-    void postSpellEvent(QObject* _receiver, int _type, const QString& _word, int _offset = -1, int _count = 0)
+    void postSpellEvent(QObject* receiver, int type, const QString& word, int offset = -1, int count = 0)
     {
         if (!q->isRunning())
             q->start();
 
-        queue_.emplace(_receiver, _type, _word, _offset, _count);
+        queue.emplace(receiver, type, word, offset, count);
         {
-            QMutexLocker lk(&mtx_);
-            ready_ = true;
+            QMutexLocker lk(&mtx);
+            ready = true;
         }
-        cv_.notify_one();
+        cv.notify_one();
     }
 };
 
@@ -310,12 +307,12 @@ QtSpellCheckEngine::QtSpellCheckEngine()
 QtSpellCheckEngine::~QtSpellCheckEngine()
 {
     {
-        QMutexLocker lk(&d->mtx_);
-        d->ready_ = true;
-        d->interrupted_ = true;
+        QMutexLocker lk(&d->mtx);
+        d->ready = true;
+        d->interrupted = true;
     }
 
-    d->cv_.notify_one();
+    d->cv.notify_one();
     wait();
     quit();
 }
@@ -341,55 +338,55 @@ QString QtSpellCheckEngine::backendName() const
     return d->currentBackend;
 }
 
-void QtSpellCheckEngine::spell(const QString& _word, int _offset, QObject* _receiver)
+void QtSpellCheckEngine::spell(const QString& word, int offset, QObject* receiver)
 {
-    if (!d->backend_)
+    if (!d->backend)
         return;
 
-    d->postSpellEvent(_receiver, SpellCheckEvent::SpellWord, _word, _offset);
+    d->postSpellEvent(receiver, SpellCheckEvent::SpellWord, word, offset);
 }
 
-void QtSpellCheckEngine::append(const QString& _word)
+void QtSpellCheckEngine::append(const QString& word)
 {
-    if (_word.isEmpty() || !d->backend_)
+    if (word.isEmpty() || !d->backend)
         return;
 
-    d->postSpellEvent(nullptr, SpellCheckEvent::AppendWord, _word);
+    d->postSpellEvent(nullptr, SpellCheckEvent::AppendWord, word);
 }
 
-void QtSpellCheckEngine::remove(const QString& _word)
+void QtSpellCheckEngine::remove(const QString& word)
 {
-    if (_word.isEmpty() || !d->backend_)
+    if (word.isEmpty() || !d->backend)
         return;
 
-    d->postSpellEvent(nullptr, SpellCheckEvent::RemoveWord, _word);
+    d->postSpellEvent(nullptr, SpellCheckEvent::RemoveWord, word);
 }
 
-void QtSpellCheckEngine::ignore(const QString& _word)
+void QtSpellCheckEngine::ignore(const QString& word)
 {
-    if (_word.isEmpty() || !d->backend_)
+    if (word.isEmpty() || !d->backend)
         return;
 
-    d->postSpellEvent(nullptr, SpellCheckEvent::IgnoreWord, _word);
+    d->postSpellEvent(nullptr, SpellCheckEvent::IgnoreWord, word);
 }
 
-void QtSpellCheckEngine::requestSuggests(const QString& _word, int _count, QObject* _receiver)
+void QtSpellCheckEngine::requestSuggests(const QString& word, int count, QObject* receiver)
 {
-    if (_word.isEmpty() || !d->backend_)
+    if (word.isEmpty() || !d->backend)
         return;
 
-    d->postSpellEvent(_receiver, SpellCheckEvent::Suggestions, _word, -1, std::clamp(_count, d->kMinSuggests, d->kMaxSuggests));
+    d->postSpellEvent(receiver, SpellCheckEvent::Suggestions, word, -1, std::clamp(count, d->kMinSuggests, d->kMaxSuggests));
 }
 
 void QtSpellCheckEngine::run()
 {
     qRegisterMetaType<QtSpellCheckEngine::CorrectionActions>("SpellCheckEngine::CorrectionActions");
 
-    d->ready_ = false;
-    d->interrupted_ = false;
+    d->ready = false;
+    d->interrupted = false;
 
-    if (d->backend_)
-        d->backend_->load();
+    if (d->backend)
+        d->backend->load();
 
     QtSpellCheckEnginePrivate::MisspelledCache misspellingsCache;
     misspellingsCache.reserve(d->kMaxCacheCapacity);
@@ -398,42 +395,42 @@ void QtSpellCheckEngine::run()
     SpellCheckEvent event;
     Q_FOREVER
     {
-        if (d->queue_.tryPop(event, receiver))
+        if (d->queue.tryPop(event, receiver))
         {
             d->processSpellEvent(receiver, event, misspellingsCache);
             continue;
         }
 
-        QMutexLocker lk(&d->mtx_);
-        while (!d->ready_)
-            d->cv_.wait(&d->mtx_);
-        d->ready_ = false;
+        QMutexLocker lk(&d->mtx);
+        while (!d->ready)
+            d->cv.wait(&d->mtx);
+        d->ready = false;
 
-        if (d->interrupted_)
+        if (d->interrupted)
         {
             lk.unlock();
-            d->queue_.clear();
+            d->queue.clear();
             break;
         }
 
         // Manual unlocking is done before notifying, to avoid waking up
         // the waiting thread only to block again (see notify_one for details)
         lk.unlock();
-        d->cv_.notify_one();
+        d->cv.notify_one();
     }
 
-    if (d->backend_)
-        d->backend_->unload();
+    if (d->backend)
+        d->backend->unload();
 }
 
-void QtSpellCheckEngine::cancel(QObject* _object)
+void QtSpellCheckEngine::cancel(QObject* object)
 {
     {
-        QMutexLocker lk(&d->mtx_);
-        d->queue_.discard(_object);
-        d->ready_ = true;
+        QMutexLocker lk(&d->mtx);
+        d->queue.discard(object);
+        d->ready = true;
     }
 
-    d->cv_.notify_one();
+    d->cv.notify_one();
 }
 

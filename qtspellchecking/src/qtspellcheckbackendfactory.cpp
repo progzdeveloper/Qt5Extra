@@ -31,13 +31,13 @@ QString QtSpellCheckBackendFactory::platformBackend() const
 #endif
 }
 
-void QtSpellCheckBackendFactory::registerBackend(QtSpellCheckBackendPlugin *plugin)
+void QtSpellCheckBackendFactory::registerBackend(QtSpellCheckBackendPlugin* plugin)
 {
     if (plugin)
         d->creatorsMap[plugin->backendName()] = plugin;
 }
 
-QtSpellCheckBackend *QtSpellCheckBackendFactory::createBackend(const QString &backendName) const
+QtSpellCheckBackend* QtSpellCheckBackendFactory::createBackend(const QString& backendName) const
 {
     auto it = d->creatorsMap.constFind(backendName);
     if (it == d->creatorsMap.cend())
@@ -51,7 +51,7 @@ QStringList QtSpellCheckBackendFactory::keys() const
     return d->creatorsMap.keys();
 }
 
-QtSpellCheckBackendFactory &QtSpellCheckBackendFactory::instance()
+QtSpellCheckBackendFactory& QtSpellCheckBackendFactory::instance()
 {
     static QtSpellCheckBackendFactory globalInstance;
     return globalInstance;

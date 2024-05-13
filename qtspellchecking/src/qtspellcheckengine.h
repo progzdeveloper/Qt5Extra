@@ -32,20 +32,20 @@ public:
 
     QString backendName() const;
 
-    void spell(const QString& _word, int _offset, QObject* _receiver = nullptr);
-    void append(const QString& _word);
-    void remove(const QString& _word);
-    void ignore(const QString& _word);
-    void requestSuggests(const QString& _word, int _count, QObject* _receiver = nullptr);
-    void cancel(QObject* _object);
+    void spell(const QString& word, int offset, QObject* receiver = nullptr);
+    void append(const QString& word);
+    void remove(const QString& word);
+    void ignore(const QString& word);
+    void requestSuggests(const QString& word, int count, QObject* receiver = nullptr);
+    void cancel(QObject* object);
 
 Q_SIGNALS:
-    void misspelled(QObject* _object, const QString& _word, int _offset);
-    void completed(QObject* _object);
-    void appended(const QString& _word);
-    void removed(const QString& _word);
-    void ignored(const QString& _word);
-    void suggestsFound(QObject* _receiver, const QString& _word, const QStringList& results, QtSpellCheckEngine::CorrectionActions _actions);
+    void misspelled(QObject*_object, const QString& word, int offset);
+    void completed(QObject* object);
+    void appended(const QString& word);
+    void removed(const QString& word);
+    void ignored(const QString& word);
+    void suggestsFound(QObject* receiver, const QString& word, const QStringList& results, QtSpellCheckEngine::CorrectionActions actions);
 
 private:
     void run() Q_DECL_OVERRIDE;

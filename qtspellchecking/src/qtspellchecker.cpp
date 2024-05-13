@@ -38,14 +38,14 @@ namespace
             return QtTokenFilter::blockAccepted(block) && !block.blockFormat().boolProperty(textBlockIsCode);
         }
 
-        bool hasAnchor(const QTextCharFormat& _format) const
+        bool hasAnchor(const QTextCharFormat& format) const
         {
-            return _format.isAnchor() || !_format.anchorHref().isEmpty() || !_format.anchorNames().isEmpty();
+            return format.isAnchor() || !format.anchorHref().isEmpty() || !format.anchorNames().isEmpty();
         }
 
-        bool hasUrl(QStringView _line) const
+        bool hasUrl(QStringView line) const
         {
-            // TODO: fix me!
+            // FIXME: fix me!
             //const bool valid = !QUrl::fromUserInput(_line.toString()).isEmpty();
             //return valid;
             return false;
@@ -60,24 +60,24 @@ public:
     static constexpr std::chrono::milliseconds kSpellCheckTimeout = std::chrono::milliseconds(2000);
     static constexpr int kDefaultPrefixLength = 2;
     QtSpellChecker* q;
-    QPointer<QtMisspellHighlighter> highlighter_;
-    QPointer<QtSpellCompleter> corrector_;
-    QtTextWidgetInterface target_;
-    QVector<IndexRange> misspelledRanges_;
-    IndexRange visibleRange_;
-    QtTextTokenizer tokenizer_;
-    SpellCheckFilter filter_;
-    bool hightlightActive_ = false;
-    bool enabled_ = true;
-    QTimer* spellCheckTimer_ = nullptr;
+    QPointer<QtMisspellHighlighter> highlighter;
+    QPointer<QtSpellCompleter> corrector;
+    QtTextWidgetInterface target;
+    QVector<IndexRange> misspelledRanges;
+    IndexRange visibleRange;
+    QtTextTokenizer tokenizer;
+    SpellCheckFilter filter;
+    bool hightlightActive = false;
+    bool enabled = true;
+    QTimer* spellCheckTimer = nullptr;
 
     QtSpellCheckerPrivate(QtSpellChecker* checker)
         : q(checker)
     {
-        filter_.setMinimalLength(kDefaultPrefixLength);
-        spellCheckTimer_ = new QTimer(target_);
-        spellCheckTimer_->setInterval(kSpellCheckTimeout);
-        spellCheckTimer_->setSingleShot(true);
+        filter.setMinimalLength(kDefaultPrefixLength);
+        spellCheckTimer = new QTimer(target);
+        spellCheckTimer->setInterval(kSpellCheckTimeout);
+        spellCheckTimer->setSingleShot(true);
     }
 
     static IndexRange boundingRange(const QVector<IndexRange>& ranges)
@@ -89,74 +89,74 @@ public:
         return { offset, length };
     }
 
-    bool containsMisspelled(const IndexRange& _range) const
+    bool containsMisspelled(const IndexRange& range) const
     {
-        if (misspelledRanges_.empty())
+        if (misspelledRanges.empty())
             return false;
 
-        return std::find_if(misspelledRanges_.cbegin(), misspelledRanges_.cend(),
-                            [_range](const auto& _r) { return _r.contains(_range); }) != misspelledRanges_.cend();
+        return std::find_if(misspelledRanges.cbegin(), misspelledRanges.cend(),
+                            [range](const auto& r) { return r.contains(range); }) != misspelledRanges.cend();
     }
 
-    void rescanDocument(QTextDocument* _document, const IndexRange& _range)
+    void rescanDocument(QTextDocument* document, const IndexRange& range)
     {
-        if (!_document || _range.length == 0)
+        if (!document || range.length == 0)
             return;
 
-        misspelledRanges_.clear();
+        misspelledRanges.clear();
         QtSpellCheckEngine::instance().cancel(q);
 
-        QtTextTokenizer::TokenHandler handler = [this](QStringView _word, int _offset)
+        QtTextTokenizer::TokenHandler handler = [this](QStringView word, int offset)
         {
-            QtSpellCheckEngine::instance().spell(_word.toString(), _offset, q);
+            QtSpellCheckEngine::instance().spell(word.toString(), offset, q);
         };
 
-        tokenizer_(_document, _range, filter_, handler);
+        tokenizer(document, range, filter, handler);
 
         QtSpellCheckEngine::instance().spell({}, -1, q);
     }
 
-    void rescanPlainText(const QString& text, const IndexRange& _range)
+    void rescanPlainText(const QString& text, const IndexRange& range)
     {
         if (text.isEmpty())
             return;
 
-        misspelledRanges_.clear();
+        misspelledRanges.clear();
         QtSpellCheckEngine::instance().cancel(q);
 
-        QtTextTokenizer::TokenHandler handler = [this](QStringView _word, int _offset)
+        QtTextTokenizer::TokenHandler handler = [this](QStringView word, int offset)
         {
-            QtSpellCheckEngine::instance().spell(_word.toString(), _offset, q);
+            QtSpellCheckEngine::instance().spell(word.toString(), offset, q);
         };
 
-        tokenizer_(text, _range, filter_, handler);
+        tokenizer(text, range, filter, handler);
 
         QtSpellCheckEngine::instance().spell({}, -1, q);
     }
 
     void rescan()
     {
-        visibleRange_ = target_.visibleTextRange();
-        if (QTextDocument* document = target_.document())
-            rescanDocument(document, visibleRange_);
+        visibleRange = target.visibleTextRange();
+        if (QTextDocument* document = target.document())
+            rescanDocument(document, visibleRange);
         else
-            rescanPlainText(target_.text(), visibleRange_);
+            rescanPlainText(target.text(), visibleRange);
     }
 
-    void onKeyReleaseEvent(QKeyEvent* _e)
+    void onKeyReleaseEvent(QKeyEvent* e)
     {
-        const auto txt = _e->text();
-        const auto key = _e->key();
+        const auto txt = e->text();
+        const auto key = e->key();
         const bool isLetter = !txt.isEmpty() && txt.at(0).isLetter();
 
         if (isLetter)
         {
-            spellCheckTimer_->stop();
-            spellCheckTimer_->start();
+            spellCheckTimer->stop();
+            spellCheckTimer->start();
         }
         else if (!isLetter || key == Qt::Key_Space)
         {
-            spellCheckTimer_->stop();
+            spellCheckTimer->stop();
             q->rescan();
         }
     }
@@ -171,7 +171,7 @@ QtSpellChecker::QtSpellChecker(QWidget* widget)
     connect(&QtSpellCheckEngine::instance(), &QtSpellCheckEngine::appended, this, &QtSpellChecker::rescan);
     connect(&QtSpellCheckEngine::instance(), &QtSpellCheckEngine::removed, this, &QtSpellChecker::rescan);
     connect(&QtSpellCheckEngine::instance(), &QtSpellCheckEngine::ignored, this, &QtSpellChecker::rescan);
-    connect(d->spellCheckTimer_, &QTimer::timeout, this, &QtSpellChecker::rescan);
+    connect(d->spellCheckTimer, &QTimer::timeout, this, &QtSpellChecker::rescan);
 
     setHighlighter(new QtMisspellHighlighter(this));
     setCompleter(new QtSpellCompleter(this));
@@ -180,93 +180,93 @@ QtSpellChecker::QtSpellChecker(QWidget* widget)
 
 QtSpellChecker::~QtSpellChecker() = default;
 
-void QtSpellChecker::setEnabled(bool _on)
+void QtSpellChecker::setEnabled(bool on)
 {
-    if (d->enabled_ == _on)
+    if (d->enabled == on)
         return;
 
-    d->enabled_ = _on;
-    d->corrector_->setEnabled(d->enabled_);
-    d->highlighter_->setEnabled(d->enabled_);
-    Q_EMIT enabledChanged(d->enabled_);
+    d->enabled = on;
+    d->corrector->setEnabled(d->enabled);
+    d->highlighter->setEnabled(d->enabled);
+    Q_EMIT enabledChanged(d->enabled);
 }
 
 bool QtSpellChecker::isEnabled() const
 {
-    return d->enabled_;
+    return d->enabled;
 }
 
-void QtSpellChecker::setCompleter(QtSpellCompleter* _corrector)
+void QtSpellChecker::setCompleter(QtSpellCompleter* corrector)
 {
-    if (d->corrector_ == _corrector)
+    if (d->corrector == corrector)
         return;
 
-    if (d->corrector_)
-        d->corrector_->deleteLater();
+    if (d->corrector)
+        d->corrector->deleteLater();
 
-    d->corrector_ = _corrector;
-    if (d->corrector_)
-        d->corrector_->setParent(this);
+    d->corrector = corrector;
+    if (d->corrector)
+        d->corrector->setParent(this);
 }
 
 QtSpellCompleter *QtSpellChecker::completer() const
 {
-    return d->corrector_;
+    return d->corrector;
 }
 
-void QtSpellChecker::setHighlighter(QtMisspellHighlighter* _highlighter)
+void QtSpellChecker::setHighlighter(QtMisspellHighlighter* highlighter)
 {
-    if (d->highlighter_ == _highlighter)
+    if (d->highlighter == highlighter)
         return;
 
-    if (d->highlighter_)
+    if (d->highlighter)
     {
-        d->highlighter_->reset();
-        d->highlighter_->deleteLater();
+        d->highlighter->reset();
+        d->highlighter->deleteLater();
     }
 
-    d->highlighter_ = _highlighter;
-    if (d->highlighter_)
+    d->highlighter = highlighter;
+    if (d->highlighter)
     {
-        d->highlighter_->setParent(this);
-        QObject::connect(d->highlighter_, &QtMisspellHighlighter::formatChanged, this, &QtSpellChecker::rescan);
-        if (d->hightlightActive_)
-            d->highlighter_->highlight(d->misspelledRanges_.constData(), d->misspelledRanges_.size());
+        d->highlighter->setParent(this);
+        QObject::connect(d->highlighter, &QtMisspellHighlighter::formatChanged, this, &QtSpellChecker::rescan);
+        if (d->hightlightActive)
+            d->highlighter->highlight(d->misspelledRanges.constData(), d->misspelledRanges.size());
     }
 }
 
 QtMisspellHighlighter* QtSpellChecker::highlighter() const
 {
-    return d->highlighter_;
+    return d->highlighter;
 }
 
 void QtSpellChecker::setWidget(QWidget *w)
 {
-    if (d->target_ == w)
+    if (d->target == w)
         return;
 
-    if (d->target_)
+    if (d->target)
     {
-        d->target_->removeEventFilter(this);
-        if (QWidget* viewport = d->target_.viewport())
+        d->target->removeEventFilter(this);
+        if (QWidget* viewport = d->target.viewport())
             viewport->removeEventFilter(this);
 
-        disconnect(d->target_, 0, this, 0);
+        disconnect(d->target, 0, this, 0);
         QtSpellCheckEngine::instance().cancel(this);
     }
 
-    d->target_.reset(w);
-    if (!d->target_)
+    d->target.reset(w);
+    if (!d->target)
         return;
 
-    d->target_->installEventFilter(this);
-    if (QWidget* viewport = d->target_.viewport())
+    d->target->installEventFilter(this);
+    if (QWidget* viewport = d->target.viewport())
         viewport->installEventFilter(this);
 
-    connect(d->target_, &QObject::destroyed, this, [this]() { setWidget(nullptr); });
-    connect(&d->target_, &QtTextWidgetInterface::textChanged, this, &QtSpellChecker::rescan);
+    connect(d->target, &QObject::destroyed, this, [this]() { setWidget(nullptr); });
+    connect(&d->target, &QtTextWidgetInterface::textChanged, this, &QtSpellChecker::rescan);
 
-    if (QScrollBar* vbar = d->target_.scrollBar(Qt::Vertical))
+    if (QScrollBar* vbar = d->target.scrollBar(Qt::Vertical))
         connect(vbar, &QScrollBar::valueChanged, this, &QtSpellChecker::update);
 
     rescan();
@@ -274,43 +274,43 @@ void QtSpellChecker::setWidget(QWidget *w)
 
 QWidget* QtSpellChecker::widget() const
 {
-    return d->target_;
+    return d->target;
 }
 
 QtTextWidgetInterface& QtSpellChecker::target()
 {
-    return d->target_;
+    return d->target;
 }
 
-void QtSpellChecker::setMinPrefixLength(int _length)
+void QtSpellChecker::setMinPrefixLength(int length)
 {
-    _length = std::max(1, _length);
-    if (d->filter_.minimalLength() == _length)
+    length = std::max(1, length);
+    if (d->filter.minimalLength() == length)
         return;
 
-    d->filter_.setMinimalLength(_length);
+    d->filter.setMinimalLength(length);
     rescan();
-    Q_EMIT minPrefixLengthChanged(d->filter_.minimalLength());
+    Q_EMIT minPrefixLengthChanged(d->filter.minimalLength());
 }
 
 int QtSpellChecker::minPrefixLength() const
 {
-    return d->filter_.minimalLength();
+    return d->filter.minimalLength();
 }
 
-bool QtSpellChecker::hasMisspelled(int _offset, int _length) const
+bool QtSpellChecker::hasMisspelled(int offset, int length) const
 {
-    return hasMisspelled({ _offset, _length });
+    return hasMisspelled({ offset, length });
 }
 
-bool QtSpellChecker::hasMisspelled(const IndexRange& _range) const
+bool QtSpellChecker::hasMisspelled(const IndexRange& range) const
 {
-    return d->containsMisspelled(_range);
+    return d->containsMisspelled(range);
 }
 
 void QtSpellChecker::rescan()
 {
-    if (!d->enabled_ || !d->target_ || d->hightlightActive_)
+    if (!d->enabled || !d->target || d->hightlightActive)
         return;
 
     d->rescan();
@@ -318,47 +318,46 @@ void QtSpellChecker::rescan()
 
 void QtSpellChecker::update()
 {
-    if (!d->enabled_ || !d->target_ || d->hightlightActive_)
+    if (!d->enabled || !d->target || d->hightlightActive)
         return;
 
-    if (d->target_.visibleTextRange() != d->visibleRange_)
+    if (d->target.visibleTextRange() != d->visibleRange)
         d->rescan();
 }
 
-void QtSpellChecker::onMisspelled(QObject* _receiver, const QString& _word, int _offset)
+void QtSpellChecker::onMisspelled(QObject* receiver, const QString& word, int offset)
 {
-    if (_receiver != this || !d->enabled_ || !d->target_)
+    if (receiver != this || !d->enabled || !d->target)
         return;
 
-    if (d->target_)
-        d->misspelledRanges_.push_back({ _offset, _word.length() });
+    if (d->target)
+        d->misspelledRanges.push_back({ offset, word.length() });
 }
 
-void QtSpellChecker::onCompleted(QObject* _receiver)
+void QtSpellChecker::onCompleted(QObject* receiver)
 {
-    if (!d->enabled_ || _receiver != this || !d->highlighter_)
+    if (receiver != this || !d->enabled || !d->highlighter)
         return;
 
-    QScopedValueRollback guard(d->hightlightActive_, true);
-    d->highlighter_->reset();
-    d->highlighter_->highlight(d->misspelledRanges_.constData(), d->misspelledRanges_.size());
+    QScopedValueRollback guard(d->hightlightActive, true);
+    d->highlighter->reset();
+    d->highlighter->highlight(d->misspelledRanges.constData(), d->misspelledRanges.size());
 }
 
-bool QtSpellChecker::eventFilter(QObject* _watched, QEvent* _event)
+bool QtSpellChecker::eventFilter(QObject* watched, QEvent* event)
 {
-    if (!d->target_ || !d->corrector_)
-        return QObject::eventFilter(_watched, _event);
+    if (!d->target || !d->corrector)
+        return QObject::eventFilter(watched, event);
 
-    if (_watched == d->target_ || _watched == d->target_.viewport())
+    if (watched == d->target || watched == d->target.viewport())
     {
-        switch (_event->type())
+        switch (event->type())
         {
         case QEvent::Resize:
             update();
             break;
         case QEvent::KeyRelease:
         case QEvent::KeyPress:
-            //update();
         case QEvent::MouseButtonPress:
         case QEvent::MouseButtonRelease:
         case QEvent::MouseButtonDblClick:
@@ -372,10 +371,10 @@ bool QtSpellChecker::eventFilter(QObject* _watched, QEvent* _event)
         case QEvent::ShortcutOverride:
         case QEvent::FocusIn:
         case QEvent::FocusOut:
-            return d->corrector_->widgetEvent(_event);
+            return d->corrector->widgetEvent(event);
         default:
             break;
         }
     }
-    return QObject::eventFilter(_watched, _event);
+    return QObject::eventFilter(watched, event);
 }

@@ -15,13 +15,13 @@ class QTSPELLCHECKING_EXPORT QtMisspellHighlighter : public QObject
     Q_PROPERTY(QTextCharFormat format READ format WRITE setFormat NOTIFY formatChanged)
 
 public:
-    explicit QtMisspellHighlighter(QtSpellChecker* _parent);
+    explicit QtMisspellHighlighter(QtSpellChecker* parent);
     ~QtMisspellHighlighter();
 
-    void setEnabled(bool _on);
+    void setEnabled(bool on);
     bool isEnabled() const;
 
-    void setFormat(const QTextCharFormat& _format);
+    void setFormat(const QTextCharFormat& format);
     QTextCharFormat format() const;
 
     virtual void reset();

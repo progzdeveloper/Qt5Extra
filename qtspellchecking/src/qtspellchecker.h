@@ -47,15 +47,15 @@ public Q_SLOTS:
     void update();
 
 private Q_SLOTS:
-    void onMisspelled(QObject* _receiver, const QString& _word, int _offset);
-    void onCompleted(QObject* _receiver);
+    void onMisspelled(QObject* receiver, const QString& word, int offset);
+    void onCompleted(QObject* receiver);
 
 Q_SIGNALS:
     void minPrefixLengthChanged(int);
     void enabledChanged(bool);
 
 protected:
-    bool eventFilter(QObject* _watched, QEvent* _event) Q_DECL_OVERRIDE;
+    bool eventFilter(QObject* watched, QEvent* event) Q_DECL_OVERRIDE;
 
 private:
     friend class QtMisspellHighlighter;
