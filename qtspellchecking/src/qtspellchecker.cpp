@@ -17,6 +17,7 @@
 #include <QTimer>
 #include <QPointer>
 #include <QScopedValueRollback>
+#include <QDebug>
 
 namespace
 {
@@ -98,10 +99,24 @@ public:
                             [range](const auto& r) { return r.contains(range); }) != misspelledRanges.cend();
     }
 
-    void rescanDocument(QTextDocument* document, const IndexRange& range)
+    template<class T>
+    void rescanContent(const T& content, const IndexRange& range)
     {
-        if (!document || range.length == 0)
+        if constexpr(std::is_same_v<T, QTextDocument*>)
+        {
+            if (!content || range.length == 0)
+                return;
+        }
+        else if constexpr(std::is_same_v<T, QString>)
+        {
+            if (content.isEmpty())
+                return;
+        }
+        else
+        {
+            qCritical() << "[QtSpellCheckerPrivate]: invalid content type";
             return;
+        }
 
         misspelledRanges.clear();
         QtSpellCheckEngine::instance().cancel(q);
@@ -111,25 +126,7 @@ public:
             QtSpellCheckEngine::instance().spell(word.toString(), offset, q);
         };
 
-        tokenizer(document, range, filter, handler);
-
-        QtSpellCheckEngine::instance().spell({}, -1, q);
-    }
-
-    void rescanPlainText(const QString& text, const IndexRange& range)
-    {
-        if (text.isEmpty())
-            return;
-
-        misspelledRanges.clear();
-        QtSpellCheckEngine::instance().cancel(q);
-
-        QtTextTokenizer::TokenHandler handler = [this](QStringView word, int offset)
-        {
-            QtSpellCheckEngine::instance().spell(word.toString(), offset, q);
-        };
-
-        tokenizer(text, range, filter, handler);
+        tokenizer(content, range, filter, handler);
 
         QtSpellCheckEngine::instance().spell({}, -1, q);
     }
@@ -138,9 +135,9 @@ public:
     {
         visibleRange = target.visibleTextRange();
         if (QTextDocument* document = target.document())
-            rescanDocument(document, visibleRange);
+            rescanContent<QTextDocument*>(document, visibleRange);
         else
-            rescanPlainText(target.text(), visibleRange);
+            rescanContent<QString>(target.text(), visibleRange);
     }
 
     void onKeyReleaseEvent(QKeyEvent* e)
