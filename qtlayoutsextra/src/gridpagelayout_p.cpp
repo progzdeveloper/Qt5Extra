@@ -34,7 +34,7 @@ namespace
     }
 }
 
-namespace LayoutInternals
+namespace Qt5ExtraInternals
 {
     GridSize GridOptions::availableSize(const QSize& size, int spacing) const
     {

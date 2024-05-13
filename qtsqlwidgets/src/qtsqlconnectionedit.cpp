@@ -35,29 +35,27 @@
 
 namespace
 {
+    static const char *fieldNames[] = {
+        QT_TRANSLATE_NOOP("QtSqlConnectionEditPrivate", "Connection"), // 0 - ConnectionName
+        QT_TRANSLATE_NOOP("QtSqlConnectionEditPrivate", "Driver"),     // 1 - DriverName,
+        QT_TRANSLATE_NOOP("QtSqlConnectionEditPrivate", "Database"),   // 2 - DatabaseName,
+        QT_TRANSLATE_NOOP("QtSqlConnectionEditPrivate", "User"),       // 3 - UserName,
+        QT_TRANSLATE_NOOP("QtSqlConnectionEditPrivate", "Password"),   // 4 - Password,
+        QT_TRANSLATE_NOOP("QtSqlConnectionEditPrivate", "Host"),       // 5 - HostName,
+        QT_TRANSLATE_NOOP("QtSqlConnectionEditPrivate", "Port"),       // 6 - Port,
+        QT_TRANSLATE_NOOP("QtSqlConnectionEditPrivate", "Options")     // 7 - ConnectionOptions
+    };
 
-static const char *fieldNames[] = {
-    QT_TRANSLATE_NOOP("QtSqlConnectionEditPrivate", "Connection"), // 0 - ConnectionName
-    QT_TRANSLATE_NOOP("QtSqlConnectionEditPrivate", "Driver"),     // 1 - DriverName,
-    QT_TRANSLATE_NOOP("QtSqlConnectionEditPrivate", "Database"),   // 2 - DatabaseName,
-    QT_TRANSLATE_NOOP("QtSqlConnectionEditPrivate", "User"),       // 3 - UserName,
-    QT_TRANSLATE_NOOP("QtSqlConnectionEditPrivate", "Password"),   // 4 - Password,
-    QT_TRANSLATE_NOOP("QtSqlConnectionEditPrivate", "Host"),       // 5 - HostName,
-    QT_TRANSLATE_NOOP("QtSqlConnectionEditPrivate", "Port"),       // 6 - Port,
-    QT_TRANSLATE_NOOP("QtSqlConnectionEditPrivate", "Options")     // 7 - ConnectionOptions
-};
-
-static const char *fieldPlaceholders[] = {
-    QT_TRANSLATE_NOOP("QtSqlConnectionEditPrivate", "Enter connection name.."),    // 0 - ConnectionName
-    QT_TRANSLATE_NOOP("QtSqlConnectionEditPrivate", "Select driver..."),           // 1 - DriverName,
-    QT_TRANSLATE_NOOP("QtSqlConnectionEditPrivate", "Enter database name..."),     // 2 - DatabaseName,
-    QT_TRANSLATE_NOOP("QtSqlConnectionEditPrivate", "Enter user name..."),         // 3 - UserName,
-    QT_TRANSLATE_NOOP("QtSqlConnectionEditPrivate", "Enter password..."),          // 4 - Password,
-    QT_TRANSLATE_NOOP("QtSqlConnectionEditPrivate", "Enter host..."),              // 5 - HostName,
-    QT_TRANSLATE_NOOP("QtSqlConnectionEditPrivate", "Enter port..."),              // 6 - Port,
-    QT_TRANSLATE_NOOP("QtSqlConnectionEditPrivate", "Enter connection options...") // 7 - ConnectionOptions
-};
-
+    static const char *fieldPlaceholders[] = {
+        QT_TRANSLATE_NOOP("QtSqlConnectionEditPrivate", "Enter connection name.."),    // 0 - ConnectionName
+        QT_TRANSLATE_NOOP("QtSqlConnectionEditPrivate", "Select driver..."),           // 1 - DriverName,
+        QT_TRANSLATE_NOOP("QtSqlConnectionEditPrivate", "Enter database name..."),     // 2 - DatabaseName,
+        QT_TRANSLATE_NOOP("QtSqlConnectionEditPrivate", "Enter user name..."),         // 3 - UserName,
+        QT_TRANSLATE_NOOP("QtSqlConnectionEditPrivate", "Enter password..."),          // 4 - Password,
+        QT_TRANSLATE_NOOP("QtSqlConnectionEditPrivate", "Enter host..."),              // 5 - HostName,
+        QT_TRANSLATE_NOOP("QtSqlConnectionEditPrivate", "Enter port..."),              // 6 - Port,
+        QT_TRANSLATE_NOOP("QtSqlConnectionEditPrivate", "Enter connection options...") // 7 - ConnectionOptions
+    };
 }
 
 class QtSqlConnectionEditPrivate
@@ -138,8 +136,9 @@ void QtSqlConnectionEditPrivate::createEditors()
     editors[QtSqlConnectionEdit::Port]->setProperty("minimum", 0);
     editors[QtSqlConnectionEdit::Port]->setProperty("maximum", 65536);
 #ifdef QTWIDGETSEXTRA_DLL
-    editors[QtSqlConnectionEdit::ConnectionOptions] = new QtLineBoxEdit(q);
-    QObject::connect(editors[QtSqlConnectionEdit::ConnectionOptions], &QtLineBoxEdit::clicked, q, &QtSqlConnectionEdit::editOptions);
+    QtLineBoxEdit* optionsEdit = new QtLineBoxEdit(q);
+    editors[QtSqlConnectionEdit::ConnectionOptions] = optionsEdit;
+    QObject::connect(optionsEdit, &QtLineBoxEdit::clicked, q, &QtSqlConnectionEdit::editOptions);
 #else
     editors[QtSqlConnectionEdit::ConnectionOptions] = new QPlainTextEdit(q);
     editors[QtSqlConnectionEdit::ConnectionOptions]->setMaximumHeight(100);

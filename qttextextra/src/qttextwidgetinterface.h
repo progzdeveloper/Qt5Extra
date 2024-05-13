@@ -10,28 +10,28 @@
 class QScrollBar;
 class QMenu;
 
-class QtTextWidgetInterface : public QObject
+class QtTextControl : public QObject
 {
     Q_OBJECT
 
 public:
-    QtTextWidgetInterface(QWidget* widget = nullptr);
-    ~QtTextWidgetInterface();
+    QtTextControl(QWidget* widget = nullptr);
+    ~QtTextControl();
 
     void reset(QWidget* object = nullptr);
 
-    inline explicit operator bool() const { return editor() != nullptr; }
-    inline operator QWidget* () const { return editor(); }
-    inline QWidget* operator->() const { return editor(); }
+    inline explicit operator bool() const { return widget() != nullptr; }
+    inline operator QWidget* () const { return widget(); }
+    inline QWidget* operator->() const { return widget(); }
 
     QWidget* viewport() const;
 
     QTextDocument* document() const;
 
     template<class _Widget>
-    _Widget* widget() const { return qobject_cast<_Widget*>(editor()); }
+    _Widget* editor() const { return qobject_cast<_Widget*>(widget()); }
 
-    QWidget* editor() const;
+    QWidget* widget() const;
 
     int cursorPosition() const;
     int cursorFromPoint(const QPoint& p) const;
@@ -64,5 +64,37 @@ private:
     using QObject::children;
 
 private:
-    std::unique_ptr<class TextWidgetConcept> d;
+    std::unique_ptr<struct QtTextWidgetInterface> d;
+};
+
+
+struct QtTextWidgetInterface
+{
+    virtual ~QtTextWidgetInterface() = default;
+
+    virtual QWidget* object() const { return nullptr; }
+    virtual int cursorPosition() const { return -1; }
+    virtual int cursorFromPoint(const QPoint&) const { return -1; }
+    virtual QRect cursorRect(int = -1) { return QRect{}; }
+
+    virtual bool isMultiLine() const { return false; }
+
+    virtual void setExtraSelection(const QList<QTextEdit::ExtraSelection>&) {}
+    virtual QList<QTextEdit::ExtraSelection> extraSelections() const { return {}; }
+
+    virtual IndexRange visibleTextRange() const { return {}; }
+
+    virtual QString text() const { return {}; }
+    virtual QString wordAt(int position, int& offset) const { offset = -1; return {}; }
+    virtual QString fragment(const IndexRange& range) const { return text().mid(range.offset, range.length); }
+
+    virtual QTextDocument* document() const { return nullptr; }
+    virtual QScrollBar* scrollBar(Qt::Orientation orientation) const { return nullptr; }
+    virtual QWidget* viewport() const { return nullptr; }
+    virtual QMenu* createContextMenu() const { return nullptr; }
+
+    static inline bool isWordDelimiter(QChar c)
+    {
+        return c.isSpace() || c.isMark() || c.isPunct() || c.isSymbol();
+    }
 };

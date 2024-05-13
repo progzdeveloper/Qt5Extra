@@ -483,7 +483,7 @@ void QtSpellCompleter::embedActions(QMenu* menu,
 
 QMenu* QtSpellCompleter::createMenu() const
 {
-    QtTextWidgetInterface& target = d->checker->target();
+    QtTextControl& target = d->checker->target();
     if (!target)
         return nullptr;
 

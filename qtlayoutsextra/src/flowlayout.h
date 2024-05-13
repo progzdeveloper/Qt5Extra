@@ -18,6 +18,8 @@ public:
     int horizontalSpacing() const;
     int verticalSpacing() const;
 
+    void addWidget(QWidget* widget);
+    void addLayout(QLayout* layout);
     void addItem(QLayoutItem* item) Q_DECL_OVERRIDE;
     Qt::Orientations expandingDirections() const Q_DECL_OVERRIDE;
     bool hasHeightForWidth() const Q_DECL_OVERRIDE;

@@ -6,7 +6,7 @@
 
 
 class RibbonLayoutPrivate :
-        public LayoutInternals::LayoutAssistant
+        public Qt5ExtraInternals::LayoutAssistant
 {
 public:
     typedef QSize(QLayoutItem::* LayoutItemSize)() const;

@@ -27,7 +27,7 @@ public:
 #endif
     }
 
-    void formatRanges(QtTextWidgetInterface& widget, const IndexRange* ranges, int n)
+    void formatRanges(QtTextControl& widget, const IndexRange* ranges, int n)
     {
         QList<QTextEdit::ExtraSelection> extra;
         QTextDocument* document = widget.document();

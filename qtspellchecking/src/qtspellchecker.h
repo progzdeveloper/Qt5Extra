@@ -11,7 +11,7 @@ class QEvent;
 class QWidget;
 class QtMisspellHighlighter;
 class QtSpellCompleter;
-class QtTextWidgetInterface;
+class QtTextControl;
 
 class QTSPELLCHECKING_EXPORT QtSpellChecker : public QObject
 {
@@ -34,7 +34,7 @@ public:
     void setWidget(QWidget* w);
     QWidget* widget() const;
 
-    QtTextWidgetInterface& target();
+    QtTextControl& target();
 
     void setMinPrefixLength(int length);
     int minPrefixLength() const;

@@ -1,8 +1,10 @@
 #include "flowlayout.h"
+#include "layoutinternals.h"
 #include <QWidget>
 #include <QVarLengthArray>
 
-class FlowLayoutPrivate
+class FlowLayoutPrivate :
+        public Qt5ExtraInternals::LayoutAssistant
 {
 public:
     enum class Operation
@@ -18,7 +20,8 @@ public:
     Qt::Alignment innerAlignment = Qt::AlignLeft;
 
     FlowLayoutPrivate(FlowLayout* layout, int hSpacing, int vSpacing)
-        : q(layout)
+        : LayoutAssistant(layout)
+        , q(layout)
         , hSpace(hSpacing)
         , vSpace(vSpacing)
     {
@@ -168,8 +171,27 @@ int FlowLayout::verticalSpacing() const
     return (d->vSpace >= 0 ? d->vSpace : d->smartSpacing(QStyle::PM_LayoutVerticalSpacing));
 }
 
+void FlowLayout::addWidget(QWidget* widget)
+{
+    if (!d->checkWidget(widget))
+        return;
+
+    QLayout::addWidget(widget); // calls addItem() under the hood
+}
+
+void FlowLayout::addLayout(QLayout *layout)
+{
+    addItem(layout);
+}
+
 void FlowLayout::addItem(QLayoutItem* item)
 {
+    if (!d->checkItem(item))
+        return;
+
+    if (auto layout = item->layout())
+        adoptLayout(layout);
+
     invalidate();
     d->itemList.append(item);
 }

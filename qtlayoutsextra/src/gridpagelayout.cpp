@@ -17,13 +17,13 @@
 #include <QVarLengthArray>
 
 class GridPageLayoutPrivate
-        : public LayoutInternals::LayoutAssistant
-        , public LayoutInternals::GridOptions
+        : public Qt5ExtraInternals::LayoutAssistant
+        , public Qt5ExtraInternals::GridOptions
 {
 public:
     using AnimationSet = std::unordered_set<QAbstractAnimation*>;
     using ItemsMap = std::deque<QLayoutItem*>;
-    using ItemRange = LayoutInternals::IterSpan<ItemsMap>;
+    using ItemRange = Qt5ExtraInternals::IterSpan<ItemsMap>;
 
     typedef QSize(QLayoutItem::* LayoutItemSize)() const;
 
@@ -73,7 +73,7 @@ public:
 
     int itemsPerPage() const { return currSize.count(); }
 
-    QSize boundingSize(const LayoutInternals::GridSize& size) const
+    QSize boundingSize(const Qt5ExtraInternals::GridSize& size) const
     {
         return boundingSize(size.rows, size.cols);
     }
@@ -708,7 +708,7 @@ QSize GridPageLayout::minimumSize() const
 
     const bool isDynamicGrid = d->flowKind == DynamicBoundedGrid || d->flowKind == DynamicUnboundedGrid;
 
-    LayoutInternals::GridSize size{ rowCount(), columnCount() };
+    Qt5ExtraInternals::GridSize size{ rowCount(), columnCount() };
     size = size.shrinkedTo(isDynamicGrid ? d->minSize : size);
     const int desired = isDynamicGrid ? d->minSize.cols : d->currSize.cols;
     d->cachedMinSize = d->findSize(d->currentPage, desired, size.rows, size.cols, &QLayoutItem::minimumSize);

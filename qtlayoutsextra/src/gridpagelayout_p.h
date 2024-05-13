@@ -13,7 +13,7 @@
 #include "gridpagelayout.h"
 //#include "../common.shared/tools/iterator_traits.h"
 
-namespace LayoutInternals
+namespace Qt5ExtraInternals
 {
     /*!
      * \brief Span of range of elements in container.

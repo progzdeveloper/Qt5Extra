@@ -12,7 +12,7 @@
 
 
 class AspectRatioLayoutPrivate
-        : public LayoutInternals::LayoutAssistant
+        : public Qt5ExtraInternals::LayoutAssistant
 {
 public:
     static constexpr double kMinAspectRatio = 0.0001; // to avoid zero division

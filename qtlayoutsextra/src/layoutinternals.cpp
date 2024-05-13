@@ -2,7 +2,7 @@
 #include <QWidget>
 #include <QMetaObject>
 
-namespace LayoutInternals
+namespace Qt5ExtraInternals
 {
     bool LayoutAssistant::checkWidget(QWidget* widget) const
     {

@@ -63,7 +63,7 @@ public:
     QtSpellChecker* q;
     QPointer<QtMisspellHighlighter> highlighter;
     QPointer<QtSpellCompleter> corrector;
-    QtTextWidgetInterface target;
+    QtTextControl target;
     QVector<IndexRange> misspelledRanges;
     IndexRange visibleRange;
     QtTextTokenizer tokenizer;
@@ -261,7 +261,7 @@ void QtSpellChecker::setWidget(QWidget *w)
         viewport->installEventFilter(this);
 
     connect(d->target, &QObject::destroyed, this, [this]() { setWidget(nullptr); });
-    connect(&d->target, &QtTextWidgetInterface::textChanged, this, &QtSpellChecker::rescan);
+    connect(&d->target, &QtTextControl::textChanged, this, &QtSpellChecker::rescan);
 
     if (QScrollBar* vbar = d->target.scrollBar(Qt::Vertical))
         connect(vbar, &QScrollBar::valueChanged, this, &QtSpellChecker::update);
@@ -274,7 +274,7 @@ QWidget* QtSpellChecker::widget() const
     return d->target;
 }
 
-QtTextWidgetInterface& QtSpellChecker::target()
+QtTextControl& QtSpellChecker::target()
 {
     return d->target;
 }

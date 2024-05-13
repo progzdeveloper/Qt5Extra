@@ -14,7 +14,7 @@
 
 class QWidget;
 
-namespace LayoutInternals
+namespace Qt5ExtraInternals
 {
     class LayoutAssistant
     {
