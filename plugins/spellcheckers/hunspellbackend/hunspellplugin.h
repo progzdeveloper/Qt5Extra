@@ -17,7 +17,7 @@ class HunspellBackendPlugin :
 #endif
 
 public:
-    explicit HunspellBackendPlugin(QObject *parent = Q_NULLPTR);
+    explicit HunspellBackendPlugin(QObject* parent = Q_NULLPTR);
 
     // QtSpellCheckBackendPlugin interface
     QtSpellCheckBackend* create() const Q_DECL_OVERRIDE;

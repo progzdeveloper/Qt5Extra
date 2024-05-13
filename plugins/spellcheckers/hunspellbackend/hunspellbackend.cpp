@@ -1,4 +1,3 @@
-//#ifdef HAS_HUNSPELL_LIBRARY
 #include "hunspellbackend.h"
 #include <unordered_map>
 #include <memory>
@@ -15,7 +14,6 @@
 #include <QDebug>
 #include <QCoreApplication>
 
-#include <QtGlobal>
 #if (QT_VERSION < QT_VERSION_CHECK(5, 14, 0))
 namespace std
 {
@@ -37,24 +35,24 @@ public:
 
     struct Entry
     {
-        QString language_;
-        QTextCodec* codec_ = nullptr;
-        HunspellUptr checker_;
+        QString language;
+        QTextCodec* codec = nullptr;
+        HunspellUptr checker;
 
         Entry() = default;
-        Entry(const QString& _lang, QTextCodec* _codec, HunspellUptr&& _speller)
-            : language_(_lang)
-            , codec_(_codec)
-            , checker_(std::move(_speller))
+        Entry(const QString& lang, QTextCodec* codec, HunspellUptr&& speller)
+            : language(lang)
+            , codec(codec)
+            , checker(std::move(speller))
         {}
     };
-    QVarLengthArray<Entry, 16> spellcheckers_;
+    QVarLengthArray<Entry, 16> spellcheckers;
 
-    static QString detectEncoding(const QString& _affixFilePath)
+    static QString detectEncoding(const QString& affixFilePath)
     {
         // detect encoding analyzing the SET option in the affix file
         QString encoding = QStringLiteral("ISO8859-15");
-        QFile affixFile(_affixFilePath);
+        QFile affixFile(affixFilePath);
         if (!affixFile.open(QIODevice::ReadOnly))
             return encoding;
 
@@ -79,23 +77,23 @@ public:
         return encoding;
     }
 
-    static QStringList buildSubDirsList(const QString& _path)
+    static QStringList buildSubDirsList(const QString& path)
     {
-        if (!QFileInfo::exists(_path))
+        if (!QFileInfo::exists(path))
             return {};
 
-        QStringList dirs = { _path };
+        QStringList dirs = { path };
 
-        const auto& entryList = QDir(_path).entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot);
+        const auto& entryList = QDir(path).entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot);
         for (const QFileInfo& subDir : entryList)
             dirs.push_back(subDir.absoluteFilePath());
 
         return dirs;
     }
 
-    static void detectInstalledLangs(const QStringList& _searchDirs, UStringMap& _paths, UStringMap& _aliases)
+    static void detectInstalledLangs(const QStringList& searchDirs, UStringMap& paths, UStringMap& aliases)
     {
-        for (const QString& dirPath : _searchDirs)
+        for (const QString& dirPath : searchDirs)
         {
             const auto entryList = QDir(dirPath).entryInfoList({ QLatin1String("*.aff"), QLatin1String("*.dic") }, QDir::Files);
             for (const QFileInfo& dict : entryList)
@@ -103,28 +101,28 @@ public:
                 const QString language = dict.baseName();
                 if (!dict.isSymLink())
                 {
-                    _paths.emplace(language, dict.canonicalPath());
+                    paths.emplace(language, dict.canonicalPath());
                     continue;
                 }
 
                 const QString alias = QFileInfo(dict.canonicalFilePath()).baseName();
                 if (language != alias)
-                    _aliases.emplace(language, alias);
+                    aliases.emplace(language, alias);
             }
         }
     }
 
-    void emplaceSpeller(const QString& _language, const QString& _dirPath)
+    void emplaceSpeller(const QString& language, const QString& dirPath)
     {
-        if (_language.isEmpty())
+        if (language.isEmpty())
             return;
 
-        const QString dictFilePath  = QDir(_dirPath).absoluteFilePath(_language + QLatin1String(".dic"));
-        const QString affixFilePath = QDir(_dirPath).absoluteFilePath(_language + QLatin1String(".aff"));
+        const QString dictFilePath  = QDir(dirPath).absoluteFilePath(language + QLatin1String(".dic"));
+        const QString affixFilePath = QDir(dirPath).absoluteFilePath(language + QLatin1String(".aff"));
 
         if (!QFileInfo::exists(dictFilePath) || !QFileInfo::exists(affixFilePath))
         {
-            qWarning() << "Unable to load dictionary for" << _language << "in path" << _dirPath;
+            qWarning() << "Unable to load dictionary for" << language << "in path" << dirPath;
             return;
         }
 
@@ -136,18 +134,18 @@ public:
                                                   dictFilePath.toLocal8Bit().constData());
 
         Q_ASSERT(speller != nullptr);
-        spellcheckers_.push_back({ _language, codec, std::move(speller) });
+        spellcheckers.push_back({ language, codec, std::move(speller) });
     }
 
-    void createSpellers(const UStringMap& _languagePaths, const UStringMap& _languageAliases)
+    void createSpellers(const UStringMap& languagePaths, const UStringMap& languageAliases)
     {
-        spellcheckers_.reserve(_languagePaths.size());
+        spellcheckers.reserve(languagePaths.size());
 
         QString language;
-        for (const auto& [lang, path] : _languagePaths)
+        for (const auto& [lang, path] : languagePaths)
         {
-            auto it = _languageAliases.find(language);
-            if (it != _languageAliases.end())
+            auto it = languageAliases.find(language);
+            if (it != languageAliases.end())
                 language = it->second;
             else
                 language = lang;
@@ -185,83 +183,83 @@ bool HunspellBackend::load()
 
 bool HunspellBackend::unload()
 {
-    d->spellcheckers_.clear();
+    d->spellcheckers.clear();
     return true;
 }
 
-bool HunspellBackend::validate(const QString& _word) const
+bool HunspellBackend::validate(const QString& word) const
 {
-    for (const auto& e : d->spellcheckers_)
+    for (const auto& e : d->spellcheckers)
     {
-        std::string w = e.codec_->fromUnicode(_word.data(), _word.size()).toStdString();
+        std::string w = e.codec->fromUnicode(word.data(), word.size()).toStdString();
 #if LIBHUNSPELL_VERSION > 150
-        if (e.checker_->spell(w))
+        if (e.checker->spell(w))
             return true;
 #else
-        if (e.checker_->spell(w.data()))
+        if (e.checker->spell(w.data()))
             return true;
 #endif
     }
     return false;
 }
 
-QStringList HunspellBackend::suggestions(const QString& _word, int _count) const
+QStringList HunspellBackend::suggestions(const QString& word, int count) const
 {
     QSet<QString> stringSet;
-    stringSet.reserve(_count);
+    stringSet.reserve(count);
 
-    for (const auto& e : d->spellcheckers_)
+    for (const auto& e : d->spellcheckers)
     {
-        std::string w = e.codec_->fromUnicode(_word.data(), _word.size()).toStdString();
+        std::string w = e.codec->fromUnicode(word.data(), word.size()).toStdString();
 #if LIBHUNSPELL_VERSION > 150
         const auto results = e.checker_->suggest(w);
         for (const auto& s : results)
         {
             if (s.size() > 0)
                 stringSet << e.codec_->toUnicode(s.data(), s.size());
-            if (stringSet.size() >= _count)
+            if (stringSet.size() >= count)
                 break;
         }
 #else
         char** results = nullptr;
-        int n = e.checker_->suggest(&results, w.data());
+        int n = e.checker->suggest(&results, w.data());
         for (int i = 0; i < n; ++i)
         {
             const char* s = results[i];
             const int l = qstrnlen(s, 256);
             if (l > 0)
-                stringSet << e.codec_->toUnicode(s, l);
-            if (stringSet.size() >= _count)
+                stringSet << e.codec->toUnicode(s, l);
+            if (stringSet.size() >= count)
                 break;
         }
-        e.checker_->free_list(&results, n);
+        e.checker->free_list(&results, n);
 #endif
     }
     return stringSet.toList();
 }
 
-void HunspellBackend::append(const QString& _word)
+void HunspellBackend::append(const QString& word)
 {
-    for (const auto& e : d->spellcheckers_)
+    for (const auto& e : d->spellcheckers)
     {
 #if LIBHUNSPELL_VERSION > 150
-        e.checker_->add(e.codec_->fromUnicode(_word.data(), _word.size()).toStdString());
+        e.checker->add(e.codec->fromUnicode(word.data(), word.size()).toStdString());
 #else
-        const QByteArray ba = e.codec_->fromUnicode(_word.data(), _word.size());
-        e.checker_->add(ba.data());
+        const QByteArray ba = e.codec->fromUnicode(word.data(), word.size());
+        e.checker->add(ba.data());
 #endif
     }
 }
 
-void HunspellBackend::remove(const QString& _word)
+void HunspellBackend::remove(const QString& word)
 {
-    for (const auto& e : d->spellcheckers_)
+    for (const auto& e : d->spellcheckers)
     {
 #if LIBHUNSPELL_VERSION > 150
-        e.checker_->remove(e.codec_->fromUnicode(_word.data(), _word.size()).toStdString());
+        e.checker->remove(e.codec->fromUnicode(word.data(), word.size()).toStdString());
 #else
-        const QByteArray ba = e.codec_->fromUnicode(_word.data(), _word.size());
-        e.checker_->remove(ba.data());
+        const QByteArray ba = e.codec->fromUnicode(word.data(), word.size());
+        e.checker->remove(ba.data());
 #endif
     }
 }
@@ -274,9 +272,9 @@ void HunspellBackend::ignore(const QString& _word)
 QStringList HunspellBackend::supportedLanguages() const
 {
     QStringList languages;
-    languages.reserve(d->spellcheckers_.size());
-    for (const auto& e : d->spellcheckers_)
-        languages << e.language_;
+    languages.reserve(d->spellcheckers.size());
+    for (const auto& e : d->spellcheckers)
+        languages << e.language;
     return languages;
 }
 
@@ -284,4 +282,3 @@ bool HunspellBackend::isAvailable()
 {
     return true;
 }
-//#endif
