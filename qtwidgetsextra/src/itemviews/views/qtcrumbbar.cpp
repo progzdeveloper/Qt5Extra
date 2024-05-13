@@ -254,7 +254,7 @@ void QtCrumbBar::setCurrentIndex(const QModelIndex &index)
 
         d->addCrumb(rootIndex);
 
-        QVarLengthArray<QModelIndex, 16> chain;
+        QVarLengthArray<QModelIndex, kChainPrealloc> chain;
         QModelIndex pos = index;
         while(pos.isValid()) {
             chain.push_back(pos);

@@ -126,8 +126,6 @@ public:
             return;
         }
 
-        qDebug() << LIBHUNSPELL_VERSION;
-
         const QString encoding = detectEncoding(affixFilePath);
         auto codec = QTextCodec::codecForName(encoding.toLatin1());
         auto speller = std::make_unique<Hunspell>(affixFilePath.toLocal8Bit().constData(),
