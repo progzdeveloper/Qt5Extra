@@ -36,48 +36,53 @@ namespace
         {}
     };
 
-    class SpellEventQueue
+    struct SpellEventQueue
     {
-        struct Entry
+        QObject* object;
+        std::deque<SpellCheckEvent> queue;
+
+        explicit SpellEventQueue(QObject* obj) : object(obj) {}
+
+        void emplace(int type, const QString& word, int offset, int count)
         {
-            QObject* object;
-            std::deque<SpellCheckEvent> queue;
+            queue.emplace_back(type, word, offset, count);
+        }
 
-            explicit Entry(QObject* obj) : object(obj) {}
+        void pop(SpellCheckEvent& event)
+        {
+            event = std::move(queue.front());
+            queue.pop_front();
+        }
 
-            void emplace(int type, const QString& word, int offset, int count)
-            {
-                queue.emplace_back(type, word, offset, count);
-            }
+        bool empty() const { return queue.empty(); }
 
-            void pop(SpellCheckEvent& event)
-            {
-                event = std::move(queue.front());
-                queue.pop_front();
-            }
+        void clear() { queue.clear(); }
 
-            bool empty() const { return queue.empty(); }
+        void swap(SpellEventQueue& other)
+        {
+            using std::swap; // for Koenig lookup
+            swap(object, other.object);
+            swap(queue, other.queue);
+        }
+    };
 
-            void clear() { queue.clear(); }
-
-            void swap(Entry& other)
-            {
-                using std::swap; // for Koenig lookup
-                swap(object, other.object);
-                swap(queue, other.queue);
-            }
-        };
-
+    class SpellEventBroker
+    {
         auto findQueue(QObject* object)
         {
             return std::find_if(queueMap.begin(), queueMap.end(), [object](const auto& e) { return e.object == object; });
         }
 
     public:
-        ~SpellEventQueue()
+        ~SpellEventBroker()
         {
             QMutexLocker locker(&mutex);
             valid = false;
+        }
+
+        void reserve(size_t n)
+        {
+            queueMap.reserve(n);
         }
 
         void emplace(QObject* object, int type, const QString& word, int offset, int count)
@@ -142,7 +147,7 @@ namespace
 
     private:
         mutable QMutex mutex;
-        std::vector<Entry> queueMap;
+        std::vector<SpellEventQueue> queueMap;
         size_t current = 0;
         bool valid = true;
     };
@@ -153,15 +158,17 @@ class QtSpellCheckEnginePrivate
 {
 public:
     static constexpr size_t kMaxCacheCapacity = 1024;
+    static constexpr size_t kPreallocReceivers = 4; // preallocated number of queues for receivers
     static constexpr int kMinSuggests = 1;
     static constexpr int kMaxSuggests = 10;
+
 
     using MisspelledCache = QSet<QString>;
 
     QtSpellCheckEngine* q;
     QScopedPointer<QtSpellCheckBackend> backend;
     QString preferredBackend, currentBackend;
-    SpellEventQueue queue;
+    SpellEventBroker queueBroker;
     QMutex mtx;
     QWaitCondition cv;
     bool ready = false;
@@ -288,7 +295,7 @@ public:
         if (!q->isRunning())
             q->start();
 
-        queue.emplace(receiver, type, word, offset, count);
+        queueBroker.emplace(receiver, type, word, offset, count);
         {
             QMutexLocker lk(&mtx);
             ready = true;
@@ -388,6 +395,8 @@ void QtSpellCheckEngine::run()
     if (d->backend)
         d->backend->load();
 
+    d->queueBroker.reserve(d->kPreallocReceivers);
+
     QtSpellCheckEnginePrivate::MisspelledCache misspellingsCache;
     misspellingsCache.reserve(d->kMaxCacheCapacity);
 
@@ -395,7 +404,7 @@ void QtSpellCheckEngine::run()
     SpellCheckEvent event;
     Q_FOREVER
     {
-        if (d->queue.tryPop(event, receiver))
+        if (d->queueBroker.tryPop(event, receiver))
         {
             d->processSpellEvent(receiver, event, misspellingsCache);
             continue;
@@ -409,7 +418,7 @@ void QtSpellCheckEngine::run()
         if (d->interrupted)
         {
             lk.unlock();
-            d->queue.clear();
+            d->queueBroker.clear();
             break;
         }
 
@@ -427,7 +436,7 @@ void QtSpellCheckEngine::cancel(QObject* object)
 {
     {
         QMutexLocker lk(&d->mtx);
-        d->queue.discard(object);
+        d->queueBroker.discard(object);
         d->ready = true;
     }
 
