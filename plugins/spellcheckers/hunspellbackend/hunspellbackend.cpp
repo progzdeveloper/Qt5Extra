@@ -253,7 +253,7 @@ void HunspellBackend::append(const QString& word)
     for (const auto& e : d->spellcheckers)
     {
 #if LIBHUNSPELL_VERSION > 150
-        e.checker->add(e.codec->fromUnicode(word.data(), word.size()).toStdString());
+        e.checker->add(e.second.codec->fromUnicode(word.data(), word.size()).toStdString());
 #else
         const QByteArray ba = e.second.codec->fromUnicode(word.data(), word.size());
         e.second.checker->add(ba.data());
