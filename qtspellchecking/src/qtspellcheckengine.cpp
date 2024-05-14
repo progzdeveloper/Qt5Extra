@@ -8,9 +8,6 @@
 #include <QSet>
 #include <deque>
 
-#include <LRUCache>
-#include <Qt5StdHashSupport>
-
 namespace
 {
     struct SpellCheckEvent
@@ -169,13 +166,11 @@ public:
     static constexpr int kMaxSuggests = 10;
 
     using MisspelledCache = QSet<QString>;
-    using LangNameCache = Qt5Extra::LRUCache<QString, QLocale::Language>;
 
     QtSpellCheckEngine* q;
     QScopedPointer<QtSpellCheckBackend> backend;
     QString preferredBackend, currentBackend;
     SpellEventBroker queueBroker;
-    LangNameCache langCache;
     QMutex mtx;
     QWaitCondition cv;
     bool ready = false;
