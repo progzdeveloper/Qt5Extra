@@ -10,7 +10,8 @@ namespace
         QChar::Script script = QChar::Script_Common;
     };
 
-    constexpr SubtagScript localeScriptList[] = {
+    constexpr SubtagScript localeScriptList[] =
+    {
         {u"aa", QChar::Script_Latin},       {u"ab", QChar::Script_Cyrillic},
         {u"ady", QChar::Script_Cyrillic},   {u"aeb", QChar::Script_Arabic},
         {u"af", QChar::Script_Latin},       {u"ak", QChar::Script_Latin},
@@ -168,6 +169,15 @@ namespace
         // {"zh-mo", USCRIPT_TRADITIONAL_HAN},
         // {"zh-tw", USCRIPT_TRADITIONAL_HAN},
     };
+
+    bool isAcuteAccentChar(QChar c) noexcept
+    {
+        static constexpr QChar list[] = {
+            QChar(769),	QChar(833), QChar(714),	QChar(779),	QChar(733), QChar(758),	QChar(791),	QChar(719)
+        };
+
+        return std::any_of(std::begin(list), std::end(list), [c](auto x){ return c == x; });
+    }
 }
 
 
