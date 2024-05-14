@@ -10,5 +10,12 @@ namespace std
         { return qHash(key); }
     };
 
+    template<>
+    struct hash<QByteArray>
+    {
+        inline std::size_t operator()(const QByteArray& key) const
+        { return qHash(key); }
+    };
+
 } // namespace std
 #endif

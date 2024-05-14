@@ -1,5 +1,6 @@
 #include "qtspellcheckbackendfactory.h"
 #include "qtspellcheckbackendplugin.h"
+#include <QHash>
 
 class QtSpellCheckBackendFactoryPrivate
 {
@@ -21,7 +22,8 @@ QtSpellCheckBackendFactory::~QtSpellCheckBackendFactory()
 QString QtSpellCheckBackendFactory::platformBackend() const
 {
 #ifdef Q_OS_LINUX
-    return "Hunspell";
+    //return "Hunspell";
+    return "Enchant";
 #elif Q_OS_WIN
     return "Win32Spell";
 #elif Q_OS_MACOS

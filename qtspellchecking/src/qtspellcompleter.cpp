@@ -202,7 +202,7 @@ public:
             return EventIgnoreReset;
 
         menuPos = event->globalPos();
-        QtSpellCheckEngine::instance().requestSuggests(current->word, suggestsCount, q);
+        QtSpellCheckEngine::instance().requestSuggests(current->word, suggestsCount, checker->languages(), q);
         return EventAccepted;
     }
 
@@ -224,7 +224,7 @@ public:
         }
 
         menuPos = target->mapToGlobal(target.cursorRect(current->offset).bottomLeft());
-        QtSpellCheckEngine::instance().requestSuggests(current->word, suggestsCount, q);
+        QtSpellCheckEngine::instance().requestSuggests(current->word, suggestsCount, checker->languages(), q);
         return EventAccepted;
     }
 
@@ -263,7 +263,7 @@ public:
             return EventIgnoreReset;
 
         menuPos = target->mapToGlobal(target.cursorRect(current->offset).bottomLeft());
-        QtSpellCheckEngine::instance().requestSuggests(current->word, suggestsCount, q);
+        QtSpellCheckEngine::instance().requestSuggests(current->word, suggestsCount, checker->languages(), q);
         return EventAccepted;
     }
 
@@ -299,7 +299,7 @@ public:
             int result = EventIgnored;
             current = wordAt(target.cursorPosition() - 2);
             if (isTriggerKey && current && current->length() >= checker->minPrefixLength())
-                QtSpellCheckEngine::instance().requestSuggests(current->word, suggestsCount, q);
+                QtSpellCheckEngine::instance().requestSuggests(current->word, suggestsCount, checker->languages(), q);
             else
                 result |= EventReset;
             return result;
@@ -312,7 +312,7 @@ public:
         }
 
         menuPos = target->mapToGlobal(target.cursorRect(current->offset).bottomLeft());
-        QtSpellCheckEngine::instance().requestSuggests(current->word, suggestsCount, q);
+        QtSpellCheckEngine::instance().requestSuggests(current->word, suggestsCount, checker->languages(), q);
         return EventIgnored;
     }
 };
@@ -327,6 +327,7 @@ QtSpellCompleter::QtSpellCompleter(QtSpellChecker* parent)
     qApp->installEventFilter(this);
     connect(qApp, &QApplication::focusChanged, this, &QtSpellCompleter::onFocusChanged);
     connect(&QtSpellCheckEngine::instance(), &QtSpellCheckEngine::suggestsFound, this, &QtSpellCompleter::onSuggestsReady);
+
 }
 
 QtSpellCompleter::~QtSpellCompleter() = default;

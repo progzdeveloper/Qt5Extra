@@ -1,6 +1,5 @@
 #include "hunspellplugin.h"
 #include "hunspellbackend.h"
-#include <QDebug>
 
 HunspellBackendPlugin::HunspellBackendPlugin(QObject* parent)
     : QObject(parent)

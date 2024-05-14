@@ -1,5 +1,6 @@
 #pragma once
 #include <QThread>
+#include <QSet>
 
 #include <QtSpellChecking>
 
@@ -33,15 +34,15 @@ public:
 
     QString backendName() const;
 
-    void spell(const QString& word, int offset, QObject* receiver = nullptr);
+    void spell(const QString& word, int offset, const QStringList& langs = {}, QObject* receiver = nullptr);
+    void requestSuggests(const QString& word, int count, const QStringList& langs = {}, QObject* receiver = nullptr);
     void append(const QString& word);
     void remove(const QString& word);
     void ignore(const QString& word);
-    void requestSuggests(const QString& word, int count, QObject* receiver = nullptr);
     void cancel(QObject* object);
 
 Q_SIGNALS:
-    void misspelled(QObject*_object, const QString& word, int offset);
+    void misspelled(QObject* object, const QString& word, int offset);
     void completed(QObject* object);
     void appended(const QString& word);
     void removed(const QString& word);

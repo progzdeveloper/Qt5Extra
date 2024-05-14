@@ -1,4 +1,5 @@
 #include <QLocale>
+#include <QVector>
 #include <algorithm>
 #include <vector>
 #include "qtspellcheckutils.h"
@@ -210,11 +211,11 @@ namespace SpellChecking
         return QChar::Script_Common;
     }
 
-    std::vector<QString> systemLanguages()
+    QStringList systemLanguages()
     {
         const static auto languages = []()
         {
-            std::vector<QString> res;
+            QStringList res;
             const auto uiLanguages = QLocale::system().uiLanguages();
             res.reserve(uiLanguages.size());
 
@@ -227,12 +228,12 @@ namespace SpellChecking
         return languages;
     }
 
-    std::vector<QChar::Script> supportedScripts()
+    QVector<QChar::Script> supportedScripts()
     {
         const static auto scripts = []()
         {
             const auto languages = systemLanguages();
-            std::vector<QChar::Script> res;
+            QVector<QChar::Script> res;
             res.reserve(languages.size());
             for (const auto& l : languages)
             {

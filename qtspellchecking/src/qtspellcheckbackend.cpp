@@ -10,12 +10,12 @@ bool QtSpellCheckBackend::unload()
     return true;
 }
 
-bool QtSpellCheckBackend::validate(const QString&) const
+bool QtSpellCheckBackend::validate(const QString&, const QStringList&) const
 {
     return true;
 }
 
-QStringList QtSpellCheckBackend::suggestions(const QString&, int) const
+QStringList QtSpellCheckBackend::suggestions(const QString&, int, const QStringList&) const
 {
     return {};
 }
@@ -38,6 +38,11 @@ bool QtSpellCheckBackend::contains(const QString&) const
 }
 
 QStringList QtSpellCheckBackend::supportedLanguages() const
+{
+    return {};
+}
+
+QList<QtSpellCheckBackend::SpellingProvider> QtSpellCheckBackend::providers() const
 {
     return {};
 }

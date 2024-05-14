@@ -3,4 +3,5 @@ message(STATUS "QT5EXTRA_PLUGINS_ROOT=${QT5EXTRA_PLUGINS_ROOT}")
 
 add_subdirectory(modelexporters)
 add_subdirectory(spellcheckers)
+add_subdirectory(langdetect)
 

@@ -9,6 +9,8 @@
 #include <QtTextTokenizer>
 #include <QtTokenFilter>
 #include <QtTextWidgetInterface>
+#include <QtLanguageDetector>
+#include <QtTextUtils>
 
 #include <QTextFormat>
 #include <QTextBlock>
@@ -60,10 +62,13 @@ class QtSpellCheckerPrivate
 public:
     static constexpr std::chrono::milliseconds kSpellCheckTimeout = std::chrono::milliseconds(2000);
     static constexpr int kDefaultPrefixLength = 2;
+
     QtSpellChecker* q;
+    QtLanguageDetector detector;
     QPointer<QtMisspellHighlighter> highlighter;
     QPointer<QtSpellCompleter> corrector;
     QtTextControl target;
+    QStringList languages;
     QVector<IndexRange> misspelledRanges;
     IndexRange visibleRange;
     QtTextTokenizer tokenizer;
@@ -75,6 +80,7 @@ public:
     QtSpellCheckerPrivate(QtSpellChecker* checker)
         : q(checker)
     {
+        languages = Qt5Extra::systemLanguages();
         filter.setMinimalLength(kDefaultPrefixLength);
         spellCheckTimer = new QTimer(target);
         spellCheckTimer->setInterval(kSpellCheckTimeout);
@@ -102,15 +108,22 @@ public:
     template<class T>
     void rescanContent(const T& content, const IndexRange& range)
     {
+        static QStringList systemLangs = Qt5Extra::systemLanguages();
+
+        QStringList langs;
         if constexpr(std::is_same_v<T, QTextDocument*>)
         {
             if (!content || range.length == 0)
                 return;
+
+            langs = detector.identify(content->toPlainText().midRef(range.offset, range.length));
         }
         else if constexpr(std::is_same_v<T, QString>)
         {
             if (content.isEmpty())
                 return;
+
+            langs = detector.identify(content.midRef(range.offset, range.length));
         }
         else
         {
@@ -118,17 +131,23 @@ public:
             return;
         }
 
+        if (langs != languages)
+        {
+            languages = langs.isEmpty() ? systemLangs : langs;
+            Q_EMIT q->languagesChanged(languages);
+        }
+
         misspelledRanges.clear();
         QtSpellCheckEngine::instance().cancel(q);
 
         QtTextTokenizer::TokenHandler handler = [this](QStringView word, int offset)
         {
-            QtSpellCheckEngine::instance().spell(word.toString(), offset, q);
+            QtSpellCheckEngine::instance().spell(word.toString(), offset, languages, q);
         };
 
         tokenizer(content, range, filter, handler);
 
-        QtSpellCheckEngine::instance().spell({}, -1, q);
+        QtSpellCheckEngine::instance().spell({}, -1, {}, q);
     }
 
     void rescan()
@@ -293,6 +312,11 @@ void QtSpellChecker::setMinPrefixLength(int length)
 int QtSpellChecker::minPrefixLength() const
 {
     return d->filter.minimalLength();
+}
+
+QStringList QtSpellChecker::languages() const
+{
+    return d->languages;
 }
 
 bool QtSpellChecker::hasMisspelled(int offset, int length) const

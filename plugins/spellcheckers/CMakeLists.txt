@@ -2,7 +2,8 @@ cmake_path(SET QT5EXTRA_SPELLCHECKERS_ROOT "${QT5EXTRA_PLUGINS_ROOT}/spellchecke
 message(STATUS "QT5EXTRA_SPELLCHECKERS_ROOT=${QT5EXTRA_SPELLCHECKERS_ROOT}")
 
 if(UNIX AND NOT APPLE) # Linux
-        add_subdirectory(hunspellbackend)
+    add_subdirectory(hunspellbackend)
+    add_subdirectory(enchantbackend)
     #add_subdirectory(aspellbackend)
 endif()
 

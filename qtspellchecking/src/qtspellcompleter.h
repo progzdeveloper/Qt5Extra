@@ -55,7 +55,6 @@ public:
 
     virtual bool widgetEvent(QEvent* event);
 
-public Q_SLOTS:
     void correctWord(const QString& replacement);
     virtual void onSuggests(const QString& word, const QStringList& results, QtSpellCheckEngine::SpellingActions actions);
     virtual void popupMenu(QMenu* menu, const QPoint& globalPos, QtSpellCompleter::MenuStyle style) const;

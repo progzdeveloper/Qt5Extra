@@ -1,7 +1,5 @@
 #pragma once
-#include <QHash>
 #include <QFactoryInterface>
-
 #include <QtSpellChecking>
 
 class QtSpellCheckBackend;

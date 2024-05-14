@@ -35,18 +35,16 @@ public:
 
     struct Entry
     {
-        QString language;
         QTextCodec* codec = nullptr;
         HunspellUptr checker;
 
         Entry() = default;
-        Entry(const QString& lang, QTextCodec* codec, HunspellUptr&& speller)
-            : language(lang)
-            , codec(codec)
+        Entry(QTextCodec* codec, HunspellUptr&& speller)
+            : codec(codec)
             , checker(std::move(speller))
         {}
     };
-    QVarLengthArray<Entry, 16> spellcheckers;
+    std::unordered_map<QString, Entry> spellcheckers;
 
     static QString detectEncoding(const QString& affixFilePath)
     {
@@ -132,7 +130,7 @@ public:
                                                   dictFilePath.toLocal8Bit().constData());
 
         Q_ASSERT(speller != nullptr);
-        spellcheckers.push_back({ language, codec, std::move(speller) });
+        spellcheckers[language] = { codec, std::move(speller) };
     }
 
     void createSpellers(const UStringMap& languagePaths, const UStringMap& languageAliases)
@@ -181,18 +179,26 @@ bool HunspellBackend::load()
 
 bool HunspellBackend::unload()
 {
-    d->spellcheckers.clear();
+    d->spellcheckers.clear(); // clear and release memory
     return true;
 }
 
-bool HunspellBackend::validate(const QString& word) const
+bool HunspellBackend::validate(const QString& word, const QStringList& langs) const
 {
-    for (const auto& e : d->spellcheckers)
+    if (langs.isEmpty())
+        return true;
+
+    for (const auto& tag : langs)
     {
+        auto it = d->spellcheckers.find(tag);
+        if (it == d->spellcheckers.end())
+            continue;
+
+        const auto& e = it->second;
         std::string w = e.codec->fromUnicode(word.data(), word.size()).toStdString();
 #if LIBHUNSPELL_VERSION > 150
-        if (e.checker->spell(w))
-            return true;
+        if (!e.checker->spell(w))
+            return false;
 #else
         if (e.checker->spell(w.data()))
             return true;
@@ -201,16 +207,20 @@ bool HunspellBackend::validate(const QString& word) const
     return false;
 }
 
-QStringList HunspellBackend::suggestions(const QString& word, int count) const
+QStringList HunspellBackend::suggestions(const QString& word, int count, const QStringList& langs) const
 {
     QSet<QString> stringSet;
     stringSet.reserve(count);
-
-    for (const auto& e : d->spellcheckers)
+    for (const auto& tag : langs)
     {
+        auto it = d->spellcheckers.find(tag);
+        if (it == d->spellcheckers.end())
+            continue;
+
+        const auto& e = it->second;
         std::string w = e.codec->fromUnicode(word.data(), word.size()).toStdString();
 #if LIBHUNSPELL_VERSION > 150
-        const auto results = e.checker_->suggest(w);
+        const auto results = e.checker->suggest(w);
         for (const auto& s : results)
         {
             if (s.size() > 0)
@@ -232,6 +242,8 @@ QStringList HunspellBackend::suggestions(const QString& word, int count) const
         }
         e.checker->free_list(&results, n);
 #endif
+        if (stringSet.size() >= count)
+            break;
     }
     return stringSet.toList();
 }
@@ -243,8 +255,8 @@ void HunspellBackend::append(const QString& word)
 #if LIBHUNSPELL_VERSION > 150
         e.checker->add(e.codec->fromUnicode(word.data(), word.size()).toStdString());
 #else
-        const QByteArray ba = e.codec->fromUnicode(word.data(), word.size());
-        e.checker->add(ba.data());
+        const QByteArray ba = e.second.codec->fromUnicode(word.data(), word.size());
+        e.second.checker->add(ba.data());
 #endif
     }
 }
@@ -254,10 +266,10 @@ void HunspellBackend::remove(const QString& word)
     for (const auto& e : d->spellcheckers)
     {
 #if LIBHUNSPELL_VERSION > 150
-        e.checker->remove(e.codec->fromUnicode(word.data(), word.size()).toStdString());
+        e.checker->remove(e.second.codec->fromUnicode(word.data(), word.size()).toStdString());
 #else
-        const QByteArray ba = e.codec->fromUnicode(word.data(), word.size());
-        e.checker->remove(ba.data());
+        const QByteArray ba = e.second.codec->fromUnicode(word.data(), word.size());
+        e.second.checker->remove(ba.data());
 #endif
     }
 }
@@ -272,11 +284,13 @@ QStringList HunspellBackend::supportedLanguages() const
     QStringList languages;
     languages.reserve(d->spellcheckers.size());
     for (const auto& e : d->spellcheckers)
-        languages << e.language;
+        languages << e.first;
     return languages;
 }
 
-bool HunspellBackend::isAvailable()
+QList<QtSpellCheckBackend::SpellingProvider> HunspellBackend::providers() const
 {
-    return true;
+    static QList<SpellingProvider> providerList{ { "Hunspell", "N/A", "Hunspell library" } };
+    return providerList;
 }
+

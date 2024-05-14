@@ -39,6 +39,8 @@ public:
     void setMinPrefixLength(int length);
     int minPrefixLength() const;
 
+    QStringList languages() const;
+
     bool hasMisspelled(int offset, int length) const;
     bool hasMisspelled(const IndexRange& range) const;
 
@@ -53,6 +55,7 @@ private Q_SLOTS:
 Q_SIGNALS:
     void minPrefixLengthChanged(int);
     void enabledChanged(bool);
+    void languagesChanged(const QStringList&);
 
 protected:
     bool eventFilter(QObject* watched, QEvent* event) Q_DECL_OVERRIDE;

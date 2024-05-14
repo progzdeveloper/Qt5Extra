@@ -3,9 +3,13 @@
 #include "qtspellcheckbackendfactory.h"
 #include <QWaitCondition>
 #include <QMutex>
+#include <QLocale>
 #include <QString>
 #include <QSet>
 #include <deque>
+
+#include <LRUCache>
+#include <Qt5StdHashSupport>
 
 namespace
 {
@@ -21,6 +25,7 @@ namespace
             Suggestions
         };
 
+        QStringList languages;
         QString word;
         int offset = -1;
         int type = None;
@@ -28,8 +33,9 @@ namespace
 
         SpellCheckEvent() = default;
 
-        SpellCheckEvent(int t, const QString& s, int i = -1, int n = 0)
-            : word(s)
+        SpellCheckEvent(int t, const QStringList& langs, const QString& s, int i = -1, int n = 0)
+            : languages(langs)
+            , word(s)
             , offset(i)
             , type(t)
             , count(n)
@@ -43,9 +49,9 @@ namespace
 
         explicit SpellEventQueue(QObject* obj) : object(obj) {}
 
-        void emplace(int type, const QString& word, int offset, int count)
+        void emplace(int type, const QStringList& langs, const QString& word, int offset, int count)
         {
-            queue.emplace_back(type, word, offset, count);
+            queue.emplace_back(type, langs, word, offset, count);
         }
 
         void pop(SpellCheckEvent& event)
@@ -85,14 +91,14 @@ namespace
             queueMap.reserve(n);
         }
 
-        void emplace(QObject* object, int type, const QString& word, int offset, int count)
+        void emplace(QObject* object, int type, const QStringList& langs, const QString& word, int offset, int count)
         {
             QMutexLocker locker(&mutex);
             auto it = findQueue(object);
             if (it == queueMap.end())
                 it = queueMap.emplace(queueMap.end(), object);
 
-            it->emplace(type, word, offset, count);
+            it->emplace(type, langs, word, offset, count);
         }
 
         void discard(QObject* object)
@@ -162,13 +168,14 @@ public:
     static constexpr int kMinSuggests = 1;
     static constexpr int kMaxSuggests = 10;
 
-
     using MisspelledCache = QSet<QString>;
+    using LangNameCache = Qt5Extra::LRUCache<QString, QLocale::Language>;
 
     QtSpellCheckEngine* q;
     QScopedPointer<QtSpellCheckBackend> backend;
     QString preferredBackend, currentBackend;
     SpellEventBroker queueBroker;
+    LangNameCache langCache;
     QMutex mtx;
     QWaitCondition cv;
     bool ready = false;
@@ -242,7 +249,7 @@ public:
         {
             Q_EMIT q->misspelled(object, event.word, event.offset);
         }
-        else if (!backend->validate(event.word))
+        else if (!backend->validate(event.word, event.languages))
         {
             updateCache(cache, event.word);
             Q_EMIT q->misspelled(object, event.word, event.offset);
@@ -277,25 +284,25 @@ public:
         if (event.word.isEmpty())
             return;
 
-        if (backend->validate(event.word) &&
-            backend->contains(event.word))
+        if (backend->validate(event.word, event.languages) &&
+            backend->contains(event.word)) // TODO: implement contains() correctly and pass lang into it
         {
             actions |= QtSpellCheckEngine::RemoveWord;
         }
         else
         {
             actions |= (QtSpellCheckEngine::AppendWord | QtSpellCheckEngine::IgnoreWord);
-            results = backend->suggestions(event.word, event.count);
+            results = backend->suggestions(event.word, event.count, event.languages);
         }
         Q_EMIT q->suggestsFound(object, event.word, results, actions);
     }
 
-    void postSpellEvent(QObject* receiver, int type, const QString& word, int offset = -1, int count = 0)
+    void postSpellEvent(QObject* receiver, int type, const QStringList& langs, const QString& word, int offset = -1, int count = 0)
     {
         if (!q->isRunning())
             q->start();
 
-        queueBroker.emplace(receiver, type, word, offset, count);
+        queueBroker.emplace(receiver, type, langs, word, offset, count);
         {
             QMutexLocker lk(&mtx);
             ready = true;
@@ -345,12 +352,20 @@ QString QtSpellCheckEngine::backendName() const
     return d->currentBackend;
 }
 
-void QtSpellCheckEngine::spell(const QString& word, int offset, QObject* receiver)
+void QtSpellCheckEngine::spell(const QString& word, int offset, const QStringList& langs, QObject* receiver)
 {
     if (!d->backend)
         return;
 
-    d->postSpellEvent(receiver, SpellCheckEvent::SpellWord, word, offset);
+    d->postSpellEvent(receiver, SpellCheckEvent::SpellWord, langs, word, offset);
+}
+
+void QtSpellCheckEngine::requestSuggests(const QString& word, int count, const QStringList& langs, QObject* receiver)
+{
+    if (word.isEmpty() || !d->backend)
+        return;
+
+    d->postSpellEvent(receiver, SpellCheckEvent::Suggestions, langs, word, -1, std::clamp(count, d->kMinSuggests, d->kMaxSuggests));
 }
 
 void QtSpellCheckEngine::append(const QString& word)
@@ -358,7 +373,7 @@ void QtSpellCheckEngine::append(const QString& word)
     if (word.isEmpty() || !d->backend)
         return;
 
-    d->postSpellEvent(nullptr, SpellCheckEvent::AppendWord, word);
+    d->postSpellEvent(nullptr, SpellCheckEvent::AppendWord, {}, word);
 }
 
 void QtSpellCheckEngine::remove(const QString& word)
@@ -366,7 +381,7 @@ void QtSpellCheckEngine::remove(const QString& word)
     if (word.isEmpty() || !d->backend)
         return;
 
-    d->postSpellEvent(nullptr, SpellCheckEvent::RemoveWord, word);
+    d->postSpellEvent(nullptr, SpellCheckEvent::RemoveWord, {}, word);
 }
 
 void QtSpellCheckEngine::ignore(const QString& word)
@@ -374,15 +389,7 @@ void QtSpellCheckEngine::ignore(const QString& word)
     if (word.isEmpty() || !d->backend)
         return;
 
-    d->postSpellEvent(nullptr, SpellCheckEvent::IgnoreWord, word);
-}
-
-void QtSpellCheckEngine::requestSuggests(const QString& word, int count, QObject* receiver)
-{
-    if (word.isEmpty() || !d->backend)
-        return;
-
-    d->postSpellEvent(receiver, SpellCheckEvent::Suggestions, word, -1, std::clamp(count, d->kMinSuggests, d->kMaxSuggests));
+    d->postSpellEvent(nullptr, SpellCheckEvent::IgnoreWord, {}, word);
 }
 
 void QtSpellCheckEngine::run()
