@@ -60,6 +60,8 @@ namespace
 class QtSpellCheckerPrivate
 {
 public:
+    using QStringSet = QSet<QString>;
+
     static constexpr std::chrono::milliseconds kSpellCheckTimeout = std::chrono::milliseconds(2000);
     static constexpr int kDefaultPrefixLength = 2;
 
@@ -68,7 +70,7 @@ public:
     QPointer<QtMisspellHighlighter> highlighter;
     QPointer<QtSpellCompleter> corrector;
     QtTextControl target;
-    QStringList languages;
+    QStringSet languages;
     QVector<IndexRange> misspelledRanges;
     IndexRange visibleRange;
     QtTextTokenizer tokenizer;
@@ -80,7 +82,7 @@ public:
     QtSpellCheckerPrivate(QtSpellChecker* checker)
         : q(checker)
     {
-        languages = Qt5Extra::systemLanguages();
+        languages = QStringSet::fromList(Qt5Extra::systemLanguages());
         filter.setMinimalLength(kDefaultPrefixLength);
         spellCheckTimer = new QTimer(target);
         spellCheckTimer->setInterval(kSpellCheckTimeout);
@@ -103,6 +105,15 @@ public:
 
         return std::find_if(misspelledRanges.cbegin(), misspelledRanges.cend(),
                             [range](const auto& r) { return r.contains(range); }) != misspelledRanges.cend();
+    }
+
+    void combineLanguages(const QStringList& langs)
+    {
+        for (const auto& l : langs)
+        {
+            if (!languages.contains(l))
+                languages += l;
+        }
     }
 
     template<class T>
@@ -131,18 +142,14 @@ public:
             return;
         }
 
-        if (langs != languages)
-        {
-            languages = langs.isEmpty() ? systemLangs : langs;
-            Q_EMIT q->languagesChanged(languages);
-        }
+        combineLanguages(langs);
 
         misspelledRanges.clear();
         QtSpellCheckEngine::instance().cancel(q);
 
         QtTextTokenizer::TokenHandler handler = [this](QStringView word, int offset)
         {
-            QtSpellCheckEngine::instance().spell(word.toString(), offset, languages, q);
+            QtSpellCheckEngine::instance().spell(word.toString(), offset, languages.toList(), q);
         };
 
         tokenizer(content, range, filter, handler);
@@ -316,7 +323,7 @@ int QtSpellChecker::minPrefixLength() const
 
 QStringList QtSpellChecker::languages() const
 {
-    return d->languages;
+    return d->languages.toList();
 }
 
 bool QtSpellChecker::hasMisspelled(int offset, int length) const

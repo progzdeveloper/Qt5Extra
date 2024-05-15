@@ -24,7 +24,7 @@ QtTableModelExporter* QtExcelExporterPlugin::create( QAbstractTableModel* model 
 
 QString QtExcelExporterPlugin::exporterName() const
 {
-    return tr("Microsft Excel");
+    return QStringLiteral("Microsft Excel");
 }
 
 QIcon QtExcelExporterPlugin::icon() const

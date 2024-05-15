@@ -14,7 +14,7 @@ QtTableModelExporter* QtCsvExporterPlugin::create( QAbstractTableModel* model ) 
 
 QString QtCsvExporterPlugin::exporterName() const
 {
-    return tr("CSV");
+    return QStringLiteral("CSV");
 }
 
 QIcon QtCsvExporterPlugin::icon() const

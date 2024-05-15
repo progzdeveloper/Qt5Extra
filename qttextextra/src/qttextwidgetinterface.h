@@ -35,7 +35,7 @@ public:
 
     int cursorPosition() const;
     int cursorFromPoint(const QPoint& p) const;
-    QRect cursorRect(int position = -1);
+    QRect cursorRect(int position = -1) const;
     bool isMultiLine() const;
 
     void setExtraSelections(const QList<QTextEdit::ExtraSelection>& selections);
@@ -75,7 +75,7 @@ struct QtTextWidgetInterface
     virtual QWidget* object() const { return nullptr; }
     virtual int cursorPosition() const { return -1; }
     virtual int cursorFromPoint(const QPoint&) const { return -1; }
-    virtual QRect cursorRect(int = -1) { return QRect{}; }
+    virtual QRect cursorRect(int = -1) const { return QRect{}; }
 
     virtual bool isMultiLine() const { return false; }
 

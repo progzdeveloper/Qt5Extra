@@ -36,7 +36,7 @@ namespace Qt5ExtraInternals
 
         int cursorPosition() const Q_DECL_OVERRIDE { return widget ? widget->textCursor().position() : -1; }
         int cursorFromPoint(const QPoint& p) const Q_DECL_OVERRIDE { return widget ? widget->cursorForPosition(p).position() : -1; }
-        QRect cursorRect(int cursorPos) Q_DECL_OVERRIDE
+        QRect cursorRect(int cursorPos) const Q_DECL_OVERRIDE
         {
             if (!widget)
                 return {};
@@ -149,7 +149,7 @@ namespace Qt5ExtraInternals
 
         int cursorPosition() const Q_DECL_OVERRIDE { return widget->cursorPosition(); }
         int cursorFromPoint(const QPoint& p) const Q_DECL_OVERRIDE { return widget->cursorPositionAt(p); }
-        QRect cursorRect(int cursorPos = -1) Q_DECL_OVERRIDE
+        QRect cursorRect(int cursorPos = -1) const Q_DECL_OVERRIDE
         {
             constexpr QPoint offset{ 2, 4 }; // this offset is hardcoded inside Qt source code
             if (!widget)
@@ -362,7 +362,7 @@ int QtTextControl::cursorFromPoint(const QPoint& p) const
     return d ? d->cursorFromPoint(p) : -1;
 }
 
-QRect QtTextControl::cursorRect(int position)
+QRect QtTextControl::cursorRect(int position) const
 {
     return d ? d->cursorRect(position) : QRect{};
 }
@@ -377,6 +377,7 @@ void QtTextControl::setExtraSelections(const QList<QTextEdit::ExtraSelection>& s
     if (d)
         d->setExtraSelection(selections);
 }
+
 QList<QTextEdit::ExtraSelection> QtTextControl::extraSelections() const
 {
     return d ? d->extraSelections() : QList<QTextEdit::ExtraSelection>{};

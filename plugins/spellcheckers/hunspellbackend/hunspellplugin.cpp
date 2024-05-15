@@ -13,7 +13,7 @@ QtSpellCheckBackend* HunspellBackendPlugin::create() const
 
 QString HunspellBackendPlugin::backendName() const
 {
-    return "Hunspell";
+    return QStringLiteral("Hunspell");
 }
 
 

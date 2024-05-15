@@ -13,7 +13,7 @@ QtSpellCheckBackend* EnchantBackendPlugin::create() const
 
 QString EnchantBackendPlugin::backendName() const
 {
-    return "Enchant";
+    return QStringLiteral("Enchant");
 }
 
 

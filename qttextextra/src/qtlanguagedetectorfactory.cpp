@@ -1,4 +1,4 @@
-#include "qtlangdetectorfactory.h"
+#include "qtlanguagedetectorfactory.h"
 #include "qtlanguagedetectorplugin.h"
 #include "qtbasiclangdetector.h"
 
@@ -9,25 +9,25 @@ public:
     CreatorsHash creatorsMap;
 };
 
-QtLangDetectorFactory::QtLangDetectorFactory()
+QtLanguageDetectorFactory::QtLanguageDetectorFactory()
     : d(new QtLangDetectorFactoryPrivate)
 {
 }
 
-QtLangDetectorFactory::~QtLangDetectorFactory()
+QtLanguageDetectorFactory::~QtLanguageDetectorFactory()
 {
     qDeleteAll(d->creatorsMap);
 }
 
-void QtLangDetectorFactory::registerDetector(QtLanguageDetectorPlugin *plugin)
+void QtLanguageDetectorFactory::registerDetector(QtLanguageDetectorPlugin *plugin)
 {
     if (plugin)
         d->creatorsMap[plugin->backendName()] = plugin;
 }
 
-QtLanguageDetector *QtLangDetectorFactory::createDetector(const QString &backendName) const
+QtLanguageDetector *QtLanguageDetectorFactory::createDetector(const QString &backendName) const
 {
-    if (backendName.isEmpty() || backendName == "basic" ||  backendName == "builtin");
+    if (backendName.isEmpty() || backendName == "basic" ||  backendName == "builtin")
         return new QtBasicLangDetector;
 
     auto it = d->creatorsMap.constFind(backendName);
@@ -37,7 +37,7 @@ QtLanguageDetector *QtLangDetectorFactory::createDetector(const QString &backend
     return (*it)->create();
 }
 
-QStringList QtLangDetectorFactory::keys() const
+QStringList QtLanguageDetectorFactory::keys() const
 {
     QStringList result;
     result += d->creatorsMap.keys();
@@ -45,8 +45,8 @@ QStringList QtLangDetectorFactory::keys() const
     return result;
 }
 
-QtLangDetectorFactory &QtLangDetectorFactory::instance()
+QtLanguageDetectorFactory &QtLanguageDetectorFactory::instance()
 {
-    static QtLangDetectorFactory gInstance;
+    static QtLanguageDetectorFactory gInstance;
     return gInstance;
 }
