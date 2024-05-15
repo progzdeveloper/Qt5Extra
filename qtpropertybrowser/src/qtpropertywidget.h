@@ -96,8 +96,8 @@ public:
 
 public Q_SLOTS:
     void setFinal(bool on);
-    void setViewType(ViewType type);
-    void setSubmitPolicy(SubmitPolicy policy);
+    void setViewType(QtPropertyWidget::ViewType type);
+    void setSubmitPolicy(QtPropertyWidget::SubmitPolicy policy);
     void setPropertyFilter(const QString& pattern);
     void setClassFilter(const QString& pattern);
     void enableNotifications(bool on);

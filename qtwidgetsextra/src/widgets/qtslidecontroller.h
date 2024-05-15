@@ -24,11 +24,11 @@ public:
 
     enum SlideEffect
     {
-        NoEffect = 0x00,
-        ZoomEffect = 0x01,
-        RotateEffect = 0x02,
-        ShearEffect = 0x04,
-        RollEffect = 0x08
+        NoEffect = 0,
+        ZoomEffect = 1 << 0,
+        RotateEffect = 1 << 1,
+        ShearEffect = 1 << 2,
+        RollEffect = 1 << 3
     };
     Q_DECLARE_FLAGS(SlideEffects, SlideEffect)
 
@@ -48,7 +48,7 @@ public:
     bool isFaded() const;
 
 public Q_SLOTS:
-    void setEffects(SlideEffects flags);
+    void setEffects(QtSlideController::SlideEffects flags);
     void setSlideDirection(int dir);
     void setDuration(int ms);
 
