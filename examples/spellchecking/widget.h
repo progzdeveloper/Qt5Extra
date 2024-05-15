@@ -9,10 +9,12 @@ public:
 
 private Q_SLOTS:
     void aboutPlugins();
+    void showSettings();
 
 private:
     QLineEdit* lineEdit;
     QTextEdit* textEdit;
-    QToolButton* button;
+    QToolButton* pluginsButton;
+    QToolButton* settingsButton;
 };
 

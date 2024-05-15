@@ -3,11 +3,16 @@
 
 #include <QtPluginManager>
 #include <QtPluginInterface>
+
 #include <QtSpellCheckBackendPlugin>
 #include <QtSpellCheckBackendFactory>
+#include <QtSpellCheckEngine>
+
 #include <QtLanguageDetectorPlugin>
 #include <QtLanguageDetectorFactory>
 #include <QtLanguageDetector>
+
+#include <QtResource>
 
 class QtSpellCheckBackendInterface :
         public QtGenericInterface<QtSpellCheckBackendPlugin>
@@ -56,13 +61,28 @@ public:
 };
 QT_PLUGIN_INTERFACE(QtLanguageDetectorInterface)
 
+void setupApplication()
+{
+    QtResource appRc{ ":/application.json" };
+    const QJsonDocument document = appRc.toJsonDocument();
+    QCoreApplication::setOrganizationName(document["orgname"].toString());
+    QCoreApplication::setOrganizationDomain(document["orgdomain"].toString());
+    QCoreApplication::setApplicationName(document["name"].toString());
+    QCoreApplication::setApplicationVersion(document["version"].toString());
+}
+
 
 int main(int argc, char *argv[])
 {
+    setupApplication();
     QtPluginManager::instance().setAutoLoad(true);
 
     QApplication app(argc, argv);
-    QtLanguageDetector::setPreferred("CLD2");
+    QSettings settings;
+    QtLanguageDetector::setPreferred(settings.value("spellchecking/langdetect").toString());
+    QtSpellCheckEngine::instance().setPrefferedBackend(settings.value("spellchecking/backend").toString());
+    QtSpellCheckEngine::instance().start();
+
     Widget w;
     w.show();
 

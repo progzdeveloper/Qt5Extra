@@ -186,11 +186,20 @@ public:
     {
         auto& factoryInstance = QtSpellCheckBackendFactory::instance();
         if (!preferredBackend.isEmpty())
+        {
+            currentBackend = preferredBackend;
             backend.reset(factoryInstance.createBackend(preferredBackend));
+        }
         if (!backend)
+        {
+            currentBackend = factoryInstance.platformBackend();
             backend.reset(factoryInstance.createBackend(factoryInstance.platformBackend()));
+        }
         if (!backend)
+        {
+            currentBackend.clear();
             backend.reset(new QtSpellCheckBackend);
+        }
     }
 
     static void updateCache(MisspelledCache& cache, const QString& word)
@@ -335,6 +344,8 @@ QtSpellCheckEngine& QtSpellCheckEngine::instance()
 void QtSpellCheckEngine::setPrefferedBackend(const QString& backend)
 {
     d->preferredBackend = backend;
+    QMutexLocker locker(&d->mtx);
+    d->createBackend();
 }
 
 QString QtSpellCheckEngine::preferredBackend() const
@@ -345,6 +356,11 @@ QString QtSpellCheckEngine::preferredBackend() const
 QString QtSpellCheckEngine::backendName() const
 {
     return d->currentBackend;
+}
+
+QStringList QtSpellCheckEngine::supportedLanguages() const
+{
+    return d->backend ? d->backend->supportedLanguages() : QStringList{};
 }
 
 void QtSpellCheckEngine::spell(const QString& word, int offset, const QStringList& langs, QObject* receiver)

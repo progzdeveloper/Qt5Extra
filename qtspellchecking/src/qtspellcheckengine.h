@@ -33,6 +33,7 @@ public:
     QString preferredBackend() const;
 
     QString backendName() const;
+    QStringList supportedLanguages() const;
 
     void spell(const QString& word, int offset, const QStringList& langs = {}, QObject* receiver = nullptr);
     void requestSuggests(const QString& word, int count, const QStringList& langs = {}, QObject* receiver = nullptr);

@@ -1,8 +1,10 @@
 {
     "name": "Code Editor",
-    "description": "Qt Source Code Editor Example",
+    "orgname": "Qt5Extra",
+    "orgdomain": "Qt5Extra.Examples",
+    "description": "Qt5Extra Source Code Editor Example",
     "version": "1.0\n\n%SystemInfo%",
-    "copyright": "Qt5Extra Example 2019-2023(c)",
+    "copyright": "Qt5Extra Example 2019-2024(c)",
     "image": ":/images/logo.png",
     "license": ":/text/license"
 }

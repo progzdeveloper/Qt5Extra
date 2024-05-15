@@ -9,10 +9,14 @@ QtResource::QtResource(const QString &file, const QLocale &locale) :
 
 QString QtResource::toString() const
 {
-    QBuffer buf;
-    buffer(buf);
-    buf.open(QBuffer::ReadOnly);
-    return buf.readAll();
+    return QString::fromUtf8(reinterpret_cast<const char*>(this->data()), this->size());
+}
+
+QByteArray QtResource::toByteArray() const
+{
+    QByteArray ba;
+    ba.setRawData(reinterpret_cast<const char*>(this->data()), this->size());
+    return ba;
 }
 
 QStringList QtResource::toStringList() const
@@ -28,6 +32,11 @@ QStringList QtResource::toStringList() const
         strings << line;
     }
     return strings;
+}
+
+QJsonDocument QtResource::toJsonDocument(QJsonParseError *error) const
+{
+    return QJsonDocument::fromJson(toByteArray(), error);
 }
 
 void QtResource::buffer(QBuffer& buffer) const

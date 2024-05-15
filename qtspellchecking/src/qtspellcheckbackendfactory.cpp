@@ -22,8 +22,7 @@ QtSpellCheckBackendFactory::~QtSpellCheckBackendFactory()
 QString QtSpellCheckBackendFactory::platformBackend() const
 {
 #ifdef Q_OS_LINUX
-    //return "Hunspell";
-    return "Enchant";
+    return "Hunspell";
 #elif Q_OS_WIN
     return "Win32Spell";
 #elif Q_OS_MACOS

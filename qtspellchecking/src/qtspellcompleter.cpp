@@ -66,7 +66,7 @@ public:
     QKeySequence shortcut;
     QPoint menuPos;
     std::optional<Word> current;
-    int suggestsCount = 1;
+    int suggestsCount = 3;
     int tooltipDuration = 1000;
     bool enabled = true;
 
@@ -467,16 +467,15 @@ void QtSpellCompleter::embedActions(QMenu* menu,
         return;
 
     QList<QAction*> actionsList;
-    d->createSpellActions(actionsList, actions, word, menu);
-
-    if (!actionsList.isEmpty())
-        actionsList.append(d->createSeparator(menu));
-
-    for (const auto& suggest : suggests)
-        actionsList.append(d->createSuggestAction(suggest, menu));
-
     if (!suggests.isEmpty())
+    {
+        for (const auto& suggest : suggests)
+            actionsList.append(d->createSuggestAction(suggest, menu));
         actionsList.append(d->createSeparator(menu));
+    }
+
+    d->createSpellActions(actionsList, actions, word, menu);
+    actionsList.append(d->createSeparator(menu));
 
     const auto menuActs = menu->actions();
     menu->insertActions(menu->isEmpty() ? nullptr : menuActs.front(), actionsList);
