@@ -29,15 +29,15 @@ class QTLAYOUTSEXTRA_EXPORT GridPageLayout : public AnimatedLayout
 
 public:
     /*!
-         * \brief The GridFlow enum controls the grid size adjusting behavior
-         *
-         * \enum GridPageLayout::GridFlow
-         * \var StaticBoundedGrid Maximum number of visible rows and cols are static and fixed
-         * \var DynamicBoundedGrid Number of visible rows and cols are computed automatically,
-         * but can't be more than maximum, and less than minimum
-         * \var DynamicUnboundedGrid Number of visible rows and cols are computed automatically,
-         * it can't be less than minimum, but can grow infinitely
-         */
+     * \brief The GridFlow enum controls the grid size adjusting behavior
+     *
+     * \enum GridPageLayout::GridFlow
+     * \var StaticBoundedGrid Maximum number of visible rows and cols are static and fixed
+     * \var DynamicBoundedGrid Number of visible rows and cols are computed automatically,
+     * but can't be more than maximum, and less than minimum
+     * \var DynamicUnboundedGrid Number of visible rows and cols are computed automatically,
+     * it can't be less than minimum, but can grow infinitely
+     */
     enum GridFlow
     {
         StaticBoundedGrid,
@@ -47,13 +47,13 @@ public:
     Q_ENUM(GridFlow)
 
     /*!
-         * \brief The PageFillMode enum controls the remainder item appearance
-         *
-         * \enum GridPageLayout::PageFillMode
-         * \var AllowUnfilled Allow layout to leave empty items slots if page it not fully filled
-         * \var RetainFilled Use any suitable space by stretching or center items if page not fully filled
-         * \note The stretching or centering remainder items is controlled by the flow alignment property
-         */
+     * \brief The PageFillMode enum controls the remainder item appearance
+     *
+     * \enum GridPageLayout::PageFillMode
+     * \var AllowUnfilled Allow layout to leave empty items slots if page it not fully filled
+     * \var RetainFilled Use any suitable space by stretching or center items if page not fully filled
+     * \note The stretching or centering remainder items is controlled by the flow alignment property
+     */
     enum PageFillMode
     {
         AllowUnfilled,
@@ -69,13 +69,13 @@ public:
     };
 
     /*!
-         * \brief The AnimationFeature enum controls animation features
-         *
-         * \enum GridPageLayout::AnimationOption
-         * \var NoAnimation Disable any animations
-         * \var AnimateItemsReorder Animate reordering items on inserting/removing
-         * \var AnimatePageScroll Animate page scrolling on changing current page
-         */
+     * \brief The AnimationFeature enum controls animation features
+     *
+     * \enum GridPageLayout::AnimationOption
+     * \var NoAnimation Disable any animations
+     * \var AnimateItemsReorder Animate reordering items on inserting/removing
+     * \var AnimatePageScroll Animate page scrolling on changing current page
+     */
     enum AnimationFeature
     {
         NoAnimation = 0,
@@ -146,60 +146,60 @@ public:
     QSize minimumCellSize() const;
 
     /*!
-         * \brief Calculate item index based on given (row, column) pair.
-         * \note if page is -1 then current page is used, otherwise
-         * index of item on specified page is calculated
-         * \param row item row
-         * \param column item column
-         * \param page page number
-         * \return index of item in items array or -1 if index out of range
-         */
+     * \brief Calculate item index based on given (row, column) pair.
+     * \note if page is -1 then current page is used, otherwise
+     * index of item on specified page is calculated
+     * \param row item row
+     * \param column item column
+     * \param page page number
+     * \return index of item in items array or -1 if index out of range
+     */
     int itemIndex(int row, int column, int page = -1) const;
 
     /*!
-         * \brief Calculate page index based on given item index.
-         *
-         * \param index index of item
-         * \return page index contained specified item index
-         * or -1 if index is out of range
-         */
+     * \brief Calculate page index based on given item index.
+     *
+     * \param index index of item
+     * \return page index contained specified item index
+     * or -1 if index is out of range
+     */
     int itemPage(int index) const;
 
     /*!
-         * \brief Get the current number of items per page.
-         *
-         * \return number of items per page
-         */
+     * \brief Get the current number of items per page.
+     *
+     * \return number of items per page
+     */
     int itemsPerPage() const;
 
     /*!
-         * \brief Determine if there is next grid page available.
-         *
-         * \return true if next page is available, otherwise return false
-         */
+     * \brief Determine if there is next grid page available.
+     *
+     * \return true if next page is available, otherwise return false
+     */
     bool hasNext() const
     {
         const int n = pageCount();
         return (n > 0 ? (currentPage() < (n - 1)) : false);
     }
     /*!
-         * \brief Determine if there is previous grid page available.
-         *
-         * \return true if previous page is available, otherwise return false
-         */
+     * \brief Determine if there is previous grid page available.
+     *
+     * \return true if previous page is available, otherwise return false
+     */
     bool hasPrev() const { return currentPage() > 0; }
 
     /*!
-         * \brief Get total number of pages.
-         *
-         * \return total number of pages
-         */
+     * \brief Get total number of pages.
+     *
+     * \return total number of pages
+     */
     int pageCount() const;
     /*!
-         * \brief Get index of current grid page.
-         *
-         * \return current page index
-         */
+     * \brief Get index of current grid page.
+     *
+     * \return current page index
+     */
     int currentPage() const;
 
     // QLayout interface
@@ -230,34 +230,34 @@ public:
 
 public Q_SLOTS:
     /*!
-         * \brief Set the current page index to pageIndex.
-         */
+     * \brief Set the current page index to pageIndex.
+     */
     void setCurrentPage(int pageIndex);
     /*!
-         * \brief Move to next page if available.
-         */
+     * \brief Move to next page if available.
+     */
     void nextPage();
 
     /*!
-         * \brief Move to previous page if available.
-         */
+     * \brief Move to previous page if available.
+     */
     void prevPage();
 
     /*!
-         * \brief Ensures that specified item is visible.
-         * \details Scrolls the layout pages so that the item is visible inside
-         * the layout viewport. Does nothing if item is nullptr or doesn't belong
-         * to this layout
-         * \param item item to ensure visibility
-         */
+     * \brief Ensures that specified item is visible.
+     * \details Scrolls the layout pages so that the item is visible inside
+     * the layout viewport. Does nothing if item is nullptr or doesn't belong
+     * to this layout
+     * \param item item to ensure visibility
+     */
     void ensureItemVisible(QLayoutItem* item);
 
     /*!
-         * \brief Ensures that item with specified index is visible..
-         * \details Scrolls the layout pages so that the item is visible inside
-         * the layout viewport. Does nothing if index is out of range
-         * \param index index of item to ensure visibility
-         */
+     * \brief Ensures that item with specified index is visible..
+     * \details Scrolls the layout pages so that the item is visible inside
+     * the layout viewport. Does nothing if index is out of range
+     * \param index index of item to ensure visibility
+     */
     void ensureIndexVisible(int index);
 
 Q_SIGNALS:

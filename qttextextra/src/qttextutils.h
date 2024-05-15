@@ -16,4 +16,5 @@ namespace Qt5Extra
     QTTEXTEXTRA_EXPORT QChar::Script localeToScriptCode(const QString& locale) Q_DECL_NOTHROW;
     QTTEXTEXTRA_EXPORT QStringList systemLanguages(LangNameFormat format = LangNameFormat::LangFormat_Default);
     QTTEXTEXTRA_EXPORT QVector<QChar::Script> supportedScripts();
+    QTTEXTEXTRA_EXPORT bool isWordDelimiter(QChar c);
 }

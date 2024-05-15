@@ -229,6 +229,7 @@ int FlowLayout::heightForWidth(int width) const
 
 void FlowLayout::setGeometry(const QRect& rect)
 {
+    invalidate();
     QLayout::setGeometry(rect);
     d->doLayout(rect, FlowLayoutPrivate::Operation::Arrange);
 }

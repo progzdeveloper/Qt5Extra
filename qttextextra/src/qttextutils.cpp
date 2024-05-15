@@ -178,21 +178,6 @@ namespace
 
         return std::any_of(std::begin(list), std::end(list), [c](auto x){ return c == x; });
     }
-}
-
-
-namespace Qt5Extra
-{
-    QChar::Script localeToScriptCode(const QString& locale) Q_DECL_NOTHROW
-    {
-        const auto idx = std::max(locale.indexOf(u'_'), locale.indexOf(u'-'));
-        const auto subtag = idx >= 0 ? locale.left(idx) : locale;
-        for (auto x : localeScriptList)
-            if (subtag == x.subtag)
-                return x.script;
-
-        return QChar::Script_Common;
-    }
 
     QStringList systemLanguagesHumanReadable()
     {
@@ -234,6 +219,22 @@ namespace Qt5Extra
         }();
         return languages;
     }
+} // end anon namespace
+
+
+namespace Qt5Extra
+{
+    QChar::Script localeToScriptCode(const QString& locale) Q_DECL_NOTHROW
+    {
+        const auto idx = std::max(locale.indexOf(u'_'), locale.indexOf(u'-'));
+        const auto subtag = idx >= 0 ? locale.left(idx) : locale;
+        for (auto x : localeScriptList)
+            if (subtag == x.subtag)
+                return x.script;
+
+        return QChar::Script_Common;
+    }
+
 
     QStringList systemLanguages(LangNameFormat format)
     {
@@ -280,4 +281,9 @@ namespace Qt5Extra
 
         return scripts;
     }
-}
+
+    bool isWordDelimiter(QChar c)
+    {
+        return c.isSpace() || c.isMark() || c.isPunct() || c.isSymbol();
+    }
+} // end namespace Qt5Extra

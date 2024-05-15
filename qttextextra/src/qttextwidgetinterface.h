@@ -51,8 +51,6 @@ public:
 
     QMenu* createContextMenu() const;
 
-    static bool isWordDelimiter(QChar c);
-
 Q_SIGNALS:
     void textChanged();
 
@@ -70,6 +68,9 @@ private:
 
 struct QtTextWidgetInterface
 {
+    using Pointer = std::unique_ptr<QtTextWidgetInterface>;
+    using Creator = std::function<Pointer(QWidget*, QtTextControl*)>;
+
     virtual ~QtTextWidgetInterface() = default;
 
     virtual QWidget* object() const { return nullptr; }
@@ -93,8 +94,11 @@ struct QtTextWidgetInterface
     virtual QWidget* viewport() const { return nullptr; }
     virtual QMenu* createContextMenu() const { return nullptr; }
 
-    static inline bool isWordDelimiter(QChar c)
+    template<class _Widget>
+    static void registrateAdapter(const Creator& c)
     {
-        return c.isSpace() || c.isMark() || c.isPunct() || c.isSymbol();
+        registrateAdapter(_Widget::staticMetaObject, c);
     }
+
+    static void registrateAdapter(const QMetaObject* metaObject, const Creator& creator);
 };

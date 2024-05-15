@@ -14,21 +14,21 @@
 #include <iterator>
 #include <algorithm>
 
+#include <QtTextUtils>
 
 namespace Qt5ExtraInternals
 {
-
     template<
         class _Widget,
         bool _IsMultiLine = true
     >
-    class TextEditModel : public QtTextWidgetInterface
+    class TextEditAdapter : public QtTextWidgetInterface
     {
         //static_assert (, );
     public:
         using WidgetType = _Widget;
 
-        TextEditModel(_Widget* editor)
+        TextEditAdapter(_Widget* editor)
             : widget(editor)
         {}
 
@@ -120,13 +120,23 @@ namespace Qt5ExtraInternals
 
         QMenu* createContextMenu() const Q_DECL_OVERRIDE { return widget->createStandardContextMenu(); }
 
+        static QtTextWidgetInterface::Pointer create(QWidget* w, QtTextControl* ctrl)
+        {
+            using Adapter = TextEditAdapter<_Widget>;
+            _Widget* editor = qobject_cast<_Widget*>(w);
+            if (!editor)
+                return {};
+            QObject::connect(editor, &_Widget::textChanged, ctrl, &QtTextControl::textChanged);
+            return std::make_unique<Adapter>(editor);
+        }
+
     private:
         QPointer<_Widget> widget;
     };
 
 
     template<>
-    class TextEditModel<QLineEdit, true> : public QtTextWidgetInterface
+    class TextEditAdapter<QLineEdit, true> : public QtTextWidgetInterface
     {
         // required to get access to protected method QLineEdit::cursorRect()
         class _LineEdit : public QLineEdit
@@ -138,7 +148,7 @@ namespace Qt5ExtraInternals
     public:
         using WidgetType = QLineEdit;
 
-        TextEditModel(QLineEdit* edit)
+        TextEditAdapter(QLineEdit* edit)
             : widget(edit)
         {
             if (Q_LIKELY(edit != Q_NULLPTR))
@@ -184,8 +194,8 @@ namespace Qt5ExtraInternals
 
             position = std::clamp(position, 0, txt.size() - 1);
 
-            auto first = std::find_if(std::make_reverse_iterator(txt.begin() + position), txt.crend(), isWordDelimiter).base();
-            auto last = std::find_if(txt.cbegin() + position, txt.cend(), isWordDelimiter);
+            auto first = std::find_if(std::make_reverse_iterator(txt.begin() + position), txt.crend(), Qt5Extra::isWordDelimiter).base();
+            auto last = std::find_if(txt.cbegin() + position, txt.cend(), Qt5Extra::isWordDelimiter);
             offset = std::distance(txt.cbegin(), first);
             return txt.mid(offset, std::distance(first, last));
         }
@@ -193,6 +203,16 @@ namespace Qt5ExtraInternals
         QString text() const Q_DECL_OVERRIDE { return widget ? widget->text() : QString{}; }
 
         QMenu* createContextMenu() const Q_DECL_OVERRIDE { return widget ? widget->createStandardContextMenu() : nullptr; }
+
+        static QtTextWidgetInterface::Pointer create(QWidget* w, QtTextControl* ctrl)
+        {
+            using Adapter = TextEditAdapter<QLineEdit>;
+            QLineEdit* editor = qobject_cast<QLineEdit*>(w);
+            if (!editor)
+                return {};
+            QObject::connect(editor, &QLineEdit::textChanged, ctrl, &QtTextControl::textChanged);
+            return std::make_unique<Adapter>(editor);
+        }
 
     private:
         void updateLayout(const QString& text)
@@ -224,104 +244,82 @@ namespace Qt5ExtraInternals
         QPointer<QLineEdit> widget;
         QTextLayout textLayout;
     };
-} // end namespace Qt5ExtraInternals
 
-class TextWidgetConceptFactory final
-{
-    Q_DISABLE_COPY(TextWidgetConceptFactory)
-
-    struct CreatorBase
+    class TextWidgetFactory final
     {
-        virtual ~CreatorBase() = default;
-        virtual std::unique_ptr<QtTextWidgetInterface> create(QWidget* w, QtTextControl* iface) const = 0;
-    };
+        Q_DISABLE_COPY(TextWidgetFactory)
 
-    template<class _Model, class _Widget>
-    struct Creator : public CreatorBase
-    {
-        std::unique_ptr<QtTextWidgetInterface> create(QWidget* w, QtTextControl* iface) const Q_DECL_OVERRIDE
+        using QtTextWidgetInterfacePtr = QtTextWidgetInterface::Pointer;
+        using Creator = std::function<QtTextWidgetInterfacePtr(QWidget*, QtTextControl*)>;
+
+        struct Entry
         {
-            _Widget* editor = qobject_cast<_Widget*>(w);
-            if (!editor)
-                return {};
-            QObject::connect(editor, &_Widget::textChanged, iface, &QtTextControl::textChanged);
-            return std::make_unique<_Model>(editor);
+            const QMetaObject* metaObject = nullptr;
+            Creator creator;
+            Entry() = default;
+            Entry(const QMetaObject* mo, const Creator& c)
+                : metaObject(mo), creator(c)
+            {}
+        };
+
+        using CreatorsMap = QVarLengthArray<Entry, 4>;
+        using iterator = CreatorsMap::iterator;
+        using const_iterator = CreatorsMap::const_iterator;
+
+        TextWidgetFactory()
+        {
+            registrate(&QPlainTextEdit::staticMetaObject, &TextEditAdapter<QPlainTextEdit>::create);
+            registrate(&QTextEdit::staticMetaObject, &TextEditAdapter<QTextEdit>::create);
+            registrate(&QLineEdit::staticMetaObject, &TextEditAdapter<QLineEdit>::create);
         }
+
+    public:
+        void registrate(const QMetaObject* metaObject, const Creator& creator)
+        {
+            auto it = findCreator(metaObject);
+            if (it == creators.end())
+                creators.push_back(Entry{metaObject, creator});
+            else
+                it->creator = creator;
+        }
+
+        QtTextWidgetInterfacePtr create(QWidget* w, QtTextControl* iface) const
+        {
+            if (!w)
+                return {};
+
+            auto it = searchCreator(w->metaObject());
+            return (it == creators.end() ? QtTextWidgetInterfacePtr{} : (it->creator)(w, iface));
+        }
+
+        static TextWidgetFactory& instance()
+        {
+            static TextWidgetFactory gInst;
+            return gInst;
+        }
+
+    private:
+        iterator findCreator(const QMetaObject* metaObject)
+        {
+            if (!metaObject)
+                return creators.end();
+            return std::find_if(creators.begin(), creators.end(),
+                                [metaObject](const Entry& e) { return e.metaObject->inherits(metaObject); });
+        }
+
+        const_iterator searchCreator(const QMetaObject* metaObject) const
+        {
+            if (!metaObject)
+                return creators.end();
+            return std::find_if(creators.begin(), creators.end(),
+                                [metaObject](const Entry& e) { return metaObject->inherits(e.metaObject); });
+        }
+
+    private:
+        CreatorsMap creators;
     };
 
-    struct Entry
-    {
-        const QMetaObject* metaObject = nullptr;
-        std::unique_ptr<CreatorBase> creator;
-        Entry() = default;
-        Entry(const QMetaObject* mo, CreatorBase* c)
-            : metaObject(mo), creator(c)
-        {}
-    };
-
-    using CreatorsMap = QVarLengthArray<Entry, 4>;
-    using iterator = CreatorsMap::iterator;
-    using const_iterator = CreatorsMap::const_iterator;
-
-    TextWidgetConceptFactory()
-    {
-        registrate<Qt5ExtraInternals::TextEditModel<QPlainTextEdit>>();
-        registrate<Qt5ExtraInternals::TextEditModel<QTextEdit>>();
-        registrate<Qt5ExtraInternals::TextEditModel<QLineEdit>>();
-    }
-
-public:
-    template<class _Model>
-    void registrate()
-    {
-        using WidgetType = typename _Model::WidgetType;
-        registrate(&WidgetType::staticMetaObject, new Creator<_Model, WidgetType>);
-    }
-
-    std::unique_ptr<QtTextWidgetInterface> create(QWidget* w, QtTextControl* iface) const
-    {
-        if (!w)
-            return {};
-
-        auto it = searchCreator(w->metaObject());
-        return (it == creators.end() ? std::unique_ptr<QtTextWidgetInterface>{} : it->creator->create(w, iface));
-    }
-
-    static TextWidgetConceptFactory& instance()
-    {
-        static TextWidgetConceptFactory gInst;
-        return gInst;
-    }
-
-private:
-    void registrate(const QMetaObject* metaObject, CreatorBase* creator)
-    {
-        auto it = findCreator(metaObject);
-        if (it == creators.end())
-            creators.push_back({metaObject, creator});
-        else
-            it->creator.reset(creator);
-    }
-
-    iterator findCreator(const QMetaObject* metaObject)
-    {
-        if (!metaObject)
-            return creators.end();
-        return std::find_if(creators.begin(), creators.end(),
-                            [metaObject](const Entry& e) { return e.metaObject->inherits(metaObject); });
-    }
-
-    const_iterator searchCreator(const QMetaObject* metaObject) const
-    {
-        if (!metaObject)
-            return creators.end();
-        return std::find_if(creators.begin(), creators.end(),
-                            [metaObject](const Entry& e) { return metaObject->inherits(e.metaObject); });
-    }
-
-private:
-    CreatorsMap creators;
-};
+} // end namespace Qt5ExtraInternals
 
 
 QtTextControl::QtTextControl(QWidget* widget)
@@ -334,7 +332,7 @@ QtTextControl::~QtTextControl() = default;
 
 void QtTextControl::reset(QWidget* object)
 {
-    d = TextWidgetConceptFactory::instance().create(object, this);
+    d = Qt5ExtraInternals::TextWidgetFactory::instance().create(object, this);
 }
 
 QWidget* QtTextControl::viewport() const
@@ -412,4 +410,10 @@ QScrollBar* QtTextControl::scrollBar(Qt::Orientation orientation) const
 QMenu* QtTextControl::createContextMenu() const
 {
     return d ? d->createContextMenu() : nullptr;
+}
+
+
+void QtTextWidgetInterface::registrateAdapter(const QMetaObject *metaObject, const Creator &creator)
+{
+    Qt5ExtraInternals::TextWidgetFactory::instance().registrate(metaObject, creator);
 }
