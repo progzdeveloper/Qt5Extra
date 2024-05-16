@@ -111,6 +111,15 @@ namespace
     }
 }
 
+QRect adjustedRect(const QRect& source, const QRect& bounds, const AdjustOption& option) Q_DECL_NOTHROW
+{
+    return adjustedRectangle(source, bounds, option);
+}
+
+QRectF adjustedRect(const QRectF& source, const QRectF& bounds, const AdjustOption& option) Q_DECL_NOTHROW
+{
+    return adjustedRectangle(source, bounds, option);
+}
 
 QRect alignedRect(const QRect& source, const QRect& bounds, Qt::Alignment alignment) Q_DECL_NOTHROW
 {
@@ -121,6 +130,7 @@ QRectF alignedRect(const QRectF& source, const QRectF& bounds, Qt::Alignment ali
 {
     return alignedRectangle(source, bounds, alignment);
 }
+
 
 Qt::Alignment quadrant(const QPoint& center, const QPoint& pos) Q_DECL_NOTHROW
 {

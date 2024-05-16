@@ -4,13 +4,13 @@
 
 #include <QtLayoutsExtra>
 
-class QTLAYOUTSEXTRA_EXPORT FlowLayout : public QLayout
+class QTLAYOUTSEXTRA_EXPORT QtFlowLayout : public QLayout
 {
     Q_OBJECT
 public:
-    explicit FlowLayout(QWidget* parent, int margin = -1, int hSpacing = -1, int vSpacing = -1);
-    explicit FlowLayout(int margin = -1, int hSpacing = -1, int vSpacing = -1);
-    ~FlowLayout();
+    explicit QtFlowLayout(QWidget* parent, int margin = -1, int hSpacing = -1, int vSpacing = -1);
+    explicit QtFlowLayout(int margin = -1, int hSpacing = -1, int vSpacing = -1);
+    ~QtFlowLayout();
 
     void setInnerAlignment(Qt::Alignment horAlign);
     Qt::Alignment innerAlignment() const;
@@ -32,6 +32,6 @@ public:
     QSize sizeHint() const Q_DECL_OVERRIDE;
 
 private:
-    QScopedPointer<class FlowLayoutPrivate> d;
+    QScopedPointer<class QtFlowLayoutPrivate> d;
 };
 

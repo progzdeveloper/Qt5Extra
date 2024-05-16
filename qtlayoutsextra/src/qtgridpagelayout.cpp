@@ -1,6 +1,6 @@
-#include "gridpagelayout.h"
-#include "gridpagelayout_p.h"
-#include "layoututils.h"
+#include "qtgridpagelayout.h"
+#include "qtgridpagelayout_p.h"
+#include "qtlayoututils.h"
 #include "layoutinternals.h"
 #include <QtGeometryAlgorithms>
 #include <QtObjectWatcher>
@@ -16,7 +16,7 @@
 
 #include <QVarLengthArray>
 
-class GridPageLayoutPrivate
+class QtGridPageLayoutPrivate
         : public Qt5ExtraInternals::LayoutAssistant
         , public Qt5ExtraInternals::GridOptions
 {
@@ -61,12 +61,12 @@ public:
     }
 
 
-    GridPageLayoutPrivate(GridPageLayout* layout)
+    QtGridPageLayoutPrivate(QtGridPageLayout* layout)
         : LayoutAssistant(layout)
         , q(layout)
     {}
 
-    ~GridPageLayoutPrivate()
+    ~QtGridPageLayoutPrivate()
     {
         qDeleteAll(items);
     }
@@ -324,8 +324,8 @@ public:
         }
     }
 
-    GridPageLayout* q = nullptr;
-    GridPageLayout::AdjustOptions adjustOptions;
+    QtGridPageLayout* q = nullptr;
+    QtGridPageLayout::AdjustOptions adjustOptions;
     ItemsMap items;
     AnimationSet animations;
     QSize cachedMinSize, cachedMaxSize, cachedSizeHint;
@@ -334,17 +334,17 @@ public:
 };
 
 
-GridPageLayout::GridPageLayout(QWidget* widget)
-    : AnimatedLayout(widget)
-    , d(new GridPageLayoutPrivate(this))
+QtGridPageLayout::QtGridPageLayout(QWidget* widget)
+    : QtAnimatedLayout(widget)
+    , d(new QtGridPageLayoutPrivate(this))
 {
     setAlignment(Qt::AlignCenter);
     setAnimated(d->animationFeatures != NoAnimation);
 }
 
-GridPageLayout::~GridPageLayout() = default;
+QtGridPageLayout::~QtGridPageLayout() = default;
 
-void GridPageLayout::setAspectRatio(double ratio)
+void QtGridPageLayout::setAspectRatio(double ratio)
 {
     ratio = std::max(0.0, ratio);
     if (d->aspectRatio == ratio)
@@ -355,12 +355,12 @@ void GridPageLayout::setAspectRatio(double ratio)
     invalidate();
 }
 
-double GridPageLayout::aspectRatio() const
+double QtGridPageLayout::aspectRatio() const
 {
     return d->aspectRatio;
 }
 
-void GridPageLayout::setFlowAlignment(Qt::Alignment alignment)
+void QtGridPageLayout::setFlowAlignment(Qt::Alignment alignment)
 {
     if (d->flowAlign == alignment)
         return;
@@ -370,12 +370,12 @@ void GridPageLayout::setFlowAlignment(Qt::Alignment alignment)
     invalidate();
 }
 
-Qt::Alignment GridPageLayout::flowAlignment() const
+Qt::Alignment QtGridPageLayout::flowAlignment() const
 {
     return d->flowAlign;
 }
 
-void GridPageLayout::setGridFlow(GridPageLayout::GridFlow type)
+void QtGridPageLayout::setGridFlow(QtGridPageLayout::GridFlow type)
 {
     if (d->flowKind == type)
         return;
@@ -388,12 +388,12 @@ void GridPageLayout::setGridFlow(GridPageLayout::GridFlow type)
     invalidate();
 }
 
-GridPageLayout::GridFlow GridPageLayout::gridFlow() const
+QtGridPageLayout::GridFlow QtGridPageLayout::gridFlow() const
 {
     return d->flowKind;
 }
 
-void GridPageLayout::setFillMode(GridPageLayout::PageFillMode mode)
+void QtGridPageLayout::setFillMode(QtGridPageLayout::PageFillMode mode)
 {
     if (d->fillMode == mode)
         return;
@@ -403,12 +403,12 @@ void GridPageLayout::setFillMode(GridPageLayout::PageFillMode mode)
     invalidate();
 }
 
-GridPageLayout::PageFillMode GridPageLayout::fillMode() const
+QtGridPageLayout::PageFillMode QtGridPageLayout::fillMode() const
 {
     return d->fillMode;
 }
 
-void GridPageLayout::setAnimationFeatures(GridPageLayout::AnimationFeatures features)
+void QtGridPageLayout::setAnimationFeatures(QtGridPageLayout::AnimationFeatures features)
 {
     if (d->animationFeatures == features)
         return;
@@ -417,24 +417,24 @@ void GridPageLayout::setAnimationFeatures(GridPageLayout::AnimationFeatures feat
     setAnimated(features != NoAnimation);
 }
 
-GridPageLayout::AnimationFeatures GridPageLayout::animationFeatures() const
+QtGridPageLayout::AnimationFeatures QtGridPageLayout::animationFeatures() const
 {
     return d->animationFeatures;
 }
 
-void GridPageLayout::setAdjustOptions(const GridPageLayout::AdjustOptions& options)
+void QtGridPageLayout::setAdjustOptions(const QtGridPageLayout::AdjustOptions& options)
 {
     d->adjustOptions = options;
     d->adjustOptions.minAdjustingItemCount = std::max(0, options.minAdjustingItemCount);
     d->adjustOptions.itemCountTolerance = std::clamp(options.itemCountTolerance, 0, d->adjustOptions.minAdjustingItemCount);
 }
 
-const GridPageLayout::AdjustOptions& GridPageLayout::adjustOptions() const
+const QtGridPageLayout::AdjustOptions& QtGridPageLayout::adjustOptions() const
 {
     return d->adjustOptions;
 }
 
-int GridPageLayout::rowCount(int page) const
+int QtGridPageLayout::rowCount(int page) const
 {
     page = page < 0 ? d->currentPage : page;
     const auto range = d->makeRange(page, d->itemsPerPage());
@@ -443,7 +443,7 @@ int GridPageLayout::rowCount(int page) const
     return (n == 0 ? 0 : std::clamp(n, 1, r));
 }
 
-int GridPageLayout::columnCount(int page) const
+int QtGridPageLayout::columnCount(int page) const
 {
     page = page < 0 ? d->currentPage : page;
     const auto range = d->makeRange(page, d->itemsPerPage());
@@ -452,7 +452,7 @@ int GridPageLayout::columnCount(int page) const
     return (n == 0 ? 0 : std::clamp(n, m, d->currSize.cols));
 }
 
-void GridPageLayout::setMaxColumnCount(int n)
+void QtGridPageLayout::setMaxColumnCount(int n)
 {
     n = std::max(1, n);
     if (n == d->maxSize.cols)
@@ -468,12 +468,12 @@ void GridPageLayout::setMaxColumnCount(int n)
     invalidate();
 }
 
-int GridPageLayout::maxColumnCount() const
+int QtGridPageLayout::maxColumnCount() const
 {
     return d->maxSize.cols;
 }
 
-void GridPageLayout::setMinColumnCount(int n)
+void QtGridPageLayout::setMinColumnCount(int n)
 {
     n = std::max(1, n);
     if (n == d->minSize.cols)
@@ -489,12 +489,12 @@ void GridPageLayout::setMinColumnCount(int n)
     invalidate();
 }
 
-int GridPageLayout::minColumnCount() const
+int QtGridPageLayout::minColumnCount() const
 {
     return d->minSize.cols;
 }
 
-void GridPageLayout::setMaxRowCount(int n)
+void QtGridPageLayout::setMaxRowCount(int n)
 {
     n = std::max(1, n);
     if (n == d->maxSize.rows)
@@ -510,12 +510,12 @@ void GridPageLayout::setMaxRowCount(int n)
     invalidate();
 }
 
-int GridPageLayout::maxRowCount() const
+int QtGridPageLayout::maxRowCount() const
 {
     return d->maxSize.rows;
 }
 
-void GridPageLayout::setMinRowCount(int n)
+void QtGridPageLayout::setMinRowCount(int n)
 {
     n = std::max(1, n);
     if (n == d->minSize.rows)
@@ -531,17 +531,17 @@ void GridPageLayout::setMinRowCount(int n)
     invalidate();
 }
 
-int GridPageLayout::minRowCount() const
+int QtGridPageLayout::minRowCount() const
 {
     return d->minSize.rows;
 }
 
-bool GridPageLayout::isFixedSize() const
+bool QtGridPageLayout::isFixedSize() const
 {
     return d->isFixedSize();
 }
 
-void GridPageLayout::setMinimumCellSize(const QSize& s)
+void QtGridPageLayout::setMinimumCellSize(const QSize& s)
 {
     if (d->minCellSize == s)
         return;
@@ -551,12 +551,12 @@ void GridPageLayout::setMinimumCellSize(const QSize& s)
     invalidate();
 }
 
-QSize GridPageLayout::minimumCellSize() const
+QSize QtGridPageLayout::minimumCellSize() const
 {
     return d->minCellSize;
 }
 
-int GridPageLayout::itemIndex(int row, int column, int page) const
+int QtGridPageLayout::itemIndex(int row, int column, int page) const
 {
     if (page < 0)
         page = d->currentPage;
@@ -568,22 +568,22 @@ int GridPageLayout::itemIndex(int row, int column, int page) const
     return static_cast<int>(index);
 }
 
-int GridPageLayout::itemPage(int index) const
+int QtGridPageLayout::itemPage(int index) const
 {
     return index / d->itemsPerPage();
 }
 
-int GridPageLayout::itemsPerPage() const
+int QtGridPageLayout::itemsPerPage() const
 {
     return d->itemsPerPage();
 }
 
-int GridPageLayout::count() const
+int QtGridPageLayout::count() const
 {
     return static_cast<int>(d->items.size());
 }
 
-int GridPageLayout::addWidget(QWidget* widget)
+int QtGridPageLayout::addWidget(QWidget* widget)
 {
     if (!d->checkWidget(widget))
         return -1;
@@ -592,7 +592,7 @@ int GridPageLayout::addWidget(QWidget* widget)
     return static_cast<int>(d->items.size());
 }
 
-void GridPageLayout::addItem(QLayoutItem* item)
+void QtGridPageLayout::addItem(QLayoutItem* item)
 {
     if (!d->checkItem(item))
         return;
@@ -608,7 +608,7 @@ void GridPageLayout::addItem(QLayoutItem* item)
         Q_EMIT pageCountChanged(n);
 }
 
-QLayoutItem* GridPageLayout::itemAt(int i) const
+QLayoutItem* QtGridPageLayout::itemAt(int i) const
 {
     if (i < 0 || i >= static_cast<int>(d->items.size()))
         return nullptr;
@@ -616,7 +616,7 @@ QLayoutItem* GridPageLayout::itemAt(int i) const
     return d->items[i];
 }
 
-QLayoutItem* GridPageLayout::takeAt(int i)
+QLayoutItem* QtGridPageLayout::takeAt(int i)
 {
     if ((i < 0 || i >= static_cast<int>(d->items.size())) || d->currSize.count() == 0)
         return Q_NULLPTR;
@@ -641,7 +641,7 @@ QLayoutItem* GridPageLayout::takeAt(int i)
     return retval;
 }
 
-void GridPageLayout::setExpandingDirections(Qt::Orientations directoins)
+void QtGridPageLayout::setExpandingDirections(Qt::Orientations directoins)
 {
     if (d->expandingDirections == directoins)
         return;
@@ -650,22 +650,22 @@ void GridPageLayout::setExpandingDirections(Qt::Orientations directoins)
     invalidate();
 }
 
-Qt::Orientations GridPageLayout::expandingDirections() const
+Qt::Orientations QtGridPageLayout::expandingDirections() const
 {
     return d->expandingDirections;
 }
 
-bool GridPageLayout::hasHeightForWidth() const
+bool QtGridPageLayout::hasHeightForWidth() const
 {
     return d->aspectRatio != 0.0;
 }
 
-int GridPageLayout::heightForWidth(int width) const
+int QtGridPageLayout::heightForWidth(int width) const
 {
     return d->aspectRatio != 0.0 ? (width * d->aspectRatio) : QLayout::heightForWidth(width);
 }
 
-void GridPageLayout::setGeometry(const QRect& rect)
+void QtGridPageLayout::setGeometry(const QRect& rect)
 {
     if (geometry() == rect)
         return;
@@ -692,7 +692,7 @@ void GridPageLayout::setGeometry(const QRect& rect)
     d->doLayout(r, d->currentPage);
 }
 
-QSize GridPageLayout::maximumSize() const
+QSize QtGridPageLayout::maximumSize() const
 {
     if (d->cachedMaxSize.isValid())
         return d->cachedMaxSize;
@@ -701,7 +701,7 @@ QSize GridPageLayout::maximumSize() const
     return d->cachedMaxSize;
 }
 
-QSize GridPageLayout::minimumSize() const
+QSize QtGridPageLayout::minimumSize() const
 {
     if (d->cachedMinSize.isValid())
         return d->cachedMinSize;
@@ -717,7 +717,7 @@ QSize GridPageLayout::minimumSize() const
     return d->cachedMinSize;
 }
 
-QSize GridPageLayout::sizeHint() const
+QSize QtGridPageLayout::sizeHint() const
 {
     if (d->cachedSizeHint.isValid())
         return d->cachedSizeHint;
@@ -729,7 +729,7 @@ QSize GridPageLayout::sizeHint() const
     return d->cachedSizeHint;
 }
 
-void GridPageLayout::invalidate()
+void QtGridPageLayout::invalidate()
 {
     d->cachedMinSize = QSize{};
     d->cachedMaxSize = QSize{};
@@ -737,7 +737,7 @@ void GridPageLayout::invalidate()
     QLayout::invalidate();
 }
 
-int GridPageLayout::pageCount() const
+int QtGridPageLayout::pageCount() const
 {
     const int n = static_cast<int>(d->items.size());
     if (d->currSize.isEmpty() || n == 0)
@@ -747,12 +747,12 @@ int GridPageLayout::pageCount() const
     return std::clamp(n, 1, m);
 }
 
-int GridPageLayout::currentPage() const
+int QtGridPageLayout::currentPage() const
 {
     return d->currentPage;
 }
 
-void GridPageLayout::setCurrentPage(int pageIndex)
+void QtGridPageLayout::setCurrentPage(int pageIndex)
 {
     constexpr int kRectCachePrealloc = 32;
 
@@ -821,7 +821,7 @@ void GridPageLayout::setCurrentPage(int pageIndex)
     Q_EMIT updateRequired();
 }
 
-void GridPageLayout::nextPage()
+void QtGridPageLayout::nextPage()
 {
     if (d->currentPage < 0 || d->currentPage == (pageCount() - 1))
         return;
@@ -830,7 +830,7 @@ void GridPageLayout::nextPage()
     setCurrentPage(++index);
 }
 
-void GridPageLayout::prevPage()
+void QtGridPageLayout::prevPage()
 {
     if (d->currentPage <= 0)
         return;
@@ -839,24 +839,24 @@ void GridPageLayout::prevPage()
     setCurrentPage(--index);
 }
 
-void GridPageLayout::ensureItemVisible(QLayoutItem* item)
+void QtGridPageLayout::ensureItemVisible(QLayoutItem* item)
 {
     ensureIndexVisible(indexOf(item));
 }
 
-void GridPageLayout::ensureIndexVisible(int index)
+void QtGridPageLayout::ensureIndexVisible(int index)
 {
     if (index >= 0 && index < count())
         setCurrentPage(itemPage(index));
 }
 
-QAbstractAnimation* GridPageLayout::createAnimation(QLayout* parent, QLayoutItem* item, const QRect& geometry, const QRect& target) const
+QAbstractAnimation* QtGridPageLayout::createAnimation(QLayout* parent, QLayoutItem* item, const QRect& geometry, const QRect& target) const
 {
     constexpr const char* kPropertyName = "layoutItem";
 
     // stop and remove any animations for item, since only one animation can be active at time
     d->removeAnimation(item, kPropertyName);
-    QAbstractAnimation* animation = createItemAnimation<&GridPageLayout::updateRequired>(parent, item, geometry, target, animationOptions());
+    QAbstractAnimation* animation = createItemAnimation<&QtGridPageLayout::updateRequired>(parent, item, geometry, target, animationOptions());
     if (animation)
         d->emplaceAnimation(animation, kPropertyName, item);
 

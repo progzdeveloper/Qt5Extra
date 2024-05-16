@@ -10,8 +10,7 @@
 //
 
 #pragma once
-#include "gridpagelayout.h"
-//#include "../common.shared/tools/iterator_traits.h"
+#include "qtgridpagelayout.h"
 
 namespace Qt5ExtraInternals
 {
@@ -140,10 +139,10 @@ namespace Qt5ExtraInternals
      */
     struct GridOptions
     {
-        using GridFlow = GridPageLayout::GridFlow;
-        using FillMode = GridPageLayout::PageFillMode;
-        using AnimationFeature = GridPageLayout::AnimationFeature;
-        using AnimationFeatures = GridPageLayout::AnimationFeatures;
+        using GridFlow = QtGridPageLayout::GridFlow;
+        using FillMode = QtGridPageLayout::PageFillMode;
+        using AnimationFeature = QtGridPageLayout::AnimationFeature;
+        using AnimationFeatures = QtGridPageLayout::AnimationFeatures;
 
         /*!
          * \brief adjustGrid adjust rows and cols of grid to cover
@@ -154,7 +153,7 @@ namespace Qt5ExtraInternals
          * \param spacing spacing between items
          * \return adjusted grid size
          */
-        GridSize adjustGrid(size_t count, const QSize& size, GridPageLayout* layout) const;
+        GridSize adjustGrid(size_t count, const QSize& size, QtGridPageLayout* layout) const;
 
         /*!
          * \brief Return maximum grid size of minimal cell size

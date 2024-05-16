@@ -1,5 +1,5 @@
-#include "aspectratiolayout.h"
-#include "gridpagelayout.h"
+#include "qtaspectratiolayout.h"
+#include "qtgridpagelayout.h"
 #include "layoutinternals.h"
 
 #include <QGridLayout>
@@ -11,7 +11,7 @@
 #include <cmath>
 
 
-class AspectRatioLayoutPrivate
+class QtAspectRatioLayoutPrivate
         : public Qt5ExtraInternals::LayoutAssistant
 {
 public:
@@ -20,7 +20,7 @@ public:
     double aspectRatio_ = 1.0;
     std::unique_ptr<QLayoutItem> item_; // at most one
 
-    AspectRatioLayoutPrivate(QLayout* layout, double ratio)
+    QtAspectRatioLayoutPrivate(QLayout* layout, double ratio)
         : LayoutAssistant(layout)
         , aspectRatio_(std::max(ratio, kMinAspectRatio))
     {}
@@ -62,7 +62,7 @@ public:
         }
     }
 
-    void adjustToGrid(const QRect& r, const GridPageLayout* layout, int& h, int& w) const
+    void adjustToGrid(const QRect& r, const QtGridPageLayout* layout, int& h, int& w) const
     {
         if (layout->count() == 1)
             return;
@@ -86,15 +86,15 @@ public:
     }
 };
 
-AspectRatioLayout::AspectRatioLayout(QWidget* parent, double ratio)
-    : AnimatedLayout(parent)
-    , d(new AspectRatioLayoutPrivate(this, ratio))
+QtAspectRatioLayout::QtAspectRatioLayout(QWidget* parent, double ratio)
+    : QtAnimatedLayout(parent)
+    , d(new QtAspectRatioLayoutPrivate(this, ratio))
 {
 }
 
-AspectRatioLayout::~AspectRatioLayout() = default;
+QtAspectRatioLayout::~QtAspectRatioLayout() = default;
 
-void AspectRatioLayout::setAspectRatio(double value)
+void QtAspectRatioLayout::setAspectRatio(double value)
 {
     value = std::max(value, d->kMinAspectRatio);
     if (qFuzzyCompare(value, d->aspectRatio_))
@@ -107,37 +107,37 @@ void AspectRatioLayout::setAspectRatio(double value)
     activate();
 }
 
-double AspectRatioLayout::aspectRatio() const
+double QtAspectRatioLayout::aspectRatio() const
 {
     return d->aspectRatio_;
 }
 
-int AspectRatioLayout::count() const
+int QtAspectRatioLayout::count() const
 {
     return static_cast<int>(d->item_ != nullptr);
 }
 
-QLayoutItem* AspectRatioLayout::itemAt(int index) const
+QLayoutItem* QtAspectRatioLayout::itemAt(int index) const
 {
     return index == 0 ? d->item_.get() : nullptr;
 }
 
-QLayoutItem* AspectRatioLayout::takeAt(int)
+QLayoutItem* QtAspectRatioLayout::takeAt(int)
 {
     return d->item_.release();
 }
 
-Qt::Orientations AspectRatioLayout::expandingDirections() const
+Qt::Orientations QtAspectRatioLayout::expandingDirections() const
 {
     return  Qt::Horizontal | Qt::Vertical; // we'd like grow beyond sizeHint() in both directions
 }
 
-bool AspectRatioLayout::hasHeightForWidth() const
+bool QtAspectRatioLayout::hasHeightForWidth() const
 {
     return true;
 }
 
-int AspectRatioLayout::heightForWidth(int width) const
+int QtAspectRatioLayout::heightForWidth(int width) const
 {
     if (!d->isMinMaxContraint(sizeConstraint()) || !geometry().isValid())
         return d->scaled(width);
@@ -149,7 +149,7 @@ int AspectRatioLayout::heightForWidth(int width) const
     return std::min(h, d->item_->minimumSize().height());
 }
 
-QRect AspectRatioLayout::effectiveRect(const QRect& rect, QLayout* hint) const
+QRect QtAspectRatioLayout::effectiveRect(const QRect& rect, QLayout* hint) const
 {
     const QRect r = rect.marginsRemoved(contentsMargins());
     int w = r.width();
@@ -158,7 +158,7 @@ QRect AspectRatioLayout::effectiveRect(const QRect& rect, QLayout* hint) const
     {
         if (QGridLayout* grid = qobject_cast<QGridLayout*>(hint))
             d->adjustToGrid(r, grid, h, w);
-        else if (GridPageLayout* customGrid = qobject_cast<GridPageLayout*>(hint))
+        else if (QtGridPageLayout* customGrid = qobject_cast<QtGridPageLayout*>(hint))
             d->adjustToGrid(r, customGrid, h, w);
     }
     if (h > r.height())
@@ -172,7 +172,7 @@ QRect AspectRatioLayout::effectiveRect(const QRect& rect, QLayout* hint) const
     return rc;
 }
 
-void AspectRatioLayout::setGeometry(const QRect& rect)
+void QtAspectRatioLayout::setGeometry(const QRect& rect)
 {
     if (!d->item_)
         return;
@@ -182,29 +182,29 @@ void AspectRatioLayout::setGeometry(const QRect& rect)
     d->item_->setGeometry(rc);
 }
 
-QSize AspectRatioLayout::sizeHint() const
+QSize QtAspectRatioLayout::sizeHint() const
 {
     const QSize size = marginsSize(contentsMargins());
     return d->item_ ? d->item_->sizeHint() + size : size;
 }
 
-QSize AspectRatioLayout::minimumSize() const
+QSize QtAspectRatioLayout::minimumSize() const
 {
     const QSize size = marginsSize(contentsMargins());
     return d->item_ ? d->item_->minimumSize() + size : size;
 }
 
-QSize AspectRatioLayout::maximumSize() const
+QSize QtAspectRatioLayout::maximumSize() const
 {
     return (d->isMinMaxContraint(sizeConstraint()) && d->item_) ? d->item_->maximumSize() : QLayout::maximumSize();
 }
 
-void AspectRatioLayout::setLayout(QLayout* layout, Qt::Alignment alignment)
+void QtAspectRatioLayout::setLayout(QLayout* layout, Qt::Alignment alignment)
 {
     setItem(layout, alignment);
 }
 
-void AspectRatioLayout::setWidget(QWidget* widget, Qt::Alignment alignment)
+void QtAspectRatioLayout::setWidget(QWidget* widget, Qt::Alignment alignment)
 {
     if (!d->checkWidget(widget))
         return;
@@ -213,7 +213,7 @@ void AspectRatioLayout::setWidget(QWidget* widget, Qt::Alignment alignment)
     setItem(d->createWidgetItem(widget), alignment);
 }
 
-void AspectRatioLayout::setItem(QLayoutItem* item, Qt::Alignment alignment)
+void QtAspectRatioLayout::setItem(QLayoutItem* item, Qt::Alignment alignment)
 {
     if (!d->checkItem(item))
         return;
@@ -229,7 +229,7 @@ void AspectRatioLayout::setItem(QLayoutItem* item, Qt::Alignment alignment)
     activate();
 }
 
-void AspectRatioLayout::addItem(QLayoutItem* item)
+void QtAspectRatioLayout::addItem(QLayoutItem* item)
 {
     d->item_.reset(item);
     if (item)

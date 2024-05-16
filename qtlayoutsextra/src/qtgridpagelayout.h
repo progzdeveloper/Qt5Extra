@@ -1,9 +1,8 @@
 #pragma once
-#include "animatedlayout.h"
-
+#include <QtAnimatedLayout>
 #include <QtLayoutsExtra>
 
-class QTLAYOUTSEXTRA_EXPORT GridPageLayout : public AnimatedLayout
+class QTLAYOUTSEXTRA_EXPORT QtGridPageLayout : public QtAnimatedLayout
 {
     Q_OBJECT
 
@@ -85,9 +84,9 @@ public:
     Q_DECLARE_FLAGS(AnimationFeatures, AnimationFeature)
     Q_FLAG(AnimationFeatures)
 
-    explicit GridPageLayout(QWidget* parent = nullptr);
+    explicit QtGridPageLayout(QWidget* parent = nullptr);
 
-    ~GridPageLayout();
+    ~QtGridPageLayout();
 
     void setAspectRatio(double ratio);
     double aspectRatio() const;
@@ -263,8 +262,8 @@ public Q_SLOTS:
 Q_SIGNALS:
     void aspectRatioChanged(double);
     void flowAlignmentChanged(Qt::Alignment);
-    void gridFlowChanged(GridPageLayout::GridFlow);
-    void fillModeChanged(GridPageLayout::PageFillMode);
+    void gridFlowChanged(QtGridPageLayout::GridFlow);
+    void fillModeChanged(QtGridPageLayout::PageFillMode);
 
     void minimumCellSizeChanged(const QSize&);
     void minRowCountChanged(int);
@@ -281,10 +280,10 @@ protected:
     QAbstractAnimation* createAnimation(QLayout* parent, QLayoutItem* item, const QRect& geometry, const QRect& target) const Q_DECL_OVERRIDE;
 
 private:
-    using AnimatedLayout::setAnimated;
+    using QtAnimatedLayout::setAnimated;
 
 private:
-    friend class GridPageLayoutPrivate;
-    QScopedPointer<class GridPageLayoutPrivate> d;
+    friend class QtGridPageLayoutPrivate;
+    QScopedPointer<class QtGridPageLayoutPrivate> d;
 };
-Q_DECLARE_OPERATORS_FOR_FLAGS(GridPageLayout::AnimationFeatures)
+Q_DECLARE_OPERATORS_FOR_FLAGS(QtGridPageLayout::AnimationFeatures)

@@ -7,7 +7,7 @@ class QAbstractAnimation;
 
 struct LayoutItemAnimationOptions;
 
-class QTLAYOUTSEXTRA_EXPORT AnimatedLayout : public QLayout
+class QTLAYOUTSEXTRA_EXPORT QtAnimatedLayout : public QLayout
 {
     Q_OBJECT
 
@@ -16,8 +16,8 @@ class QTLAYOUTSEXTRA_EXPORT AnimatedLayout : public QLayout
     Q_PROPERTY(QMargins minimizationMargins READ minimizationMargins WRITE setMinimizationMargins)
 
 public:
-    explicit AnimatedLayout(QWidget* widget = nullptr);
-    ~AnimatedLayout();
+    explicit QtAnimatedLayout(QWidget* widget = nullptr);
+    ~QtAnimatedLayout();
 
     void setAnimated(bool on);
     bool isAnimated() const;
@@ -45,6 +45,6 @@ protected:
     const LayoutItemAnimationOptions& animationOptions() const;
 
 private:
-    QScopedPointer<class AnimatedLayoutPrivate> d;
+    QScopedPointer<class QtAnimatedLayoutPrivate> d;
 };
 

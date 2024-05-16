@@ -1,5 +1,5 @@
-#include "animatedlayout.h"
-#include "layoututils.h"
+#include "qtanimatedlayout.h"
+#include "qtlayoututils.h"
 
 #include <QWidget>
 #include <QApplication>
@@ -7,7 +7,7 @@
 #include <QScopedValueRollback>
 
 
-class AnimatedLayoutPrivate
+class QtAnimatedLayoutPrivate
 {
 public:
     LayoutItemAnimationOptions options_;
@@ -16,15 +16,15 @@ public:
 };
 
 
-AnimatedLayout::AnimatedLayout(QWidget* widget)
+QtAnimatedLayout::QtAnimatedLayout(QWidget* widget)
     : QLayout(widget)
-    , d(new AnimatedLayoutPrivate)
+    , d(new QtAnimatedLayoutPrivate)
 {
 }
 
-AnimatedLayout::~AnimatedLayout() = default;
+QtAnimatedLayout::~QtAnimatedLayout() = default;
 
-void AnimatedLayout::setAnimated(bool on)
+void QtAnimatedLayout::setAnimated(bool on)
 {
     d->animationEnabled_ = on;
     d->animationAllowed_ = on;
@@ -34,64 +34,64 @@ void AnimatedLayout::setAnimated(bool on)
         qApp->removeEventFilter(this);
 }
 
-bool AnimatedLayout::isAnimated() const
+bool QtAnimatedLayout::isAnimated() const
 {
     return d->animationEnabled_;
 }
 
-bool AnimatedLayout::isAnimationAllowed() const
+bool QtAnimatedLayout::isAnimationAllowed() const
 {
     return d->animationAllowed_;
 }
 
-void AnimatedLayout::setMinimizationMargins(const QMargins& margins)
+void QtAnimatedLayout::setMinimizationMargins(const QMargins& margins)
 {
     d->options_.margins = margins;
 }
 
-QMargins AnimatedLayout::minimizationMargins() const
+QMargins QtAnimatedLayout::minimizationMargins() const
 {
     return d->options_.margins;
 }
 
-void AnimatedLayout::setEasingCurve(const QEasingCurve& curve)
+void QtAnimatedLayout::setEasingCurve(const QEasingCurve& curve)
 {
     d->options_.easingCurve = curve;
 }
 
-QEasingCurve AnimatedLayout::easingCurve() const
+QEasingCurve QtAnimatedLayout::easingCurve() const
 {
     return d->options_.easingCurve;
 }
 
-void AnimatedLayout::setAnimationDuration(std::chrono::milliseconds duration)
+void QtAnimatedLayout::setAnimationDuration(std::chrono::milliseconds duration)
 {
     d->options_.duration = duration;
 }
 
-std::chrono::milliseconds AnimatedLayout::animationDuration() const
+std::chrono::milliseconds QtAnimatedLayout::animationDuration() const
 {
     return d->options_.duration;
 }
 
-void AnimatedLayout::setAnimationDurationAsInt(int ms)
+void QtAnimatedLayout::setAnimationDurationAsInt(int ms)
 {
     using milliseconds = std::chrono::milliseconds;
     using rep_type = milliseconds::rep;
     d->options_.duration = milliseconds{ static_cast<rep_type>(std::max(0, ms)) };
 }
 
-int AnimatedLayout::animationDurationAsInt() const
+int QtAnimatedLayout::animationDurationAsInt() const
 {
     return static_cast<int>(d->options_.duration.count());
 }
 
-QAbstractAnimation* AnimatedLayout::createAnimation(QLayout* parent, QLayoutItem* item, const QRect& rect, const QRect& target) const
+QAbstractAnimation* QtAnimatedLayout::createAnimation(QLayout* parent, QLayoutItem* item, const QRect& rect, const QRect& target) const
 {
     return createItemAnimation(parent, item, rect, target, d->options_);
 }
 
-QAbstractAnimation* AnimatedLayout::animateItem(QLayout* parent, QLayoutItem* item, const QRect& rect, const QRect& target) const
+QAbstractAnimation* QtAnimatedLayout::animateItem(QLayout* parent, QLayoutItem* item, const QRect& rect, const QRect& target) const
 {
     if (QAbstractAnimation* animation = createItemAnimation(parent, item, rect, target, d->options_))
     {
@@ -101,12 +101,12 @@ QAbstractAnimation* AnimatedLayout::animateItem(QLayout* parent, QLayoutItem* it
     return nullptr;
 }
 
-const LayoutItemAnimationOptions& AnimatedLayout::animationOptions() const
+const LayoutItemAnimationOptions& QtAnimatedLayout::animationOptions() const
 {
     return d->options_;
 }
 
-bool AnimatedLayout::eventFilter(QObject* watched, QEvent* event)
+bool QtAnimatedLayout::eventFilter(QObject* watched, QEvent* event)
 {
     QWidget* widget = parentWidget();
     if (d->animationAllowed_ && d->animationEnabled_ && watched == widget &&

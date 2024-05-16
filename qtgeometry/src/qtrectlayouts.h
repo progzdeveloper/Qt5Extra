@@ -13,7 +13,7 @@
 #include <type_traits>
 #include <iterator>
 
-struct RectLayout
+struct QtRectLayout
 {
     template<class T>
     static constexpr inline bool IsRectType = std::is_same_v<T, QRect> || std::is_same_v<T, QRectF>;
@@ -22,7 +22,7 @@ struct RectLayout
     static constexpr inline bool IsSizeType = std::is_same_v<T, QSize> || std::is_same_v<T, QSizeF>;
 };
 
-struct GridRectLayout : public RectLayout
+struct QtGridRectLayout : public QtRectLayout
 {
     template<class _Size>
     static _Size boundingSize(int rows, int cols, const _Size& itemSize)
@@ -82,13 +82,13 @@ struct GridRectLayout : public RectLayout
 };
 
 
-struct BoxRectLayout : public RectLayout
+struct QtBoxRectLayout : public QtRectLayout
 {
     struct Options
     {
         int spacing = 0;
         Qt::Alignment align = Qt::AlignCenter;
-        Qt::Orientation orientation = Qt::Vertical;
+        Qt::Orientation orientation = Qt::Horizontal;
     };
 
     // calculate zero-aligned bounding rect for sequence of rects according to options

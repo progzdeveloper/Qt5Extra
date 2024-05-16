@@ -9,7 +9,7 @@
 // We mean it.
 //
 
-#include "gridpagelayout_p.h"
+#include "qtgridpagelayout_p.h"
 #include <QtGeometryAlgorithms>
 
 #include <map>
@@ -21,7 +21,7 @@
 
 namespace
 {
-    double gridArea(const QSize& size, int rows, int cols, GridPageLayout* layout)
+    double gridArea(const QSize& size, int rows, int cols, QtGridPageLayout* layout)
     {
         int w = size.width();
         int h = layout->heightForWidth(w / cols) * rows;
@@ -47,7 +47,7 @@ namespace Qt5ExtraInternals
 
     bool GridOptions::isFixedSize() const noexcept { return minSize == maxSize; }
 
-    GridSize GridOptions::adjustGrid(size_t count, const QSize& size, GridPageLayout* layout) const
+    GridSize GridOptions::adjustGrid(size_t count, const QSize& size, QtGridPageLayout* layout) const
     {
         if (isFixedSize() || static_cast<int>(count) <= minSize.count())
             return minSize;

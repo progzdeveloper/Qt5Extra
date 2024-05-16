@@ -1,9 +1,9 @@
-#include "flowlayout.h"
+#include "qtflowlayout.h"
 #include "layoutinternals.h"
 #include <QWidget>
 #include <QVarLengthArray>
 
-class FlowLayoutPrivate :
+class QtFlowLayoutPrivate :
         public Qt5ExtraInternals::LayoutAssistant
 {
 public:
@@ -13,13 +13,13 @@ public:
         Test
     };
 
-    FlowLayout* q = nullptr;
+    QtFlowLayout* q = nullptr;
     QList<QLayoutItem *> itemList;
     int hSpace;
     int vSpace;
     Qt::Alignment innerAlignment = Qt::AlignLeft;
 
-    FlowLayoutPrivate(FlowLayout* layout, int hSpacing, int vSpacing)
+    QtFlowLayoutPrivate(QtFlowLayout* layout, int hSpacing, int vSpacing)
         : LayoutAssistant(layout)
         , q(layout)
         , hSpace(hSpacing)
@@ -133,45 +133,45 @@ public:
     }
 };
 
-FlowLayout::FlowLayout(QWidget *parent, int margin, int hSpacing, int vSpacing)
+QtFlowLayout::QtFlowLayout(QWidget *parent, int margin, int hSpacing, int vSpacing)
     : QLayout(parent)
-    , d(new FlowLayoutPrivate(this, hSpacing, vSpacing))
+    , d(new QtFlowLayoutPrivate(this, hSpacing, vSpacing))
 {
     setContentsMargins(margin, margin, margin, margin);
 }
 
-FlowLayout::FlowLayout(int margin, int hSpacing, int vSpacing)
-    : FlowLayout(nullptr, margin, hSpacing, vSpacing)
+QtFlowLayout::QtFlowLayout(int margin, int hSpacing, int vSpacing)
+    : QtFlowLayout(nullptr, margin, hSpacing, vSpacing)
 {
 }
 
-FlowLayout::~FlowLayout()
+QtFlowLayout::~QtFlowLayout()
 {
     qDeleteAll(d->itemList);
 }
 
-void FlowLayout::setInnerAlignment(Qt::Alignment horAlign)
+void QtFlowLayout::setInnerAlignment(Qt::Alignment horAlign)
 {
     invalidate();
     d->innerAlignment = horAlign;
 }
 
-Qt::Alignment FlowLayout::innerAlignment() const
+Qt::Alignment QtFlowLayout::innerAlignment() const
 {
     return d->innerAlignment;
 }
 
-int FlowLayout::horizontalSpacing() const
+int QtFlowLayout::horizontalSpacing() const
 {
     return (d->hSpace >= 0 ? d->hSpace : d->smartSpacing(QStyle::PM_LayoutHorizontalSpacing));
 }
 
-int FlowLayout::verticalSpacing() const
+int QtFlowLayout::verticalSpacing() const
 {
     return (d->vSpace >= 0 ? d->vSpace : d->smartSpacing(QStyle::PM_LayoutVerticalSpacing));
 }
 
-void FlowLayout::addWidget(QWidget* widget)
+void QtFlowLayout::addWidget(QWidget* widget)
 {
     if (!d->checkWidget(widget))
         return;
@@ -179,12 +179,12 @@ void FlowLayout::addWidget(QWidget* widget)
     QLayout::addWidget(widget); // calls addItem() under the hood
 }
 
-void FlowLayout::addLayout(QLayout *layout)
+void QtFlowLayout::addLayout(QLayout *layout)
 {
     addItem(layout);
 }
 
-void FlowLayout::addItem(QLayoutItem* item)
+void QtFlowLayout::addItem(QLayoutItem* item)
 {
     if (!d->checkItem(item))
         return;
@@ -196,50 +196,50 @@ void FlowLayout::addItem(QLayoutItem* item)
     d->itemList.append(item);
 }
 
-int FlowLayout::count() const
+int QtFlowLayout::count() const
 {
     return d->itemList.size();
 }
 
-QLayoutItem *FlowLayout::itemAt(int i) const
+QLayoutItem *QtFlowLayout::itemAt(int i) const
 {
     return d->itemList.value(i, nullptr);
 }
 
-QLayoutItem *FlowLayout::takeAt(int i)
+QLayoutItem *QtFlowLayout::takeAt(int i)
 {
     invalidate();
     return (i >= 0 && i < d->itemList.size() ? d->itemList.takeAt(i) : Q_NULLPTR);
 }
 
-Qt::Orientations FlowLayout::expandingDirections() const
+Qt::Orientations QtFlowLayout::expandingDirections() const
 {
     return {};
 }
 
-bool FlowLayout::hasHeightForWidth() const
+bool QtFlowLayout::hasHeightForWidth() const
 {
     return true;
 }
 
-int FlowLayout::heightForWidth(int width) const
+int QtFlowLayout::heightForWidth(int width) const
 {
-    return d->doLayout(QRect(0, 0, width, 0), FlowLayoutPrivate::Operation::Test);
+    return d->doLayout(QRect(0, 0, width, 0), QtFlowLayoutPrivate::Operation::Test);
 }
 
-void FlowLayout::setGeometry(const QRect& rect)
+void QtFlowLayout::setGeometry(const QRect& rect)
 {
     invalidate();
     QLayout::setGeometry(rect);
-    d->doLayout(rect, FlowLayoutPrivate::Operation::Arrange);
+    d->doLayout(rect, QtFlowLayoutPrivate::Operation::Arrange);
 }
 
-QSize FlowLayout::sizeHint() const
+QSize QtFlowLayout::sizeHint() const
 {
     return minimumSize();
 }
 
-QSize FlowLayout::minimumSize() const
+QSize QtFlowLayout::minimumSize() const
 {
     QSize size;
     for (auto item : qAsConst(d->itemList))

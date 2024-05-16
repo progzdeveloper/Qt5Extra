@@ -113,7 +113,7 @@ QTLAYOUTSEXTRA_EXPORT std::pair<QLayoutItem*, int> layoutItemAt(const QLayout* l
  * \warning Any modifying operation that changes number of items in layout
  * invalidates this iterator
  */
-class QTLAYOUTSEXTRA_EXPORT LayoutItemIterator
+class QTLAYOUTSEXTRA_EXPORT QtLayoutItemIterator
 {
 public:
     /*! Iterator category type. */
@@ -140,7 +140,7 @@ public:
      * \note You're rarely need this contructor, using static
      * methods begin()/end() is preferred to obtain an iterator
      */
-    LayoutItemIterator(QLayout* layout, int index = 0);
+    QtLayoutItemIterator(QLayout* layout, int index = 0);
 
     // Compiler-generated copy-move ctors are fine.
 
@@ -169,104 +169,104 @@ public:
     reference operator->() const;
     reference operator->();
 
-    LayoutItemIterator& operator++()
+    QtLayoutItemIterator& operator++()
     {
         advance(1);
         return *this;
     }
 
-    LayoutItemIterator operator++(int)
+    QtLayoutItemIterator operator++(int)
     {
-        LayoutItemIterator tmp(*this);
+        QtLayoutItemIterator tmp(*this);
         advance(1);
         return tmp;
     }
 
-    LayoutItemIterator& operator--()
+    QtLayoutItemIterator& operator--()
     {
         advance(-1);
         return *this;
     }
 
-    inline LayoutItemIterator operator--(int)
+    inline QtLayoutItemIterator operator--(int)
     {
-        LayoutItemIterator tmp(*this);
+        QtLayoutItemIterator tmp(*this);
         advance(-1);
         return tmp;
     }
 
-    LayoutItemIterator& operator+= (difference_type n)
+    QtLayoutItemIterator& operator+= (difference_type n)
     {
         advance(n);
         return (*this);
     }
 
-    LayoutItemIterator& operator-= (difference_type n)
+    QtLayoutItemIterator& operator-= (difference_type n)
     {
         advance(-n);
         return (*this);
     }
 
-    LayoutItemIterator operator+ (difference_type n) const
+    QtLayoutItemIterator operator+ (difference_type n) const
     {
-        LayoutItemIterator res(*this);
+        QtLayoutItemIterator res(*this);
         res += n;
         return (res);
     }
 
-    LayoutItemIterator operator- (difference_type n) const
+    QtLayoutItemIterator operator- (difference_type n) const
     {
-        LayoutItemIterator res(*this);
+        QtLayoutItemIterator res(*this);
         res -= n;
         return (res);
     }
 
-    friend difference_type operator- (const LayoutItemIterator& x,
-                                      const LayoutItemIterator& y)
+    friend difference_type operator- (const QtLayoutItemIterator& x,
+                                      const QtLayoutItemIterator& y)
     {
         return x.distance(y);
     }
 
-    friend bool operator< (const LayoutItemIterator& lhs,
-                           const LayoutItemIterator& rhs)
+    friend bool operator< (const QtLayoutItemIterator& lhs,
+                           const QtLayoutItemIterator& rhs)
     {
         return (lhs.idx_ < rhs.idx_);
     }
 
-    friend bool operator<= (const LayoutItemIterator& lhs,
-                            const LayoutItemIterator& rhs)
+    friend bool operator<= (const QtLayoutItemIterator& lhs,
+                            const QtLayoutItemIterator& rhs)
     {
         return (lhs.idx_ <= rhs.idx_);
     }
 
-    friend bool operator> (const LayoutItemIterator& lhs,
-                           const LayoutItemIterator& rhs)
+    friend bool operator> (const QtLayoutItemIterator& lhs,
+                           const QtLayoutItemIterator& rhs)
     {
         return (lhs.idx_ > rhs.idx_);
     }
 
-    friend bool operator>= (const LayoutItemIterator& lhs,
-                            const LayoutItemIterator& rhs)
+    friend bool operator>= (const QtLayoutItemIterator& lhs,
+                            const QtLayoutItemIterator& rhs)
     {
         return (lhs.idx_ >= rhs.idx_);
     }
 
-    bool operator== (const LayoutItemIterator& _other) const
+    bool operator== (const QtLayoutItemIterator& _other) const
     {
         return (layout_ == _other.layout_ && idx_ == _other.idx_);
     }
 
-    bool operator!= (const LayoutItemIterator& _other) const
+    bool operator!= (const QtLayoutItemIterator& _other) const
     {
         return !((*this) == _other);
     }
 
-    static LayoutItemIterator begin(QLayout* layout);
-    static LayoutItemIterator end(QLayout* layout);
+    static QtLayoutItemIterator begin(QLayout* layout);
+    static QtLayoutItemIterator end(QLayout* layout);
 
 private:
     void advance(difference_type n);
-    difference_type distance(const LayoutItemIterator& other) const;
+    difference_type distance(const QtLayoutItemIterator& other) const;
 
 private:
     QLayout* layout_ = nullptr;

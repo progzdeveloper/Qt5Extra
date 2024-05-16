@@ -1,17 +1,16 @@
 #pragma once
-#include "animatedlayout.h"
-
+#include <QtAnimatedLayout>
 #include <QtLayoutsExtra>
 
-class QTLAYOUTSEXTRA_EXPORT AspectRatioLayout : public AnimatedLayout
+class QTLAYOUTSEXTRA_EXPORT QtAspectRatioLayout : public QtAnimatedLayout
 {
     Q_OBJECT
     Q_PROPERTY(double aspectRatio READ aspectRatio WRITE setAspectRatio NOTIFY aspectRatioChanged)
 
 public:
-    explicit AspectRatioLayout(QWidget* parent = nullptr, double ratio = 1.0);
+    explicit QtAspectRatioLayout(QWidget* parent = nullptr, double ratio = 1.0);
 
-    ~AspectRatioLayout();
+    ~QtAspectRatioLayout();
 
     /*!
      * \brief Setup aspect ratio to keep.
@@ -95,5 +94,5 @@ Q_SIGNALS:
     void aspectRatioChanged(double);
 
 private:
-    QScopedPointer<class AspectRatioLayoutPrivate> d;
+    QScopedPointer<class QtAspectRatioLayoutPrivate> d;
 };

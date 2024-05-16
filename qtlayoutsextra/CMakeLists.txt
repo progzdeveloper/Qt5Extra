@@ -18,14 +18,14 @@ find_sources(SUBPROJECT_HEADERS "${SUBPROJECT_ROOT}/src" "h")
 include_directories(${PROJECT_NAME} "${SUBPROJECT_ROOT}/include")
 include_directories(${PROJECT_NAME} "${SUBPROJECT_ROOT}/src/utils")
 
-add_definitions(-DQTGEOMETRY_DLL)
-include_directories(${QT5EXTRA_ROOT}/qtgeometry/include)
-
 add_definitions(-DQTCOREEXTRA_DLL)
 include_directories(${QT5EXTRA_ROOT}/qtcoreextra/include)
 
+add_definitions(-DQTGEOMETRY_DLL)
+include_directories(${QT5EXTRA_ROOT}/qtgeometry/include)
+
 add_library(${PROJECT_NAME} SHARED ${SUBPROJECT_SOURCES} ${SUBPROJECT_HEADERS} ${SUBPROJECT_INTERFACE_HEADER})
-target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Widgets qtcoreextra qtgeometry)
+target_link_libraries(${PROJECT_NAME} qtcoreextra qtgeometry Qt5::Core Qt5::Widgets)
 add_dependencies(${PROJECT_NAME} qtgeometry qtcoreextra)
 
 if (MSVC)

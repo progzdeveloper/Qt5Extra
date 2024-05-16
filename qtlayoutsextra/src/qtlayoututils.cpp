@@ -1,4 +1,4 @@
-#include "layoututils.h"
+#include "qtlayoututils.h"
 
 #include <QMetaObject>
 #include <QVariantAnimation>
@@ -46,8 +46,8 @@ struct LayoutItemAnimationHandler
 
     bool containsItem() const
     {
-        auto first = LayoutItemIterator::begin(layout);
-        auto last = LayoutItemIterator::end(layout);
+        auto first = QtLayoutItemIterator::begin(layout);
+        auto last = QtLayoutItemIterator::end(layout);
         return std::find(first, last, item) != last;
     }
 
@@ -159,8 +159,8 @@ void refreshLayout(QLayout* layout)
 
 std::pair<QLayoutItem*, int> layoutItemAt(const QLayout* layout, const QPoint& pos)
 {
-    auto first = LayoutItemIterator::begin(const_cast<QLayout*>(layout));
-    auto last = LayoutItemIterator::end(const_cast<QLayout*>(layout));
+    auto first = QtLayoutItemIterator::begin(const_cast<QLayout*>(layout));
+    auto last = QtLayoutItemIterator::end(const_cast<QLayout*>(layout));
     auto it = std::find_if(first, last, [pos](QLayoutItem* item)
     {
             if (!item)
@@ -172,7 +172,7 @@ std::pair<QLayoutItem*, int> layoutItemAt(const QLayout* layout, const QPoint& p
 }
 
 
-LayoutItemIterator::LayoutItemIterator(QLayout* layout, int index)
+QtLayoutItemIterator::QtLayoutItemIterator(QLayout* layout, int index)
     : layout_(layout)
     , idx_(index)
 {
@@ -185,45 +185,45 @@ LayoutItemIterator::LayoutItemIterator(QLayout* layout, int index)
     idx_ = std::clamp(idx_, 0, layout_->count());
 }
 
-LayoutItemIterator::reference LayoutItemIterator::operator*()
+QtLayoutItemIterator::reference QtLayoutItemIterator::operator*()
 {
     return layout_ ? layout_->itemAt(idx_) : nullptr;
 }
 
-LayoutItemIterator::reference LayoutItemIterator::operator*() const
+QtLayoutItemIterator::reference QtLayoutItemIterator::operator*() const
 {
     return layout_ ? layout_->itemAt(idx_) : nullptr;
 }
 
-LayoutItemIterator::reference LayoutItemIterator::operator->()
+QtLayoutItemIterator::reference QtLayoutItemIterator::operator->()
 {
     return layout_ ? layout_->itemAt(idx_) : nullptr;
 }
 
-LayoutItemIterator::reference LayoutItemIterator::operator->() const
+QtLayoutItemIterator::reference QtLayoutItemIterator::operator->() const
 {
     return layout_ ? layout_->itemAt(idx_) : nullptr;
 }
 
-void LayoutItemIterator::advance(LayoutItemIterator::difference_type n)
+void QtLayoutItemIterator::advance(QtLayoutItemIterator::difference_type n)
 {
     if (!layout_)
         return;
     idx_ += n;
 }
 
-LayoutItemIterator::difference_type LayoutItemIterator::distance(const LayoutItemIterator& other) const
+QtLayoutItemIterator::difference_type QtLayoutItemIterator::distance(const QtLayoutItemIterator& other) const
 {
     Q_ASSERT(layout_ == other.layout_);
     return idx_ - other.idx_;
 }
 
-LayoutItemIterator LayoutItemIterator::begin(QLayout* layout)
+QtLayoutItemIterator QtLayoutItemIterator::begin(QLayout* layout)
 {
     return { layout, 0 };
 }
 
-LayoutItemIterator LayoutItemIterator::end(QLayout* layout)
+QtLayoutItemIterator QtLayoutItemIterator::end(QLayout* layout)
 {
     return { layout, layout->count() };
 }

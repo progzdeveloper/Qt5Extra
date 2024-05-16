@@ -1,17 +1,16 @@
 #pragma once
 #include <QLayout>
-
 #include <QtLayoutsExtra>
 
-class RibbonLayout : public QLayout
+class QTLAYOUTSEXTRA_EXPORT QtRibbonLayout : public QLayout
 {
     Q_OBJECT
     Q_PROPERTY(Qt::Orientation orientation READ orientation WRITE setOrientation NOTIFY orientationChanged)
 
 public:
-    explicit RibbonLayout(Qt::Orientation orientation = Qt::Horizontal);
-    explicit RibbonLayout(QWidget* parent, Qt::Orientation orientation = Qt::Horizontal);
-    ~RibbonLayout();
+    explicit QtRibbonLayout(Qt::Orientation orientation = Qt::Horizontal);
+    explicit QtRibbonLayout(QWidget* parent, Qt::Orientation orientation = Qt::Horizontal);
+    ~QtRibbonLayout();
 
     void setOrientation(Qt::Orientation orientation);
     Qt::Orientation orientation() const;
@@ -41,5 +40,5 @@ Q_SIGNALS:
     void orientationChanged(Qt::Orientation);
 
 private:
-    QScopedPointer<class RibbonLayoutPrivate> d;
+    QScopedPointer<class QtRibbonLayoutPrivate> d;
 };

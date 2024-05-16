@@ -1,11 +1,11 @@
-#include "ribbonlayout.h"
-#include "layoututils.h"
+#include "qtribbonlayout.h"
+#include "qtlayoututils.h"
 #include "layoutinternals.h"
 #include <cmath>
 #include <QtGeometryAlgorithms>
 
 
-class RibbonLayoutPrivate :
+class QtRibbonLayoutPrivate :
         public Qt5ExtraInternals::LayoutAssistant
 {
 public:
@@ -16,7 +16,7 @@ public:
     QLayoutItem* leaderItem_ = nullptr;
     Qt::Orientation orientation_ = Qt::Horizontal;
 
-    RibbonLayoutPrivate(RibbonLayout* layout, Qt::Orientation orientation)
+    QtRibbonLayoutPrivate(QtRibbonLayout* layout, Qt::Orientation orientation)
         : LayoutAssistant(layout)
         , orientation_(orientation)
     {}
@@ -51,7 +51,7 @@ public:
         return result;
     }
 
-    QSize findSize(const RibbonLayout* layout, LayoutItemSize itemSize, LayoutItemSize leaderSize) const
+    QSize findSize(const QtRibbonLayout* layout, LayoutItemSize itemSize, LayoutItemSize leaderSize) const
     {
         QSize size = itemsSize(std::max(0, layout->spacing()), itemSize);
         if (leaderItem_)
@@ -61,7 +61,7 @@ public:
         return size.boundedTo({ QLAYOUTSIZE_MAX, QLAYOUTSIZE_MAX });
     }
 
-    void doLayout(const RibbonLayout* layout, const QRect& rect)
+    void doLayout(const QtRibbonLayout* layout, const QRect& rect)
     {
         if (items_.empty())
             return;
@@ -159,23 +159,23 @@ public:
 };
 
 
-RibbonLayout::RibbonLayout(Qt::Orientation orientation)
-    : RibbonLayout(nullptr, orientation)
+QtRibbonLayout::QtRibbonLayout(Qt::Orientation orientation)
+    : QtRibbonLayout(nullptr, orientation)
 {
 }
 
-RibbonLayout::RibbonLayout(QWidget* parent, Qt::Orientation orientation)
+QtRibbonLayout::QtRibbonLayout(QWidget* parent, Qt::Orientation orientation)
     : QLayout(parent)
-    , d(new RibbonLayoutPrivate(this, orientation))
+    , d(new QtRibbonLayoutPrivate(this, orientation))
 {
 }
 
-RibbonLayout::~RibbonLayout()
+QtRibbonLayout::~QtRibbonLayout()
 {
     qDeleteAll(d->items_);
 }
 
-void RibbonLayout::setOrientation(Qt::Orientation orientation)
+void QtRibbonLayout::setOrientation(Qt::Orientation orientation)
 {
     if (d->orientation_ == orientation)
         return;
@@ -186,12 +186,12 @@ void RibbonLayout::setOrientation(Qt::Orientation orientation)
     Q_EMIT orientationChanged(d->orientation_);
 }
 
-Qt::Orientation RibbonLayout::orientation() const
+Qt::Orientation QtRibbonLayout::orientation() const
 {
     return d->orientation_;
 }
 
-bool RibbonLayout::setLeaderItem(QLayoutItem* item)
+bool QtRibbonLayout::setLeaderItem(QLayoutItem* item)
 {
     if (!item)
         return false;
@@ -205,32 +205,32 @@ bool RibbonLayout::setLeaderItem(QLayoutItem* item)
     return false;
 }
 
-QLayoutItem* RibbonLayout::leaderItem() const
+QLayoutItem* QtRibbonLayout::leaderItem() const
 {
     return d->leaderItem_;
 }
 
-Qt::Orientations RibbonLayout::expandingDirections() const
+Qt::Orientations QtRibbonLayout::expandingDirections() const
 {
     return d->orientation_;
 }
 
-QSize RibbonLayout::sizeHint() const
+QSize QtRibbonLayout::sizeHint() const
 {
     return d->findSize(this, &QLayoutItem::minimumSize, &QLayoutItem::minimumSize);
 }
 
-QSize RibbonLayout::minimumSize() const
+QSize QtRibbonLayout::minimumSize() const
 {
     return d->findSize(this, &QLayoutItem::sizeHint, &QLayoutItem::minimumSize);
 }
 
-QSize RibbonLayout::maximumSize() const
+QSize QtRibbonLayout::maximumSize() const
 {
     return d->findSize(this, &QLayoutItem::maximumSize, &QLayoutItem::maximumSize);
 }
 
-void RibbonLayout::setGeometry(const QRect& geometry)
+void QtRibbonLayout::setGeometry(const QRect& geometry)
 {
     invalidate();
     d->geometry_ = geometry;
@@ -238,7 +238,7 @@ void RibbonLayout::setGeometry(const QRect& geometry)
     d->doLayout(this, geometry.marginsRemoved(contentsMargins()));
 }
 
-void RibbonLayout::addWidget(QWidget* widget, Qt::Alignment alignment)
+void QtRibbonLayout::addWidget(QWidget* widget, Qt::Alignment alignment)
 {
     if (!d->checkWidget(widget))
         return;
@@ -248,7 +248,7 @@ void RibbonLayout::addWidget(QWidget* widget, Qt::Alignment alignment)
         item->setAlignment(alignment);
 }
 
-void RibbonLayout::insertWidget(int index, QWidget* widget, Qt::Alignment alignment)
+void QtRibbonLayout::insertWidget(int index, QWidget* widget, Qt::Alignment alignment)
 {
     if (!d->checkWidget(widget))
         return;
@@ -262,7 +262,7 @@ void RibbonLayout::insertWidget(int index, QWidget* widget, Qt::Alignment alignm
     invalidate();
 }
 
-void RibbonLayout::addItem(QLayoutItem* item)
+void QtRibbonLayout::addItem(QLayoutItem* item)
 {
     if (!d->checkItem(item))
         return;
@@ -274,12 +274,12 @@ void RibbonLayout::addItem(QLayoutItem* item)
     invalidate();
 }
 
-QLayoutItem* RibbonLayout::itemAt(int index) const
+QLayoutItem* QtRibbonLayout::itemAt(int index) const
 {
     return d->items_.value(index, nullptr);
 }
 
-QLayoutItem* RibbonLayout::takeAt(int index)
+QLayoutItem* QtRibbonLayout::takeAt(int index)
 {
     auto result = d->items_.takeAt(index);
     if (result)
@@ -291,7 +291,7 @@ QLayoutItem* RibbonLayout::takeAt(int index)
     return result;
 }
 
-int RibbonLayout::count() const
+int QtRibbonLayout::count() const
 {
     return d->items_.count();
 }
