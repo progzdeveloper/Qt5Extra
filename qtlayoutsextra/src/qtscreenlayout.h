@@ -41,6 +41,9 @@ public:
     void setOrientation(Qt::Orientation orientation);
     Qt::Orientation orientation() const;
 
+    void setPivotAlignment(Qt::Alignment align);
+    Qt::Alignment pivotAlignment() const;
+
     // QLayoutItem interface
 public:
     QSize sizeHint() const Q_DECL_OVERRIDE;

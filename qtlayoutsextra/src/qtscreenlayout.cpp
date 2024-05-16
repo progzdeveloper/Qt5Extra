@@ -53,6 +53,7 @@ public:
     QPointer<QScreen> screen;
     std::deque<QLayoutItem*> items;
     Qt::Orientation orientation = Qt::Horizontal;
+    mutable Qt::Alignment pivotAlign = Qt::Alignment{0};
     QtScreenLayout::ScreenMode screenMode = QtScreenLayout::FullGeometry;
     QtScreenLayout::LayoutMode layoutMode = QtScreenLayout::BoxMode;
     int maxScreens = -1;
@@ -82,8 +83,7 @@ public:
 
         RectCache rects;
         itemsRects(rects);
-        QRect bounds = QtBoxRectLayout::boundingRect(options, rects.begin(), rects.end());
-        bounds.moveCenter(screenRect.center());
+        const QRect bounds = alignedRect(QtBoxRectLayout::boundingRect(options, rects.begin(), rects.end()), screenRect, q->alignment());
         QtBoxRectLayout::layoutRects(bounds, options, rects.begin(), rects.end(), rects.begin());
         setItemsRects(rects);
     }
@@ -103,8 +103,7 @@ public:
         Qt5ExtraInternals::GridSize gridSize;
         QtGridRectLayout::minGridSize(screenRect.size(), maxItemSize, static_cast<int>(items.size()), gridSize.rows, gridSize.cols);
 
-        QRect bounds{ QPoint{}, QtGridRectLayout::boundingSize(gridSize.rows, gridSize.cols, maxItemSize) };
-        bounds.moveCenter(screenRect.center());
+        const QRect bounds = alignedRect({ QPoint{}, QtGridRectLayout::boundingSize(gridSize.rows, gridSize.cols, maxItemSize) }, screenRect, q->alignment());
 
         rects.resize(gridSize.count());
         QtGridRectLayout::layoutRects(bounds, gridSize.rows, gridSize.cols, gridSize.count(), rects.begin());
@@ -130,7 +129,7 @@ public:
             bounds |= r;
         }
 
-        bounds.moveCenter(screenRect.center());
+        bounds = alignedRect(bounds, screenRect, q->alignment());
         offset = bounds.topLeft();
         for (QRect& r : rects)
         {
@@ -140,7 +139,6 @@ public:
 
         setItemsRects(rects);
     }
-
 
 
     void layoutItems(const QRect& screenRect)
@@ -160,6 +158,13 @@ public:
         }
     }
 
+    QRect pivotRect(const QRect& r) const
+    {
+        if (pivotAlign == Qt::Alignment{0})
+            pivotAlign = q->alignment();
+        return alignedRect(r, effectiveRect(), pivotAlign);
+    }
+
     void itemsRects(RectCache& cache)
     {
         cache.clear();
@@ -173,8 +178,7 @@ public:
             return;
 
         const bool isAnimated = q->isAnimated() && q->isAnimationAllowed();
-        QRect central = cache.front();
-        central.moveCenter(screenGeometry().center());
+        const QRect pivot = pivotRect(cache.front());
 
         QPoint offset;
         const int n = std::min(static_cast<int>(items.size()), cache.size());
@@ -184,7 +188,10 @@ public:
             QWidget* w = item->widget();
             QRect r = items[i]->geometry();
             if (w && !w->isVisible())
-                r = central;
+            {
+                r = pivot;
+                item->setGeometry(r);
+            }
 
             if (isAnimated)
                 q->animateItem(q, item, r, cache[i]);
@@ -201,17 +208,20 @@ public:
         return -1;
     }
 
-    QRect screenGeometry() const
+    QRect effectiveRect() const
     {
+        QRect rect;
         switch(screenMode)
         {
         case QtScreenLayout::AvailGeometry:
-            return screen->availableGeometry();
+            rect = screen->availableGeometry();
+            break;
         case QtScreenLayout::FullGeometry:
         default:
+            rect = screen->geometry();
             break;
         }
-        return screen->geometry();
+        return rect.marginsRemoved(q->contentsMargins());
     }
 
     QSize screenSize() const
@@ -244,7 +254,7 @@ QtScreenLayout::QtScreenLayout(QScreen *scr)
     : d(new QtScreenLayoutPrivate(this, scr))
 {
     // TODO: add onScreenRemove()/onScreenAdded() slots
-    QtScreenLayout::setGeometry(d->screenGeometry());
+    QtScreenLayout::setGeometry(d->effectiveRect());
 
     // TODO: fix me!
     connect(d->screen, &QScreen::geometryChanged, this, &QLayout::setGeometry);
@@ -258,7 +268,7 @@ void QtScreenLayout::setScreen(QScreen *scr)
         return;
 
     d->screen = scr;
-    setGeometry(d->screenGeometry());
+    setGeometry(d->effectiveRect());
 }
 
 QScreen *QtScreenLayout::screen() const
@@ -276,7 +286,7 @@ void QtScreenLayout::setMaxUseableScreens(int n)
     if (requireLayout)
     {
         invalidate();
-        d->layoutItems(d->screenGeometry());
+        d->layoutItems(d->effectiveRect());
     }
 }
 
@@ -292,7 +302,7 @@ void QtScreenLayout::setLayoutMode(LayoutMode mode)
 
     d->layoutMode = mode;
     invalidate();
-    d->layoutItems(d->screenGeometry());
+    d->layoutItems(d->effectiveRect());
 }
 
 QtScreenLayout::LayoutMode QtScreenLayout::layoutMode() const
@@ -307,7 +317,7 @@ void QtScreenLayout::setScreenMode(ScreenMode mode)
 
     d->screenMode = mode;
     invalidate();
-    d->layoutItems(d->screenGeometry());
+    d->layoutItems(d->effectiveRect());
 }
 
 QtScreenLayout::ScreenMode QtScreenLayout::screenMode() const
@@ -324,13 +334,23 @@ void QtScreenLayout::setOrientation(Qt::Orientation orientation)
     if (d->layoutMode == BoxMode)
     {
         invalidate();
-        d->layoutItems(d->screenGeometry());
+        d->layoutItems(d->effectiveRect());
     }
 }
 
 Qt::Orientation QtScreenLayout::orientation() const
 {
     return d->orientation;
+}
+
+void QtScreenLayout::setPivotAlignment(Qt::Alignment align)
+{
+    d->pivotAlign = align;
+}
+
+Qt::Alignment QtScreenLayout::pivotAlignment() const
+{
+    return d->pivotAlign;
 }
 
 QSize QtScreenLayout::sizeHint() const
@@ -355,12 +375,12 @@ Qt::Orientations QtScreenLayout::expandingDirections() const
 
 void QtScreenLayout::setGeometry(const QRect& r)
 {
-    d->layoutItems(r);
+    d->layoutItems(r.marginsRemoved(contentsMargins()));
 }
 
 QRect QtScreenLayout::geometry() const
 {
-    return d->screenGeometry();
+    return d->effectiveRect();
 }
 
 QLayoutItem *QtScreenLayout::appendWidget(QWidget *w)
@@ -380,7 +400,7 @@ void QtScreenLayout::addItem(QLayoutItem *item)
 {
     invalidate();
     d->items.emplace_back(item);
-    d->layoutItems(d->screenGeometry());
+    d->layoutItems(d->effectiveRect());
 }
 
 QLayoutItem *QtScreenLayout::itemAt(int index) const
@@ -401,7 +421,7 @@ QLayoutItem *QtScreenLayout::takeAt(int index)
     d->items.erase(it);
     if (QWidget* w = item->widget())
         w->removeEventFilter(this);
-    d->layoutItems(d->screenGeometry());
+    d->layoutItems(d->effectiveRect());
     return item;
 }
 

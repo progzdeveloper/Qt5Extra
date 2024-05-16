@@ -12,23 +12,21 @@ Controller::Controller(QWidget* parent)
     QHBoxLayout* layout = new QHBoxLayout(this);
     layout->addWidget(button);
 
-    //QtAspectRatioLayout* mainLayout = new QtAspectRatioLayout(this);
-    //mainLayout->setLayout(layout);
-
     screenLayout = new QtScreenLayout;
     screenLayout->setAnimated(true);
     screenLayout->setMinimizationMargins({});
     screenLayout->setSpacing(16);
     screenLayout->setOrientation(Qt::Horizontal);
-    screenLayout->setScreenMode(QtScreenLayout::FullGeometry);
+    screenLayout->setScreenMode(QtScreenLayout::AvailGeometry);
     screenLayout->setLayoutMode(QtScreenLayout::GridMode);
+    screenLayout->setAlignment(Qt::AlignCenter);
 }
 
 void Controller::createDialog()
 {
     Dialog* d = new Dialog(dialogId++);
     //connect(d, &Dialog::destroyed, []() { dialogId--; });
-    d->setFixedSize(256, 328);
+    d->setFixedSize(328, 256);
     screenLayout->appendWidget(d);
     d->show();
 }
