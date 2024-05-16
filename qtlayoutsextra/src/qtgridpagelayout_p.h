@@ -10,6 +10,7 @@
 //
 
 #pragma once
+#include <QDebug>
 #include "qtgridpagelayout.h"
 
 namespace Qt5ExtraInternals
@@ -128,6 +129,14 @@ namespace Qt5ExtraInternals
         {
             return !(*this == other);
         }
+
+        friend QDebug& operator<<(QDebug& debug, const GridSize &s)
+        {
+            QDebugStateSaver saver(debug);
+            debug.nospace() << '[' << s.rows << 'x' << s.cols << ']';
+            return debug;
+        }
+
 
         int rows = 0;
         int cols = 0;

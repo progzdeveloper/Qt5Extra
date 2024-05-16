@@ -1,13 +1,16 @@
-#include "qtscreenlayout.h"
+﻿#include "qtscreenlayout.h"
 #include <QLayoutItem>
 #include <QApplication>
 #include <QScreen>
 #include <QPointer>
 #include <QWidget>
+#include <QSet>
 #include <QScopedValueRollback>
 
 #include <QtGeometryAlgorithms>
 #include <QtRectLayouts>
+
+#include "qtgridpagelayout_p.h"
 
 #include <deque>
 
@@ -44,17 +47,20 @@ class QtScreenLayoutPrivate
 {
 public:
     using RectCache = QVarLengthArray<QRect, 4>;
+
+    QSet<QScreen*> usedScreens;
+    QtScreenLayout* q = Q_NULLPTR;
     QPointer<QScreen> screen;
     std::deque<QLayoutItem*> items;
     Qt::Orientation orientation = Qt::Horizontal;
-    QPoint offsetPoint;
     QtScreenLayout::ScreenMode screenMode = QtScreenLayout::FullGeometry;
     QtScreenLayout::LayoutMode layoutMode = QtScreenLayout::BoxMode;
     int maxScreens = -1;
     bool locked = false;
 
-    QtScreenLayoutPrivate(QScreen* scr)
-        : screen(scr ? scr : QApplication::primaryScreen())
+    QtScreenLayoutPrivate(QtScreenLayout* layout, QScreen* scr)
+        : q(layout)
+        , screen(scr ? scr : QApplication::primaryScreen())
     {
     }
 
@@ -69,11 +75,39 @@ public:
             return;
 
         QScopedValueRollback guard(locked, true);
+        QtBoxRectLayout::Options options;
+        options.align = Qt::AlignCenter;
+        options.orientation = orientation;
+        options.spacing = q->spacing();
+
         RectCache rects;
         itemsRects(rects);
-        QRect bounds = QtBoxRectLayout::boundingRect({}, rects.begin(), rects.end());
+        QRect bounds = QtBoxRectLayout::boundingRect(options, rects.begin(), rects.end());
         bounds.moveCenter(screenRect.center());
-        QtBoxRectLayout::layoutRects(bounds, {}, rects.begin(), rects.end(), rects.begin());
+        QtBoxRectLayout::layoutRects(bounds, options, rects.begin(), rects.end(), rects.begin());
+        setItemsRects(rects);
+    }
+
+    void layoutItemsInGrid(const QRect& screenRect)
+    {
+        if (items.empty())
+            return;
+
+        RectCache rects;
+        itemsRects(rects);
+
+        QSize maxItemSize;
+        for (const auto& r : rects)
+            maxItemSize = maxItemSize.expandedTo(r.size());
+
+        Qt5ExtraInternals::GridSize gridSize;
+        QtGridRectLayout::minGridSize(screenRect.size(), maxItemSize, static_cast<int>(items.size()), gridSize.rows, gridSize.cols);
+
+        QRect bounds{ QPoint{}, QtGridRectLayout::boundingSize(gridSize.rows, gridSize.cols, maxItemSize) };
+        bounds.moveCenter(screenRect.center());
+
+        rects.resize(gridSize.count());
+        QtGridRectLayout::layoutRects(bounds, gridSize.rows, gridSize.cols, gridSize.count(), rects.begin());
         setItemsRects(rects);
     }
 
@@ -86,11 +120,13 @@ public:
         RectCache rects;
         itemsRects(rects);
         QRect bounds = { screenRect.topLeft(), QSize{} };
+
+        const QPoint delta = { q->spacing(), q->spacing() };
         QPoint offset;
         for (QRect& r : rects)
         {
-            r.setTopLeft(offset);
-            offset += offsetPoint;
+            r.moveTopLeft(offset);
+            offset += delta;
             bounds |= r;
         }
 
@@ -98,17 +134,14 @@ public:
         offset = bounds.topLeft();
         for (QRect& r : rects)
         {
-            r.setTopLeft(offset);
-            offset += offsetPoint;
+            r.moveTopLeft(offset);
+            offset += delta;
         }
 
         setItemsRects(rects);
     }
 
-    void layoutItemsInGrid(const QRect& screenRect)
-    {
-        // FIXME: implement me!
-    }
+
 
     void layoutItems(const QRect& screenRect)
     {
@@ -136,10 +169,28 @@ public:
 
     void setItemsRects(const RectCache& cache)
     {
+        if (cache.empty())
+            return;
+
+        const bool isAnimated = q->isAnimated() && q->isAnimationAllowed();
+        QRect central = cache.front();
+        central.moveCenter(screenGeometry().center());
+
         QPoint offset;
         const int n = std::min(static_cast<int>(items.size()), cache.size());
         for (int i = 0; i < n; ++i)
-            items[i]->setGeometry(cache[i]);
+        {
+            QLayoutItem* item = items[i];
+            QWidget* w = item->widget();
+            QRect r = items[i]->geometry();
+            if (w && !w->isVisible())
+                r = central;
+
+            if (isAnimated)
+                q->animateItem(q, item, r, cache[i]);
+            else
+                item->setGeometry(cache[i]);
+        }
     }
 
     int indexOf(QWidget* w) const
@@ -175,14 +226,27 @@ public:
         }
         return screen->size();
     }
+
+    QScreen* nextAvailScreen() const
+    {
+        const auto screens = qApp->screens();
+        for (QScreen* scr : screens)
+        {
+            if (!usedScreens.contains(scr))
+                return scr;
+        }
+        return qApp->primaryScreen();
+    }
 };
 
 
 QtScreenLayout::QtScreenLayout(QScreen *scr)
-    : d(new QtScreenLayoutPrivate(scr))
+    : d(new QtScreenLayoutPrivate(this, scr))
 {
     // TODO: add onScreenRemove()/onScreenAdded() slots
     QtScreenLayout::setGeometry(d->screenGeometry());
+
+    // TODO: fix me!
     connect(d->screen, &QScreen::geometryChanged, this, &QLayout::setGeometry);
 }
 
@@ -269,24 +333,6 @@ Qt::Orientation QtScreenLayout::orientation() const
     return d->orientation;
 }
 
-void QtScreenLayout::setDisplacement(const QPoint &p)
-{
-    if (d->offsetPoint == p)
-        return;
-
-    d->offsetPoint = p;
-    if (d->layoutMode == StackMode)
-    {
-        invalidate();
-        d->layoutItems(d->screenGeometry());
-    }
-}
-
-QPoint QtScreenLayout::displacement() const
-{
-    return d->offsetPoint;
-}
-
 QSize QtScreenLayout::sizeHint() const
 {
     return d->screenSize();
@@ -340,8 +386,9 @@ void QtScreenLayout::addItem(QLayoutItem *item)
 QLayoutItem *QtScreenLayout::itemAt(int index) const
 {
     if (index < 0 || index >= static_cast<int>(d->items.size()))
-        return d->items[index];
-    return Q_NULLPTR;
+        return Q_NULLPTR;
+
+    return d->items[index];
 }
 
 QLayoutItem *QtScreenLayout::takeAt(int index)

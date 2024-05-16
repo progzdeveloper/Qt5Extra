@@ -13,3 +13,10 @@ private:
     QPushButton* button;
     QtScreenLayout* screenLayout;
 };
+
+class Dialog : public QDialog
+{
+    Q_OBJECT
+public:
+    explicit Dialog(int i);
+};

@@ -2,6 +2,8 @@
 #include <QtScreenLayout>
 #include <QtAspectRatioLayout>
 
+static int dialogId = 0;
+
 Controller::Controller(QWidget* parent)
     : QWidget(parent)
 {
@@ -14,15 +16,34 @@ Controller::Controller(QWidget* parent)
     //mainLayout->setLayout(layout);
 
     screenLayout = new QtScreenLayout;
-    screenLayout->setDisplacement({24, 24});
-    screenLayout->setLayoutMode(QtScreenLayout::StackMode);
+    screenLayout->setAnimated(true);
+    screenLayout->setMinimizationMargins({});
+    screenLayout->setSpacing(16);
+    screenLayout->setOrientation(Qt::Horizontal);
+    screenLayout->setScreenMode(QtScreenLayout::FullGeometry);
+    screenLayout->setLayoutMode(QtScreenLayout::GridMode);
 }
 
 void Controller::createDialog()
 {
-    QDialog* d = new QDialog;
-    d->setAttribute(Qt::WA_DeleteOnClose);
-    d->setFixedSize(148, 168);
+    Dialog* d = new Dialog(dialogId++);
+    //connect(d, &Dialog::destroyed, []() { dialogId--; });
+    d->setFixedSize(256, 328);
     screenLayout->appendWidget(d);
     d->show();
+}
+
+Dialog::Dialog(int i) : QDialog(Q_NULLPTR, Qt::Dialog|Qt::FramelessWindowHint)
+{
+    setAttribute(Qt::WA_DeleteOnClose);
+
+    QLabel* label = new QLabel(tr("Dialog %1").arg(i), this);
+    QToolButton* closeBtn = new QToolButton(this);
+    connect(closeBtn, &QToolButton::clicked, this, &QDialog::close);
+    closeBtn->setToolTip("Close");
+    closeBtn->setIcon(QIcon::fromTheme("window-close"));
+
+    QHBoxLayout* layout = new QHBoxLayout(this);
+    layout->addWidget(label, 1, Qt::AlignTop);
+    layout->addWidget(closeBtn, 0, Qt::AlignTop);
 }

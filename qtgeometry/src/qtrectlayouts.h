@@ -6,7 +6,7 @@
 #include <QRectF>
 #include <QDebug>
 
-
+#include <cmath>
 #include <QtGeometryAlgorithms>
 
 #include <array>
@@ -28,54 +28,104 @@ struct QtGridRectLayout : public QtRectLayout
     static _Size boundingSize(int rows, int cols, const _Size& itemSize)
     {
         static_assert(IsSizeType<_Size>, "only QSize/QSizeF types are supported");
-        return _Size{ rows * itemSize.height(), cols * itemSize.width() };
+        return _Size{ cols * itemSize.width(), rows * itemSize.height(), };
     }
 
+    template<class _Size>
+    static void minGridSize(const _Size& frameSize, const _Size& itemSize, int itemCount, int& rows, int& cols)
+    {
+        using scalar_type = decltype(frameSize.width());
+
+        int maxRows = 0, maxCols = 0;
+        maxGridSize(frameSize, itemSize, maxRows, maxCols);
+
+        rows = maxRows, cols = maxCols;
+        int count = itemCount;
+        int minDiff = itemCount;
+        // adjust grid size by brute-forcing all
+        // possible row/column count combinations
+        for (int i = 1; i < maxRows; ++i)
+        {
+            for (int j = 1; j < maxCols; ++j)
+            {
+                const int k = i * j;
+                const int d = (k - count);
+                const _Size s = boundingSize(i, j, itemSize);
+                const bool fitInside = s.width() < frameSize.width() && s.height() < frameSize.height();
+                if (fitInside && k >= count && d <= minDiff)
+                {
+                    minDiff = d;
+                    rows = i;
+                    cols = j;
+                    if (minDiff == 0)
+                        return; // ideal case
+                }
+            }
+        }
+    }
+
+
+    template<class _Size>
+    static void maxGridSize(const _Size& frameSize, const _Size& itemSize, int& rows, int& cols)
+    {
+        static_assert(IsSizeType<_Size>, "only QSize/QSizeF types are supported");
+        using scalar_type = decltype(itemSize.width());
+        auto w = itemSize.width();
+        auto h = itemSize.height();
+        if (w <= scalar_type(0))
+            w = frameSize.width();
+        if (h <= scalar_type(0))
+            w = frameSize.height();
+        rows = static_cast<int>(std::floor(frameSize.height() / h));
+        cols = static_cast<int>(std::floor(frameSize.width() / w));
+    }
+
+
+
     template<class _Rect>
-    void layoutRects(const _Rect& source, int rows, int cols, QVector<_Rect>& result)
+    void layoutRects(const _Rect& source, uint rows, uint cols, uint k, QVector<_Rect>& result)
     {
         result.reserve(rows * cols);
-        layoutRects(source, rows, cols, std::back_inserter(result));
+        layoutRects(source, rows, cols, k, std::back_inserter(result));
     }
 
     template<class _Rect, int _Prealloc>
-    void layoutRects(const _Rect& source, int rows, int cols, QVarLengthArray<_Rect, _Prealloc>& result)
+    void layoutRects(const _Rect& source, uint rows, uint cols, uint k, QVarLengthArray<_Rect, _Prealloc>& result)
     {
         result.reserve(rows * cols);
-        layoutRects(source, rows, cols, std::back_inserter(result));
+        layoutRects(source, rows, cols, k, std::back_inserter(result));
     }
 
     template<class _Rect, uint _Rows, uint _Cols>
-    void layoutRects(const _Rect& source, _Rect (&result)[_Rows * _Cols])
+    void layoutRects(const _Rect& source, _Rect (&result)[_Rows * _Cols], uint k = _Rows * _Cols)
     {
         static_assert (_Rows > 1 && _Cols > 1, "_Rows and _Cols must be grater than 1");
-        layoutRects(source, { _Rows, _Cols }, result);
+        layoutRects(source, { _Rows, _Cols }, k, result);
     }
 
     template<class _Rect, class _OutIt>
-    static void layoutRects(const _Rect& source, int rows, int cols, _OutIt result)
+    static void layoutRects(const _Rect& source, uint rows, uint cols, uint k, _OutIt result)
     {
         static_assert(IsRectType<_Rect>, "only QRect/QRectF types are supported");
         if (!result)
             return;
 
-        const int n = rows * cols;
-        const auto w = source.width() / rows;
-        const auto h = source.height() / cols;
+        const uint n = std::min(rows * cols, k);
+        const auto w = source.width() / cols;
+        const auto h = source.height() / rows;
         _Rect cellRect{ 0, 0, w, h };
 
         int i = 0;
         int x = source.x(), y = source.y();
-        for (int r = 0; r < rows; ++r)
+        for (uint r = 0; r < rows; ++r)
         {
-            for (int c = 0; c < cols; ++c, ++i, ++result)
+            for (uint c = 0; c < cols; ++c, ++i, ++result)
             {
                 if (i == n)
                     return;
 
-                cellRect.moveTo(x + r * w, y + c * h);
+                cellRect.moveTo(x + c * w, y + r * h);
                 *result = cellRect;
-                ++result;
             }
         }
     }

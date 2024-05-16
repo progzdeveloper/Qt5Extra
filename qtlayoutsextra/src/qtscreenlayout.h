@@ -41,9 +41,6 @@ public:
     void setOrientation(Qt::Orientation orientation);
     Qt::Orientation orientation() const;
 
-    void setDisplacement(const QPoint& p);
-    QPoint displacement() const;
-
     // QLayoutItem interface
 public:
     QSize sizeHint() const Q_DECL_OVERRIDE;
@@ -68,6 +65,7 @@ protected:
     bool eventFilter(QObject* watched, QEvent* event) Q_DECL_OVERRIDE;
 
 private:
+    friend class QtScreenLayoutPrivate;
     QScopedPointer<class QtScreenLayoutPrivate> d;
 
 
