@@ -107,13 +107,15 @@ struct QtGridRectLayout : public QtRectLayout
     static void layoutRects(const _Rect& source, uint rows, uint cols, uint k, _OutIt result)
     {
         static_assert(IsRectType<_Rect>, "only QRect/QRectF types are supported");
+        using scalar_type = decltype(source.width());
+
         if (!result)
             return;
 
         const uint n = std::min(rows * cols, k);
         const auto w = source.width() / cols;
         const auto h = source.height() / rows;
-        _Rect cellRect{ 0, 0, w, h };
+        _Rect cellRect{ 0, 0, static_cast<scalar_type>(w), static_cast<scalar_type>(h) };
 
         int i = 0;
         int x = source.x(), y = source.y();
