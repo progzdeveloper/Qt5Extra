@@ -23,7 +23,7 @@ public:
     };
     Q_ENUM(ScreenMode)
 
-    explicit QtScreenLayout(QScreen* scr = nullptr);
+    explicit QtScreenLayout(QScreen* scr = Q_NULLPTR);
     ~QtScreenLayout();
 
     void setScreen(QScreen* scr);
@@ -63,6 +63,10 @@ public:
 private: // we don't allow to add anything other than widgets
     void addItem(QLayoutItem *) Q_DECL_OVERRIDE;
     using QLayout::addWidget;
+
+private Q_SLOTS:
+    void onScreenAdded(QScreen*);
+    void onScreenRemoved(QScreen* scr);
 
 protected:
     bool eventFilter(QObject* watched, QEvent* event) Q_DECL_OVERRIDE;

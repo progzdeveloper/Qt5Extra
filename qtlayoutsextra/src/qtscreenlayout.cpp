@@ -4,6 +4,7 @@
 #include <QScreen>
 #include <QPointer>
 #include <QWidget>
+#include <QWindow>
 #include <QSet>
 #include <QScopedValueRollback>
 
@@ -61,7 +62,7 @@ public:
 
     QtScreenLayoutPrivate(QtScreenLayout* layout, QScreen* scr)
         : q(layout)
-        , screen(scr ? scr : QApplication::primaryScreen())
+        , screen(scr)
     {
     }
 
@@ -247,17 +248,65 @@ public:
         }
         return qApp->primaryScreen();
     }
+
+    void attachScreen(QScreen* scr)
+    {
+        if (!scr)
+            return;
+
+        switch(screenMode)
+        {
+        case QtScreenLayout::AvailGeometry:
+            QObject::connect(scr, &QScreen::availableGeometryChanged, q, &QLayout::setGeometry);
+            break;
+        case QtScreenLayout::FullGeometry:
+            QObject::connect(scr, &QScreen::geometryChanged, q, &QLayout::setGeometry);
+            break;
+        default:
+            break;
+        }
+    }
+
+    void detachScreen(QScreen* scr)
+    {
+        if (!scr)
+            return;
+
+        switch(screenMode)
+        {
+        case QtScreenLayout::AvailGeometry:
+            QObject::connect(scr, &QScreen::availableGeometryChanged, q, &QLayout::setGeometry);
+            break;
+        case QtScreenLayout::FullGeometry:
+            QObject::connect(scr, &QScreen::geometryChanged, q, &QLayout::setGeometry);
+            break;
+        default:
+            break;
+        }
+    }
+
+    static QScreen* resolveScreen(QScreen* scr)
+    {
+        if (scr)
+            return scr;
+
+        QWidget* activeWidget = qApp->activeWindow();
+        QWindow* window = activeWidget ? activeWidget->windowHandle() : Q_NULLPTR;
+        scr = window ? window->screen() : Q_NULLPTR;
+        return scr ? scr : QApplication::primaryScreen();
+    }
 };
 
 
 QtScreenLayout::QtScreenLayout(QScreen *scr)
-    : d(new QtScreenLayoutPrivate(this, scr))
+    : d(new QtScreenLayoutPrivate(this, QtScreenLayoutPrivate::resolveScreen(scr)))
 {
-    // TODO: add onScreenRemove()/onScreenAdded() slots
+    Q_ASSERT(d->screen != Q_NULLPTR); // screen pointer can't be nullptr
+    d->attachScreen(d->screen);
     QtScreenLayout::setGeometry(d->effectiveRect());
 
-    // TODO: fix me!
-    connect(d->screen, &QScreen::geometryChanged, this, &QLayout::setGeometry);
+    connect(qApp, &QApplication::screenAdded, this, &QtScreenLayout::onScreenAdded);
+    connect(qApp, &QApplication::screenRemoved, this, &QtScreenLayout::onScreenRemoved);
 }
 
 QtScreenLayout::~QtScreenLayout() = default;
@@ -267,7 +316,9 @@ void QtScreenLayout::setScreen(QScreen *scr)
     if (d->screen == scr)
         return;
 
+    d->detachScreen(d->screen);
     d->screen = scr;
+    d->attachScreen(d->screen);
     setGeometry(d->effectiveRect());
 }
 
@@ -275,6 +326,25 @@ QScreen *QtScreenLayout::screen() const
 {
     return d->screen;
 }
+
+
+void QtScreenLayout::onScreenAdded(QScreen*)
+{
+    // reserved for future implementations
+}
+
+void QtScreenLayout::onScreenRemoved(QScreen *scr)
+{
+    if (scr != d->screen)
+        return;
+
+    invalidate();
+    d->detachScreen(d->screen);
+    d->screen = QtScreenLayoutPrivate::resolveScreen(Q_NULLPTR);
+    d->attachScreen(d->screen);
+    setGeometry(d->effectiveRect());
+}
+
 
 void QtScreenLayout::setMaxUseableScreens(int n)
 {
