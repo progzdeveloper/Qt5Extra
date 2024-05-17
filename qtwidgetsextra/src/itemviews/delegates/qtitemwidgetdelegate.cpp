@@ -39,7 +39,7 @@ public:
     static Q_CONSTEXPR size_t kDefaultPixmapCacheDepth = 4;
 
     QModelIndex currentIndex; // current model index (index that under mouse cursor)
-    mutable QPointer<QtItemWidget> widget; // widget to embed
+    mutable QScopedPointer<QtItemWidget> widget; // widget to embed
     mutable PixmapCache pixmapCache{ kDefaultPixmapCacheLimit, kDefaultPixmapCacheDepth };
     mutable int cachedWidth = 0; // cached item width - if it's changed we will drop the pixmap cache
     mutable double dpr = 1.0;
@@ -231,8 +231,7 @@ QtItemWidgetDelegate::RenderHint QtItemWidgetDelegate::renderHint(const QStyleOp
 
 QtItemWidget *QtItemWidgetDelegate::widget() const
 {
-
-    return d->widget;
+    return d->widget.get();
 }
 
 QSize QtItemWidgetDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
@@ -253,7 +252,7 @@ void QtItemWidgetDelegate::createWidgetOnDemand() const
     if (d->widget)
         return;
 
-    d->widget = createItemWidget();
+    d->widget.reset(createItemWidget());
     if (Q_UNLIKELY(d->widget == Q_NULLPTR))
         return;
 
