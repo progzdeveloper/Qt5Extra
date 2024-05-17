@@ -58,7 +58,7 @@ public:
     QLayoutItem *itemAt(int index) const Q_DECL_OVERRIDE;
     QLayoutItem *takeAt(int index) Q_DECL_OVERRIDE;
     int count() const Q_DECL_OVERRIDE;
-    QLayoutItem *appendWidget(QWidget* w);
+    QLayoutItem *appendWidget(QWidget* widget);
 
 private: // we don't allow to add anything other than widgets
     void addItem(QLayoutItem *) Q_DECL_OVERRIDE;
@@ -74,7 +74,4 @@ protected:
 private:
     friend class QtScreenLayoutPrivate;
     QScopedPointer<class QtScreenLayoutPrivate> d;
-
-
 };
-

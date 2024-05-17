@@ -327,7 +327,6 @@ QScreen *QtScreenLayout::screen() const
     return d->screen;
 }
 
-
 void QtScreenLayout::onScreenAdded(QScreen*)
 {
     // reserved for future implementations
@@ -344,7 +343,6 @@ void QtScreenLayout::onScreenRemoved(QScreen *scr)
     d->attachScreen(d->screen);
     setGeometry(d->effectiveRect());
 }
-
 
 void QtScreenLayout::setMaxUseableScreens(int n)
 {
@@ -453,8 +451,9 @@ QRect QtScreenLayout::geometry() const
     return d->effectiveRect();
 }
 
-QLayoutItem *QtScreenLayout::appendWidget(QWidget *w)
+QLayoutItem *QtScreenLayout::appendWidget(QWidget *widget)
 {
+    QWidget* w = widget->window();
     if (!w || d->indexOf(w) != -1)
         return nullptr;
 
