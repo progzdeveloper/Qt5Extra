@@ -41,6 +41,11 @@ public:
     void setCacheLimit(int cacheSize);
     int cacheLimit() const;
 
+    bool isOverDragArea(const QStyleOptionViewItem &option, const QPoint &p) const;
+
+    void setDragIndex(const QModelIndex& index);
+    QModelIndex dragIndex() const;
+
     // QAbstractItemDelegate interface
 public:
     void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const Q_DECL_OVERRIDE;

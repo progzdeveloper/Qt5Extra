@@ -14,7 +14,7 @@
 
 #include "qtitemwidgetdelegate.h"
 #include "qtitemwidget.h"
-
+#include "delegateinternals.h"
 
 class QtItemWidgetDelegatePrivate
 {
@@ -39,6 +39,7 @@ public:
     static Q_CONSTEXPR size_t kDefaultPixmapCacheDepth = 4;
 
     QModelIndex currentIndex; // current model index (index that under mouse cursor)
+    QModelIndex draggingIndex;
     mutable QScopedPointer<QtItemWidget> widget; // widget to embed
     mutable PixmapCache pixmapCache{ kDefaultPixmapCacheLimit, kDefaultPixmapCacheDepth };
     mutable int cachedWidth = 0; // cached item width - if it's changed we will drop the pixmap cache
@@ -150,13 +151,39 @@ int QtItemWidgetDelegate::cacheLimit() const
     return d->pixmapCache.capacity();
 }
 
+bool QtItemWidgetDelegate::isOverDragArea(const QStyleOptionViewItem& option, const QPoint& p) const
+{
+    if (Q_UNLIKELY(d->widget == Q_NULLPTR))
+        return false;
+
+    d->widget->setGeometry(option.rect);
+    return d->widget->dragArea().contains(p);
+}
+
+void QtItemWidgetDelegate::setDragIndex(const QModelIndex &index)
+{
+    d->draggingIndex = index;
+}
+
+QModelIndex QtItemWidgetDelegate::dragIndex() const
+{
+    return d->draggingIndex;
+}
+
 void QtItemWidgetDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     if (!index.isValid())
         return;
 
+    const auto* extraOptions = qstyleoption_cast<const Qt5ExtraInternals::QtStyleOptionViewItemExtra*>(&option);
+    if (d->draggingIndex == index && extraOptions && !extraOptions->renderDragItem)
+    {
+        painter->fillRect(option.rect, option.palette.base());
+        return;
+    }
+
     createWidgetOnDemand(); // lazy widget creation
-    if ((d->widget == Q_NULLPTR))
+    if (Q_UNLIKELY(d->widget == Q_NULLPTR))
         return QStyledItemDelegate::paint(painter, option, index);
 
     if (index == d->currentIndex)
@@ -272,10 +299,8 @@ void QtItemWidgetDelegate::updateWidgetData(const QModelIndex& index, const QSty
         d->widget->setData(index, option); // setup widget from data in index
 }
 
-
 bool QtItemWidgetDelegate::eventHandler(QEvent *event, QAbstractItemModel *model, const QStyleOptionViewItem &option, const QModelIndex &index)
 {
-     
     // this is a single point that implements event handling:
     // no matter from where we got an event - it can be a
     // editorEvent() overriden or eventFilter() overriden method, but not both
@@ -298,6 +323,18 @@ bool QtItemWidgetDelegate::eventHandler(QEvent *event, QAbstractItemModel *model
 
     if (model->rowCount() == 0 || model->columnCount() == 0)
         view->unsetCursor(); // no rows or no columns, model is empty - reset cursor
+
+
+    /*switch (event->type())
+    {
+    case QEvent::KeyPress: qDebug() << "QtItemWidgetDelegate KeyPress Event"; break;
+    case QEvent::KeyRelease: qDebug() << "QtItemWidgetDelegate KeyRelease Event"; break;
+    case QEvent::MouseMove: qDebug() << "QtItemWidgetDelegate MouseMove Event"; break;
+    case QEvent::MouseButtonPress: qDebug() << "QtItemWidgetDelegate MouseButtonPress Event"; break;
+    case QEvent::MouseButtonRelease: qDebug() << "QtItemWidgetDelegate MouseButtonRelease Event"; break;
+    default:
+        break;
+    }*/
 
     switch (event->type())
     {

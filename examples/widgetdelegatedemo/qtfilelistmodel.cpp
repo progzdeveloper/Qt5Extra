@@ -228,6 +228,33 @@ bool QtFileListModel::removeRows(int row, int count, const QModelIndex &parent)
     return true;
 }
 
+bool QtFileListModel::moveRows(const QModelIndex &sourceParent, int sourceRow, int count, const QModelIndex &destinationParent, int destinationChild)
+{
+    if (sourceRow < 0
+        || sourceRow + count - 1 >= rowCount(sourceParent)
+        || destinationChild < 0
+        || destinationChild > rowCount(destinationParent)
+        || sourceRow == destinationChild
+        || sourceRow == destinationChild - 1
+        || count <= 0
+        || sourceParent.isValid()
+        || destinationParent.isValid()) {
+        return false;
+    }
+    if (!beginMoveRows(QModelIndex(), sourceRow, sourceRow + count - 1, QModelIndex(), destinationChild))
+        return false;
+
+    int fromRow = sourceRow;
+    if (destinationChild < sourceRow)
+        fromRow += count - 1;
+    else
+        destinationChild--;
+    while (count--)
+        d->list.move(fromRow, destinationChild);
+    endMoveRows();
+    return true;
+}
+
 void QtFileListModel::onPixmapLoaded(const QString &path, const QPixmap &pixmap)
 {
     // pixmap loading task is finished:

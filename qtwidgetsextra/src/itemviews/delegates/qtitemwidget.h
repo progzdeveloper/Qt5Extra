@@ -15,11 +15,14 @@ class QTWIDGETSEXTRA_EXPORT QtItemWidget : public QWidget
 public:
     explicit QtItemWidget(QWidget* parent);
 
+    virtual QRect dragArea() const;
     virtual void setData(const QModelIndex&, const QStyleOptionViewItem&);
     virtual QSize sizeHint(const QModelIndex&, const QStyleOptionViewItem&) const;
     using QWidget::sizeHint; // for overload resolution
 
     void setVisible(bool visible) Q_DECL_OVERRIDE;
+
+
 
 protected:
     virtual bool viewportEvent(QEvent* e, QWidget*, const QStyleOptionViewItem&);

@@ -77,6 +77,9 @@ public:
     // Remove data:
     bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex()) Q_DECL_OVERRIDE;
 
+    // Move data:
+    bool moveRows(const QModelIndex &sourceParent, int sourceRow, int count, const QModelIndex &destinationParent, int destinationChild) Q_DECL_OVERRIDE;
+
 private Q_SLOTS:
     void onPixmapLoaded(const QString& path, const QPixmap& pixmap);
 

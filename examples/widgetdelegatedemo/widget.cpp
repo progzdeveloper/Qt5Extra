@@ -1,6 +1,7 @@
 #include "widget.h"
 #include "qtfilelistmodel.h"
 #include "previewlabel.h"
+#include <QtViewDragEventFilter>
 
 #include <QMouseEvent>
 
@@ -44,11 +45,16 @@ Widget::Widget(QWidget *parent)
     // that suppose to display dynamic content with
     // clickable elements (e.g. buttons)
     tableView = new QTableView(this);
+    tableView->setMouseTracking(true);
     tableView->installEventFilter(this);
     tableView->viewport()->installEventFilter(this);
     tableView->viewport()->setMouseTracking(true);
 
+    dragFilter = new QtViewDragEventFilter(tableView);
+    dragFilter->setDragMoveMode(QtViewDragEventFilter::BoundedMove);
+
     delegate = new FileItemDelegate(tableView);
+    connect(dragFilter, &QtViewDragEventFilter::dragIndexChanged, delegate, &QtItemWidgetDelegate::setDragIndex);
 
     connect(delegate, &FileItemDelegate::removeIndex, this, &Widget::removeItem);
     connect(delegate, &FileItemDelegate::showItemMenu, this, &Widget::showContextMenu);
@@ -66,7 +72,10 @@ Widget::Widget(QWidget *parent)
     tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Interactive);
     tableView->verticalHeader()->setHidden(true);
     tableView->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    //tableView->verticalScrollBar()->setSingleStep(2);
     tableView->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+    tableView->setSelectionMode(QTableView::SingleSelection);
+    tableView->setSelectionBehavior(QTableView::SelectRows);
 
     tableView->setModel(model);
 
@@ -239,6 +248,10 @@ FileItemWidget::FileItemWidget(bool isStatic, QWidget *parent) : QtItemWidget(pa
     pathLabel->setFixedWidth(176);
     pathLabel->setFont(pathFont);
 
+    dragLabel = new QLabel("|||", this);
+    dragLabel->setAttribute(Qt::WA_Hover);
+    dragLabel->setCursor(Qt::OpenHandCursor);
+
     sizeLabel = new QLabel(this);
     sizeLabel->setFont(sizeFont);
 
@@ -285,6 +298,7 @@ FileItemWidget::FileItemWidget(bool isStatic, QWidget *parent) : QtItemWidget(pa
     QHBoxLayout* mainLayout = new QHBoxLayout(this);
     mainLayout->addWidget(previewLabel);
     mainLayout->addLayout(labelsLayout, 1);
+    mainLayout->addWidget(dragLabel);
     mainLayout->addWidget(sampleButton);
     mainLayout->addWidget(moreButton);
     mainLayout->addWidget(removeButton);
@@ -375,6 +389,11 @@ void FileItemWidget::setData(const QModelIndex &index, const QStyleOptionViewIte
             //removeButton->setEnabled(true);
         }
     }
+}
+
+QRect FileItemWidget::dragArea() const
+{
+    return dragLabel->geometry();
 }
 
 void FileItemWidget::updateProgress()

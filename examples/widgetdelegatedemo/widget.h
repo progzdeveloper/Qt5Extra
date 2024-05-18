@@ -6,9 +6,10 @@
 #include <QtWidgets>
 #include <QtItemWidget>
 #include <QtItemWidgetDelegate>
-
+#include <QtViewDragEventFilter>
 
 class QtFileListModel;
+class QtViewDragEventFilter;
 
 class FileItemDelegate;
 
@@ -35,6 +36,7 @@ private:
     QMenu* createMenu(const QModelIndex&) const;
 
 private:
+    QtViewDragEventFilter* dragFilter;
     FileItemDelegate* delegate;
     QLabel* label;
     QtFileListModel* model;
@@ -51,6 +53,8 @@ public:
     explicit FileItemWidget(bool isStatic, QWidget* parent = Q_NULLPTR);
 
     void setData(const QModelIndex& index, const QStyleOptionViewItem &option) Q_DECL_OVERRIDE;
+
+    QRect dragArea() const Q_DECL_OVERRIDE;
 
     void updateProgress();
 
@@ -72,6 +76,7 @@ private:
     PreviewLabel* previewLabel;
     QLabel* pathLabel;
     QLabel* sizeLabel;
+    QLabel* dragLabel;
     QPushButton* sampleButton;
     QToolButton* moreButton;
     QToolButton* removeButton;

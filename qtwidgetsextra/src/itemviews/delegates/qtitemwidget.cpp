@@ -10,6 +10,11 @@ QtItemWidget::QtItemWidget(QWidget *parent) : QWidget(parent)
 {
 }
 
+QRect QtItemWidget::dragArea() const
+{
+    return rect(); // by default any point on widget rect is drag area
+}
+
 bool QtItemWidget::isMouseOver(QWidget *w, QMouseEvent *e) const
 {
     return w->rect().contains(w->mapFromGlobal(e->globalPos()));
