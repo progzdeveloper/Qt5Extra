@@ -24,27 +24,27 @@ public:
         Resizing           = 1 << 0,
         Dragging           = 1 << 1,
         RubberBand         = 1 << 2,
-        RequireMouseEvents = 1 << 3
+        ForwardMouseEvents = 1 << 3
     };
     Q_DECLARE_FLAGS(Options, Option)
     Q_FLAG(Options)
 
-    QtWindowFrameController(QObject* _parent = nullptr);
+    QtWindowFrameController(QObject* _parent = Q_NULLPTR);
     ~QtWindowFrameController();
 
-    void setWidget(QWidget* _target, QWidget* _watched = nullptr);
+    void setWidget(QWidget* target, QWidget* watched = Q_NULLPTR);
     QWidget* widget() const;
 
-    void setEnabled(bool _on);
+    void setEnabled(bool on);
     bool isEnabled() const;
 
-    void setOptions(Options _options);
+    void setOptions(Options options);
     Options options() const;
 
-    void setResizeMode(ResizeMode _mode);
+    void setResizeMode(ResizeMode mode);
     ResizeMode resizeMode() const;
 
-    void setBorderWidth(int _width);
+    void setBorderWidth(int width);
     int borderWidth() const;
 
 Q_SIGNALS:
@@ -53,13 +53,13 @@ Q_SIGNALS:
     void optionsChanged(Options, QPrivateSignal);
 
 protected:
-    bool eventFilter(QObject* _watched, QEvent* _event) override;
-    virtual bool mouseHover(QHoverEvent* _event);
+    bool eventFilter(QObject* watched, QEvent* event) override;
+    virtual bool mouseHover(QHoverEvent* event);
     virtual bool mouseLeave(QEvent*);
-    virtual bool mousePress(QMouseEvent* _event);
-    virtual bool mouseRelease(QMouseEvent* _event);
-    virtual bool mouseMove(QMouseEvent* _event);
-    virtual void updateCursorShape(const QPoint& _pos);
+    virtual bool mousePress(QMouseEvent* event);
+    virtual bool mouseRelease(QMouseEvent* event);
+    virtual bool mouseMove(QMouseEvent* event);
+    virtual void updateCursorShape(const QPoint& pos);
     virtual QRubberBand* createRubberBand() const;
 
 private:

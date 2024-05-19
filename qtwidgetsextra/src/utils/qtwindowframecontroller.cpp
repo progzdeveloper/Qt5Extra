@@ -156,29 +156,29 @@ QtWindowFrameController::QtWindowFrameController(QObject* parent)
 
 QtWindowFrameController::~QtWindowFrameController() = default;
 
-void QtWindowFrameController::setWidget(QWidget* _target, QWidget* _watched)
+void QtWindowFrameController::setWidget(QWidget* target, QWidget* watched)
 {
-    if (d->target == _target && d->watched == _watched)
+    if (d->target == target && d->watched == watched)
         return;
 
-    if (_watched == nullptr)
-        _watched = _target;
+    if (watched == nullptr)
+        watched = target;
 
     if (d->watched)
         d->watched->removeEventFilter(this);
 
     d->target = nullptr;
-    if (!_target)
+    if (!target)
         return;
 
-    d->watched = _watched;
+    d->watched = watched;
     if (d->watched)
         d->watched->installEventFilter(this);
 
-    if (!(_target->windowFlags() & Qt::FramelessWindowHint))
+    if (!(target->windowFlags() & Qt::FramelessWindowHint))
         d->options &= ~Resizing;
 
-    d->target = _target;
+    d->target = target;
     d->target->setMouseTracking(true);
     d->target->setAttribute(Qt::WA_Hover);
     d->rubberBand()->setMinimumSize(d->target->minimumSize());
@@ -189,11 +189,11 @@ QWidget* QtWindowFrameController::widget() const
     return d->target;
 }
 
-void QtWindowFrameController::setEnabled(bool _on)
+void QtWindowFrameController::setEnabled(bool on)
 {
-    if (d->enabled == _on)
+    if (d->enabled == on)
         return;
-    d->enabled = _on;
+    d->enabled = on;
     if (!d->enabled)
         d->rubberBand()->hide();
     Q_EMIT enabledChanged(d->enabled, QPrivateSignal{});
@@ -204,12 +204,12 @@ bool QtWindowFrameController::isEnabled() const
     return d->enabled;
 }
 
-void QtWindowFrameController::setOptions(QtWindowFrameController::Options _options)
+void QtWindowFrameController::setOptions(QtWindowFrameController::Options options)
 {
-    if (d->options == _options)
+    if (d->options == options)
         return;
 
-    d->options = _options;
+    d->options = options;
     if (d->target && (d->options & RubberBand))
         d->rubberBand()->setMinimumSize(d->target->minimumSize());
 
@@ -224,9 +224,9 @@ QtWindowFrameController::Options QtWindowFrameController::options() const
     return d->options;
 }
 
-void QtWindowFrameController::setResizeMode(ResizeMode _mode)
+void QtWindowFrameController::setResizeMode(ResizeMode mode)
 {
-    d->resizeMode = _mode;
+    d->resizeMode = mode;
 }
 
 QtWindowFrameController::ResizeMode QtWindowFrameController::resizeMode() const
@@ -234,12 +234,12 @@ QtWindowFrameController::ResizeMode QtWindowFrameController::resizeMode() const
     return d->resizeMode;
 }
 
-void QtWindowFrameController::setBorderWidth(int _width)
+void QtWindowFrameController::setBorderWidth(int width)
 {
-    if (_width == d->borderWidth)
+    if (width == d->borderWidth)
         return;
 
-    d->borderWidth = _width;
+    d->borderWidth = width;
     Q_EMIT borderWidthChanged(d->borderWidth, QPrivateSignal{});
 }
 
@@ -248,23 +248,23 @@ int QtWindowFrameController::borderWidth() const
     return d->borderWidth;
 }
 
-bool QtWindowFrameController::eventFilter(QObject* _watched, QEvent* _event)
+bool QtWindowFrameController::eventFilter(QObject* watched, QEvent* event)
 {
-    if (!d->enabled || _watched != d->watched)
-        return QObject::eventFilter(_watched, _event);
+    if (!d->enabled || watched != d->watched)
+        return QObject::eventFilter(watched, event);
 
-    switch (_event->type())
+    switch (event->type())
     {
     case QEvent::HoverMove:
-        return mouseHover(static_cast<QHoverEvent*>(_event));
+        return mouseHover(static_cast<QHoverEvent*>(event));
     case QEvent::Leave:
-        return mouseLeave(_event);
+        return mouseLeave(event);
     case QEvent::MouseButtonPress:
-        return mousePress(static_cast<QMouseEvent*>(_event));
+        return mousePress(static_cast<QMouseEvent*>(event));
     case QEvent::MouseMove:
-        return mouseMove(static_cast<QMouseEvent*>(_event));
+        return mouseMove(static_cast<QMouseEvent*>(event));
     case QEvent::MouseButtonRelease:
-        return mouseRelease(static_cast<QMouseEvent*>(_event));
+        return mouseRelease(static_cast<QMouseEvent*>(event));
     case QEvent::Hide:
         d->leftButtonPressed = false;
         d->dragStarted = false;
@@ -274,13 +274,13 @@ bool QtWindowFrameController::eventFilter(QObject* _watched, QEvent* _event)
     default:
         break;
     }
-    return QObject::eventFilter(_watched, _event);
+    return QObject::eventFilter(watched, event);
 }
 
-bool QtWindowFrameController::mouseHover(QHoverEvent* _event)
+bool QtWindowFrameController::mouseHover(QHoverEvent* event)
 {
     if (d->target)
-        updateCursorShape(d->target->mapToGlobal(_event->pos()));
+        updateCursorShape(d->target->mapToGlobal(event->pos()));
     return false;
 }
 
@@ -294,13 +294,13 @@ bool QtWindowFrameController::mouseLeave(QEvent*)
     return true;
 }
 
-bool QtWindowFrameController::mousePress(QMouseEvent* _event)
+bool QtWindowFrameController::mousePress(QMouseEvent* event)
 {
-    if (!d->target || (_event->button() != Qt::LeftButton))
+    if (!d->target || (event->button() != Qt::LeftButton))
         return false;
 
     d->leftButtonPressed = true;
-    d->calculateCursorPosition(_event->globalPos(), d->target->frameGeometry(), d->mousePress);
+    d->calculateCursorPosition(event->globalPos(), d->target->frameGeometry(), d->mousePress);
     if (d->options & Resizing && d->resizeMode == OnDemandResize)
         d->rubberBand()->setGeometry(d->target->geometry().marginsRemoved(d->borderMargins()));
 
@@ -310,19 +310,19 @@ bool QtWindowFrameController::mousePress(QMouseEvent* _event)
         if ((d->options & RubberBand) && !d->rubberBand()->isVisible())
             d->rubberBand()->show();
     }
-    if ((d->options & Dragging) && d->target->rect().marginsRemoved(d->borderMargins()).contains(_event->pos()))
+    if ((d->options & Dragging) && d->target->rect().marginsRemoved(d->borderMargins()).contains(event->pos()))
     {
         d->dragStarted = true;
-        d->dragPos = _event->globalPos();
+        d->dragPos = event->globalPos();
     }
 
     if (!(d->options & Resizing))
-        return ((d->options & RequireMouseEvents) ? false : d->dragStarted);
+        return ((d->options & ForwardMouseEvents) ? false : d->dragStarted);
 
     return d->mousePress != Qt::Edges{};
 }
 
-bool QtWindowFrameController::mouseRelease(QMouseEvent* _event)
+bool QtWindowFrameController::mouseRelease(QMouseEvent*)
 {
     if (!d->target)
         return false;
@@ -336,40 +336,40 @@ bool QtWindowFrameController::mouseRelease(QMouseEvent* _event)
     return false;
 }
 
-bool QtWindowFrameController::mouseMove(QMouseEvent* _event)
+bool QtWindowFrameController::mouseMove(QMouseEvent* event)
 {
     if (!d->target)
         return false;
 
-    updateCursorShape(_event->globalPos());
+    updateCursorShape(event->globalPos());
     if (!d->leftButtonPressed)
         return false;
 
     if (d->dragStarted)
     {
-        const auto globalPos = _event->globalPos();
+        const auto globalPos = event->globalPos();
         d->target->move(d->target->frameGeometry().topLeft() + (globalPos - d->dragPos));
         d->dragPos = globalPos;
     }
 
     if (!(d->options & Resizing))
-        return ((d->options & RequireMouseEvents) ? false : d->dragStarted);
+        return ((d->options & ForwardMouseEvents) ? false : d->dragStarted);
 
     if (d->mousePress == Qt::Edges{})
         return false;
 
-    const QRect rc = d->evaluateGeometry(_event->globalPos());
+    const QRect rc = d->evaluateGeometry(event->globalPos());
     if (d->rubberBand()->isVisible())
         d->rubberBand()->setGeometry(d->adjustRect(rc, d->rubberBand()).marginsRemoved(d->borderMargins()));
 
     if (d->resizeMode == ContinuousResize)
         d->target->setGeometry(d->adjustRect(rc, d->target));
 
-    _event->ignore();
+    event->ignore();
     return true;
 }
 
-void QtWindowFrameController::updateCursorShape(const QPoint& _pos)
+void QtWindowFrameController::updateCursorShape(const QPoint& pos)
 {
     if (!d->target)
         return;
@@ -384,7 +384,7 @@ void QtWindowFrameController::updateCursorShape(const QPoint& _pos)
     if (d->leftButtonPressed || d->borderWidth == 0)
         return;
 
-    d->calculateCursorPosition(_pos, d->target->frameGeometry(), d->mouseMove);
+    d->calculateCursorPosition(pos, d->target->frameGeometry(), d->mouseMove);
     d->cursorChanged = true;
     if ((d->mouseMove == Qt::TopEdge) || (d->mouseMove == Qt::BottomEdge))
     {
