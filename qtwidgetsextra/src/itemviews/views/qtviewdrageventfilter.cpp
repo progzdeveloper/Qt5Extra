@@ -99,8 +99,9 @@ public:
     }
 };
 
-QtViewDragEventFilter::QtViewDragEventFilter(QAbstractItemView *v)
-    : d(new QtViewDragEventFilterPrivate(this))
+QtViewDragEventFilter::QtViewDragEventFilter(QObject *parent, QAbstractItemView *v)
+    : QGraphicsEffect(parent)
+    , d(new QtViewDragEventFilterPrivate(this))
 {
     setView(v);
 }
@@ -112,8 +113,6 @@ void QtViewDragEventFilter::setView(QAbstractItemView *view)
     d->detachView(d->view);
     d->view = view;
     d->attachView(d->view);
-    if (d->view)
-        d->view->viewport()->setGraphicsEffect(this);
 }
 
 QAbstractItemView *QtViewDragEventFilter::view() const
@@ -143,12 +142,16 @@ void QtViewDragEventFilter::draw(QPainter* painter)
 
     QPoint offset;
     QPixmap pixmap = sourcePixmap(Qt::DeviceCoordinates, &offset);
-    if (pixmap.isNull())
-        return drawSource(painter);
-
     QPoint position;
+
+    QPainter* p = painter;
     QPainter pixmapPainter;
-    pixmapPainter.begin(&pixmap);
+    if (!pixmap.isNull())
+    {
+        pixmapPainter.begin(&pixmap);
+        p = &pixmapPainter;
+    }
+
     switch (d->dragMode)
     {
     case UnboundedMove:
@@ -159,14 +162,17 @@ void QtViewDragEventFilter::draw(QPainter* painter)
         position = { 0, d->draggedPosition->y() + d->yOffset };
         break;
     }
-    pixmapPainter.drawPixmap(position, d->draggedPixmap);
+    p->drawPixmap(position, d->draggedPixmap);
 
-    pixmapPainter.end();
+    if (!pixmap.isNull())
+    {
+        pixmapPainter.end();
 
-    const QTransform restoreTransform = painter->worldTransform();
-    painter->setWorldTransform({});
-    painter->drawPixmap(offset, pixmap);
-    painter->setWorldTransform(restoreTransform);
+        const QTransform restoreTransform = painter->worldTransform();
+        painter->setWorldTransform({});
+        painter->drawPixmap(offset, pixmap);
+        painter->setWorldTransform(restoreTransform);
+    }
 }
 
 bool QtViewDragEventFilter::eventFilter(QObject* watched, QEvent* event)

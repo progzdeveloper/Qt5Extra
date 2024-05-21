@@ -15,7 +15,7 @@ public:
         UnboundedMove
     };
 
-    explicit QtViewDragEventFilter(QAbstractItemView* v = Q_NULLPTR);
+    explicit QtViewDragEventFilter(QObject* parent, QAbstractItemView* v = Q_NULLPTR);
     ~QtViewDragEventFilter();
 
     void setView(QAbstractItemView* view);

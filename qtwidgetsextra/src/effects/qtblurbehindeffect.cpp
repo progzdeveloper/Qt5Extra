@@ -44,45 +44,45 @@ public:
     {
     }
 
-    QImage blurImage(const QImage &_input)
+    QImage blurImage(const QImage& input)
     {
         switch(blurringMethod)
         {
         case QtBlurBehindEffect::BlurMethod::BoxBlur:
-            return boxBlurImage(_input, blurRadius);
+            return boxBlurImage(input, blurRadius);
         case QtBlurBehindEffect::BlurMethod::StackBlur:
-            return stackBlurImage(_input, blurRadius, maxThreadCount);
+            return stackBlurImage(input, blurRadius, maxThreadCount);
 #ifndef NO_OPENGLBLUR
         case QtBlurBehindEffect::BlurMethod::GLBlur:
-            return glBlur.blurImage_DualKawase(_input, 2, std::max(blurRadius - 2, 1));
+            return glBlur.blurImage_DualKawase(input, 2, std::max(blurRadius - 2, 1));
 #endif
         }
-        return _input;
+        return input;
     }
 
-    QPixmap grabSource(QWidget* _widget) const
+    QPixmap grabSource(QWidget* widget) const
     {
-        if (!_widget)
+        if (!widget)
             return QPixmap{};
 
         qreal dpr(1.0);
-        if (const auto *paintDevice = _widget)
+        if (const auto *paintDevice = widget)
             dpr = paintDevice->devicePixelRatioF();
         else
             qWarning("QtBlurBehindEffect::grabSource: Painter not active");
 
         const bool isGlBlur = blurringMethod == QtBlurBehindEffect::BlurMethod::GLBlur;
-        QPixmap image(_widget->size());
+        QPixmap image(widget->size());
         image.setDevicePixelRatio(dpr);
-        image.fill(isGlBlur ? _widget->palette().color(_widget->backgroundRole()) : Qt::transparent);
-        _widget->render(&image, {}, {}, QWidget::DrawChildren);
+        image.fill(isGlBlur ? widget->palette().color(widget->backgroundRole()) : Qt::transparent);
+        widget->render(&image, {}, {}, QWidget::DrawChildren);
 
         return image;
     }
 
-    void renderImage(QPainter *_painter, const QImage &_image, const QBrush& _brush)
+    void renderImage(QPainter* painter, const QImage& image, const QBrush& brush)
     {
-        if (sourceRegion.isEmpty() || _image.isNull())
+        if (sourceRegion.isEmpty() || image.isNull())
             return;
 
         const QRect bounds = sourceRegion.boundingRect();
@@ -91,19 +91,19 @@ public:
 
         QTransform transform;
         if (coordSystem == Qt::LogicalCoordinates)
-            transform = _painter->worldTransform();
+            transform = painter->worldTransform();
 
-        _painter->setRenderHints(QPainter::Antialiasing|QPainter::SmoothPixmapTransform);
+        painter->setRenderHints(QPainter::Antialiasing|QPainter::SmoothPixmapTransform);
         if (coordSystem == Qt::LogicalCoordinates)
-            _painter->translate(bounds.topLeft());
+            painter->translate(bounds.topLeft());
 
-        if (!_brush.isOpaque() && _brush.style() != Qt::NoBrush)
-            _painter->fillRect(r, _brush);
-        _painter->setOpacity(blurOpacity);
-        _painter->drawImage(r, _image);
+        if (!brush.isOpaque() && brush.style() != Qt::NoBrush)
+            painter->fillRect(r, brush);
+        painter->setOpacity(blurOpacity);
+        painter->drawImage(r, image);
 
         if (coordSystem == Qt::LogicalCoordinates)
-            _painter->setWorldTransform(transform);
+            painter->setWorldTransform(transform);
     }
 };
 
@@ -283,7 +283,7 @@ void QtBlurBehindEffect::draw(QPainter* painter)
     if (!d->sourceRegion.isEmpty() && d->blurRadius > 1)
     {
         const double dpr = pixmap.devicePixelRatioF();
-        const QSize s = (QSizeF(bounds.size()) * (dpr / d->downsamplingFactor)).toSize();
+        const QSize s = bounds.size() * (dpr / d->downsamplingFactor);
         QImage pixmapPart = std::move(pixmap.copy(bounds).scaled(s, Qt::IgnoreAspectRatio, Qt::SmoothTransformation).toImage());
         if (d->sourceImage != pixmapPart)
         {
