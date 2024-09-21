@@ -6,9 +6,8 @@
 #include <QRectF>
 #include <QDebug>
 
-#include <cmath>
 #include <QtGeometryAlgorithms>
-
+#include <cmath>
 #include <array>
 #include <type_traits>
 #include <iterator>

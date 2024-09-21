@@ -10,7 +10,7 @@ class QTLAYOUTSEXTRA_EXPORT QtScreenLayout : public QtAnimatedLayout
 public:
     enum LayoutMode
     {
-        StackMode,
+        CascadeMode,
         BoxMode,
         GridMode
     };
@@ -19,9 +19,17 @@ public:
     enum ScreenMode
     {
         AvailGeometry,
-        FullGeometry
+        FullGeometry,
+        CustomGeometry
     };
     Q_ENUM(ScreenMode)
+
+    enum EnqueueMode
+    {
+        EnqueueFront,
+        EnqueueBack
+    };
+    Q_ENUM(EnqueueMode)
 
     explicit QtScreenLayout(QScreen* scr = Q_NULLPTR);
     ~QtScreenLayout();
@@ -35,6 +43,9 @@ public:
     void setLayoutMode(LayoutMode mode);
     LayoutMode layoutMode() const;
 
+    void setEnqueueMode(EnqueueMode mode);
+    EnqueueMode enqueueMode() const;
+
     void setScreenMode(ScreenMode mode);
     ScreenMode screenMode() const;
 
@@ -44,6 +55,9 @@ public:
     void setPivotAlignment(Qt::Alignment align);
     Qt::Alignment pivotAlignment() const;
 
+public Q_SLOTS:
+    void updateGeometry(const QRect& r);
+
     // QLayoutItem interface
 public:
     QSize sizeHint() const Q_DECL_OVERRIDE;
@@ -52,6 +66,7 @@ public:
     Qt::Orientations expandingDirections() const Q_DECL_OVERRIDE;
     void setGeometry(const QRect &r) Q_DECL_OVERRIDE;
     QRect geometry() const Q_DECL_OVERRIDE;
+
 
     // QLayout interface
 public:

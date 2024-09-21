@@ -53,10 +53,12 @@ public:
     QtScreenLayout* q = Q_NULLPTR;
     QPointer<QScreen> screen;
     std::deque<QLayoutItem*> items;
+    QRect customRect;
     Qt::Orientation orientation = Qt::Horizontal;
     mutable Qt::Alignment pivotAlign = Qt::Alignment{0};
     QtScreenLayout::ScreenMode screenMode = QtScreenLayout::FullGeometry;
     QtScreenLayout::LayoutMode layoutMode = QtScreenLayout::BoxMode;
+    QtScreenLayout::EnqueueMode enqueueMode = QtScreenLayout::EnqueueBack;
     int maxScreens = -1;
     bool locked = false;
 
@@ -111,7 +113,7 @@ public:
         setItemsRects(rects);
     }
 
-    void layoutItemsInStack(const QRect& screenRect)
+    void layoutItemsInCascade(const QRect& screenRect)
     {
         if (items.empty())
             return;
@@ -146,8 +148,8 @@ public:
     {
         switch(layoutMode)
         {
-        case QtScreenLayout::StackMode:
-            layoutItemsInStack(screenRect);
+        case QtScreenLayout::CascadeMode:
+            layoutItemsInCascade(screenRect);
             break;
         case QtScreenLayout::GridMode:
             layoutItemsInGrid(screenRect);
@@ -214,6 +216,9 @@ public:
         QRect rect;
         switch(screenMode)
         {
+        case QtScreenLayout::CustomGeometry:
+            rect = customRect.isValid() ? customRect : screen->geometry();
+            break;
         case QtScreenLayout::AvailGeometry:
             rect = screen->availableGeometry();
             break;
@@ -341,7 +346,11 @@ void QtScreenLayout::onScreenRemoved(QScreen *scr)
     d->detachScreen(d->screen);
     d->screen = QtScreenLayoutPrivate::resolveScreen(Q_NULLPTR);
     d->attachScreen(d->screen);
-    setGeometry(d->effectiveRect());
+    // don't play any animation
+    QScopedValueRollback(d->locked, true);
+    setAnimated(false);
+    d->layoutItems(d->effectiveRect());
+    setAnimated(true);
 }
 
 void QtScreenLayout::setMaxUseableScreens(int n)
@@ -376,6 +385,21 @@ void QtScreenLayout::setLayoutMode(LayoutMode mode)
 QtScreenLayout::LayoutMode QtScreenLayout::layoutMode() const
 {
     return d->layoutMode;
+}
+
+void QtScreenLayout::setEnqueueMode(EnqueueMode mode)
+{
+    if (d->enqueueMode == mode)
+        return;
+
+    d->enqueueMode = mode;
+    invalidate();
+    d->layoutItems(d->effectiveRect());
+}
+
+QtScreenLayout::EnqueueMode QtScreenLayout::enqueueMode() const
+{
+    return d->enqueueMode;
 }
 
 void QtScreenLayout::setScreenMode(ScreenMode mode)
@@ -441,6 +465,15 @@ Qt::Orientations QtScreenLayout::expandingDirections() const
     return Qt::Horizontal | Qt::Vertical;
 }
 
+void QtScreenLayout::updateGeometry(const QRect &r)
+{
+    QScopedValueRollback(d->locked, true);
+    d->customRect = r;
+    setAnimated(false);
+    d->layoutItems(d->effectiveRect());
+    setAnimated(true);
+}
+
 void QtScreenLayout::setGeometry(const QRect& r)
 {
     d->layoutItems(r.marginsRemoved(contentsMargins()));
@@ -468,7 +501,18 @@ QLayoutItem *QtScreenLayout::appendWidget(QWidget *widget)
 void QtScreenLayout::addItem(QLayoutItem *item)
 {
     invalidate();
-    d->items.emplace_back(item);
+    switch (d->enqueueMode)
+    {
+    case EnqueueFront:
+        d->items.emplace_front(item);
+        break;
+    case EnqueueBack:
+        d->items.emplace_back(item);
+        break;
+    default:
+        Q_ASSERT("unreachable");
+    }
+
     d->layoutItems(d->effectiveRect());
 }
 
@@ -510,9 +554,8 @@ bool QtScreenLayout::eventFilter(QObject *watched, QEvent *event)
 
     switch(event->type())
     {
-    case QEvent::Hide:
     case QEvent::Close:
-        takeAt(index);
+        takeAt(index); // remove if widget was closed
     default:
         break;
     }
